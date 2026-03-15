@@ -3,7 +3,7 @@
 **AI Agent Security & Observability Platform**
 
 [![npm version](https://img.shields.io/npm/v/ClawGuard-ai)](https://www.npmjs.com/package/ClawGuard-ai)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](LICENSE)
 [![Zero Dependencies](https://img.shields.io/badge/dependencies-0-brightgreen)]()
 [![Node.js >= 18](https://img.shields.io/badge/node-%3E%3D18-green)]()
 [![Tests](https://img.shields.io/badge/tests-205%20passed-brightgreen)]()
@@ -276,7 +276,11 @@ openclaw hooks enable ClawGuard-ai-policy   # Enforces tool call policies
 
 ## 📜 License
 
-MIT © [Kang Zhou](https://github.com/NeuZhou)
+**AGPL-3.0** © [Kang Zhou](https://github.com/NeuZhou)
+
+This project is licensed under the [GNU Affero General Public License v3.0](LICENSE).
+
+**Commercial licensing** is available for organizations that cannot comply with AGPL terms. Contact: neuzhou@outlook.com
 
 ---
 
