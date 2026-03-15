@@ -8,6 +8,7 @@ import * as crypto from 'crypto';
 import { SecurityFinding, RuleContext } from './types';
 import { builtinRules } from './rules';
 import { ScanFinding, toSarif } from './exporters/sarif';
+import { calculateRisk } from './risk-engine';
 
 export interface ScanOptions {
   strict: boolean;
@@ -134,6 +135,24 @@ export function formatText(result: ScanResult): string {
   lines.push('📊 Summary:');
   for (const [sev, count] of Object.entries(result.summary)) {
     if (count > 0) lines.push(`   ${icons[sev] || '⚪'} ${sev}: ${count}`);
+  }
+
+  // Risk Score
+  const riskFindings = result.findings.map(f => ({
+    id: f.file + ':' + f.line,
+    timestamp: Date.now(),
+    ruleId: f.ruleId,
+    ruleName: f.ruleId,
+    severity: f.severity as 'critical' | 'high' | 'warning' | 'info',
+    category: f.ruleId,
+    description: f.description,
+    action: 'log' as const,
+  }));
+  const risk = calculateRisk(riskFindings);
+  lines.push('');
+  lines.push(`🎯 Risk Score: ${risk.icon} ${risk.score}/100 — ${risk.verdict}`);
+  if (risk.attackChains.length > 0) {
+    lines.push(`   ⛓️ Attack chains: ${risk.attackChains.join(', ')}`);
   }
   lines.push('');
 

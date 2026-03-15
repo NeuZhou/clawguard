@@ -83,7 +83,7 @@ export const identityProtectionRule: SecurityRule = {
           Math.max(0, content.indexOf(file) - 50),
           content.indexOf(file) + file.length + 50
         );
-        if (/(?:delete|rm|remove|truncate|wipe|destroy|corrupt)/i.test(surrounding)) {
+        if (/(?:^|[\s;|&`])(?:delete|rm|remove|truncate|wipe|destroy|corrupt)\s/i.test(surrounding)) {
           findings.push({
             id: crypto.randomUUID(),
             timestamp: context.timestamp,

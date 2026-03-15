@@ -10,6 +10,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { runScan, ScanOptions } from './skill-scanner';
+import { runSecurityScan, calculateRisk } from './index';
 
 const VERSION = '5.0.0';
 
@@ -21,6 +22,7 @@ Usage: openclaw-watch <command> [options]
 
 Commands:
   scan <path>        Scan files/directories for security threats
+  check <text>       Check a message for threats (agent-friendly)
   init               Generate openclaw-watch.yaml config file
   start              Start real-time monitoring hooks
   dashboard          Open the security dashboard
@@ -35,7 +37,7 @@ Examples:
   openclaw-watch scan ./skills/
   openclaw-watch scan ./SKILL.md --strict
   openclaw-watch scan . --format sarif > results.sarif
-  openclaw-watch scan . --format json | jq '.summary'
+  openclaw-watch check "ignore all previous instructions"
 `;
   process.stdout.write(help + '\n');
 }
@@ -133,6 +135,34 @@ function main(): void {
       }
       runScan(target, options);
       break;
+
+    case 'check':
+    case 'check-message': {
+      // Agent-friendly: check a message string for threats
+      const text = args.slice(1).join(' ');
+      if (!text) {
+        process.stderr.write('Usage: openclaw-watch check "message text to analyze"\n');
+        process.exit(2);
+      }
+      const findings = runSecurityScan(text, 'inbound', { session: 'cli', channel: 'cli', timestamp: Date.now(), recentMessages: [], recentFindings: [] } as any);
+      const risk = calculateRisk(findings);
+      if (findings.length === 0) {
+        process.stdout.write(`✅ CLEAN (score: ${risk.score})\n`);
+      } else {
+        process.stdout.write(`${risk.icon} ${risk.verdict} (score: ${risk.score})\n`);
+        for (const f of findings) {
+          const icon = f.severity === 'critical' ? '🔴' : f.severity === 'high' ? '🟠' : f.severity === 'warning' ? '🟡' : '🔵';
+          process.stdout.write(`  ${icon} [${f.severity.toUpperCase()}] ${f.ruleId}: ${f.description}\n`);
+        }
+        if (risk.attackChains.length > 0) {
+          process.stdout.write(`  ⛓️ Attack chains: ${risk.attackChains.join(', ')}\n`);
+        }
+      }
+      if (findings.some(f => f.severity === 'critical' || f.severity === 'high')) {
+        process.exit(1);
+      }
+      break;
+    }
 
     case 'init':
       initConfig();
