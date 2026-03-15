@@ -36,8 +36,8 @@ const PII_PATTERNS: Array<{ type: string; regex: RegExp; placeholder: (i: number
 
 // Credential patterns
 const CREDENTIAL_PATTERNS: Array<{ type: string; regex: RegExp; placeholder: (i: number) => string }> = [
-  // API keys (generic)
-  { type: 'api_key', regex: /\b(?:sk|pk|api|key|token|secret|bearer)[-_]?[A-Za-z0-9]{20,}\b/gi, placeholder: (i) => `<API_KEY_${i}>` },
+  // API keys (generic) — supports multi-segment like sk-proj-xxx, pk_live_xxx
+  { type: 'api_key', regex: /\b(?:sk|pk|api|key|token|secret|bearer)[-_](?:[A-Za-z0-9][-_]?){20,}\b/gi, placeholder: (i) => `<API_KEY_${i}>` },
   // AWS Access Key
   { type: 'aws_key', regex: /\bAKIA[0-9A-Z]{16}\b/g, placeholder: (i) => `<AWS_KEY_${i}>` },
   // GitHub token
@@ -45,7 +45,7 @@ const CREDENTIAL_PATTERNS: Array<{ type: string; regex: RegExp; placeholder: (i:
   // OpenAI key
   { type: 'openai_key', regex: /\bsk-[A-Za-z0-9]{32,}\b/g, placeholder: (i) => `<OPENAI_KEY_${i}>` },
   // Azure connection string
-  { type: 'azure_conn', regex: /DefaultEndpointsProtocol=https?;AccountName=[^;]+;AccountKey=[^;]+;?/gi, placeholder: (i) => `<AZURE_CONN_${i}>` },
+  { type: 'azure_conn', regex: /DefaultEndpointsProtocol=https?;[^\s]+/gi, placeholder: (i) => `<AZURE_CONN_${i}>` },
   // JWT tokens
   { type: 'jwt', regex: /\beyJ[A-Za-z0-9_-]{10,}\.eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b/g, placeholder: (i) => `<JWT_${i}>` },
   // Private keys
