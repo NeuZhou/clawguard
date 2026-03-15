@@ -1,12 +1,14 @@
----
-name: openclaw-watch-dashboard
-description: "Real-time monitoring dashboard with REST API"
-metadata:
-  openclaw:
-    emoji: "📊"
-    events: ["gateway:startup"]
----
+# Dashboard Hook
 
-# OpenClaw Watch — Dashboard Hook
+Web dashboard for real-time monitoring and management.
 
-Launches an HTTP dashboard on port 3001 with live stats, message feed, and security alerts.
+## Events
+
+- `gateway:startup` — Starts HTTP server on port 19790
+
+## Features
+
+- Real-time SSE event streaming
+- 6-tab SPA: Overview, Monitor, Security, Cost, Audit, Settings
+- REST API for all data access
+- Dark theme, responsive, zero external dependencies

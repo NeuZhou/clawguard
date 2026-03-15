@@ -1,79 +1,157 @@
-export interface HookEvent {
-  type: string;
-  action: string;
-  sessionKey: string;
-  timestamp: Date;
-  messages: string[];
-  context: {
-    content?: string;
-    from?: string;
-    to?: string;
-    channelId?: string;
-    success?: boolean;
-    cfg?: Record<string, unknown>;
-    workspaceDir?: string;
-    [key: string]: unknown;
-  };
-}
+// OpenClaw Watch — Type Definitions
 
-export interface MessageRecord {
+export type Severity = 'critical' | 'high' | 'warning' | 'info';
+export type Direction = 'inbound' | 'outbound';
+export type AlertAction = 'log' | 'alert' | 'block';
+
+export interface WatchMessage {
   id: string;
-  direction: 'in' | 'out';
+  timestamp: number;
+  direction: Direction;
+  session: string;
+  channel: string;
   content: string;
-  from?: string;
-  to?: string;
-  channelId?: string;
-  sessionKey: string;
-  timestamp: number;
   estimatedTokens: number;
+  estimatedCostUsd: number;
+  model?: string;
+  latencyMs?: number;
+  metadata?: Record<string, unknown>;
 }
 
-export interface SecurityAlert {
+export interface SecurityFinding {
   id: string;
-  severity: 'critical' | 'warning' | 'info';
-  type: string;
+  timestamp: number;
+  ruleId: string;
+  ruleName: string;
+  severity: Severity;
+  category: string;
+  owaspCategory?: string;
   description: string;
-  source?: string;
-  sessionKey: string;
-  timestamp: number;
-  matched?: string;
+  evidence?: string;
+  session?: string;
+  channel?: string;
+  action: AlertAction;
 }
 
-export interface SessionEvent {
-  type: 'new' | 'reset' | 'compact' | 'message';
-  sessionKey: string;
+export interface AuditEvent {
+  id: string;
   timestamp: number;
+  type: string;
+  detail: string;
+  session?: string;
+  prevHash: string;
+  hash: string;
+  metadata?: Record<string, unknown>;
 }
 
-export interface StoreData {
-  messages: MessageRecord[];
-  securityAlerts: SecurityAlert[];
-  sessionEvents: SessionEvent[];
-  stats: {
-    totalMessages: number;
-    totalTokensEstimated: number;
-    totalAlerts: number;
-    firstSeen: number;
-    lastActivity: number;
-    pendingResponses: Map<string, number> | Record<string, number>;
+export interface SessionInfo {
+  id: string;
+  channel: string;
+  startedAt: number;
+  lastActivityAt: number;
+  messageCount: number;
+  estimatedTokens: number;
+  estimatedCostUsd: number;
+  securityFindings: number;
+  model?: string;
+}
+
+export interface WatchConfig {
+  dashboard: { port: number; enabled: boolean };
+  budget: { dailyUsd: number; weeklyUsd: number; monthlyUsd: number };
+  alerts: {
+    costThresholds: number[];
+    securityEscalate: Severity[];
+    stuckTimeoutMs: number;
+    cooldownMs: number;
   };
+  security: {
+    enabledRules: string[];
+    customRulesDir: string;
+  };
+  exporters: {
+    jsonl: { enabled: boolean };
+    syslog: { enabled: boolean; host: string; port: number };
+    webhook: { enabled: boolean; url: string; secret: string };
+  };
+  retention: { days: number; maxFileSizeMb: number };
+}
+
+export const DEFAULT_CONFIG: WatchConfig = {
+  dashboard: { port: 19790, enabled: true },
+  budget: { dailyUsd: 50, weeklyUsd: 200, monthlyUsd: 500 },
+  alerts: {
+    costThresholds: [0.8, 0.9, 1.0],
+    securityEscalate: ['critical', 'high'],
+    stuckTimeoutMs: 300_000,
+    cooldownMs: 300_000,
+  },
+  security: {
+    enabledRules: ['prompt-injection', 'data-leakage', 'anomaly-detection', 'compliance'],
+    customRulesDir: '~/.openclaw/openclaw-watch/rules.d',
+  },
+  exporters: {
+    jsonl: { enabled: true },
+    syslog: { enabled: false, host: '127.0.0.1', port: 514 },
+    webhook: { enabled: false, url: '', secret: '' },
+  },
+  retention: { days: 30, maxFileSizeMb: 50 },
+};
+
+export interface SecurityRule {
+  id: string;
+  name: string;
+  description: string;
+  owaspCategory: string;
+  enabled: boolean;
+  check(content: string, direction: Direction, context: RuleContext): SecurityFinding[];
+}
+
+export interface RuleContext {
+  session: string;
+  channel: string;
+  timestamp: number;
+  recentMessages: WatchMessage[];
+  recentFindings: SecurityFinding[];
+  sessionInfo?: SessionInfo;
+}
+
+export interface CustomRuleDefinition {
+  name: string;
+  version: string;
+  rules: CustomRuleEntry[];
+}
+
+export interface CustomRuleEntry {
+  id: string;
+  description: string;
+  event: string;
+  severity: Severity;
+  patterns?: { regex?: string; keyword?: string }[];
+  conditions?: { metric: string; operator: string; value: number }[];
+  action: AlertAction;
+}
+
+export interface AlertState {
+  lastAlertTime: Record<string, number>;
+  budgetAlerted: Record<string, boolean>;
 }
 
 export interface CostBreakdown {
-  totalEstimatedTokens: number;
-  inputTokens: number;
-  outputTokens: number;
-  estimatedCostUSD: number;
-  bySession: Record<string, { tokens: number; messages: number }>;
-  byDay: Record<string, { tokens: number; messages: number; cost: number }>;
+  daily: number;
+  weekly: number;
+  monthly: number;
+  byModel: Record<string, number>;
+  bySession: Record<string, number>;
+  projection: number;
 }
 
-export interface DashboardStats {
+export interface OverviewStats {
   totalMessages: number;
   activeSessions: number;
-  estimatedCost: number;
+  costToday: number;
   securityAlerts: number;
-  avgResponseTimeMs: number;
-  messagesPerHour: number;
-  uptimeHours: number;
+  uptimeMs: number;
+  health: 'healthy' | 'warnings' | 'critical';
+  recentActivity: number[];
 }

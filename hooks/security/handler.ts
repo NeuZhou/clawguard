@@ -1,32 +1,90 @@
-import { addAlert } from '../../src/store.js';
-import { scanAll } from '../../src/security.js';
-import type { HookEvent } from '../../src/types.js';
+// OpenClaw Watch — Security Hook
+// Real-time security scanning pipeline
 
-const handler = async (event: HookEvent) => {
-  const { action, sessionKey, context } = event;
-  const content = context.content || '';
+import { store } from '../../src/store';
+import { runSecurityScan, loadCustomRules } from '../../src/security-engine';
+import { Direction, RuleContext } from '../../src/types';
+import { sendToSyslog } from '../../src/exporters/syslog';
+import { sendWebhook } from '../../src/exporters/webhook';
 
+interface HookEvent {
+  type?: string;
+  session?: { id?: string; model?: string };
+  sessionId?: string;
+  channel?: { name?: string; id?: string };
+  channelId?: string;
+  content?: string;
+  message?: string;
+  messages?: { content?: string }[];
+}
+
+function getContent(event: HookEvent): string {
+  if (typeof event.content === 'string') return event.content;
+  if (event.message && typeof event.message === 'string') return event.message;
+  if (event.messages && Array.isArray(event.messages)) {
+    return event.messages.map((m: { content?: string }) => m.content || '').join('\n');
+  }
+  return '';
+}
+
+let customRulesInitialized = false;
+
+export default function handler(event: HookEvent): void {
+  const eventType = event.type || '';
+
+  if (!customRulesInitialized) {
+    const config = store.getConfig();
+    loadCustomRules(config.security.customRulesDir);
+    customRulesInitialized = true;
+  }
+
+  let direction: Direction;
+  switch (eventType) {
+    case 'message:received':
+    case 'message:preprocessed':
+      direction = 'inbound';
+      break;
+    case 'message:sent':
+      direction = 'outbound';
+      break;
+    default:
+      return;
+  }
+
+  const content = getContent(event);
   if (!content) return;
 
-  try {
-    let direction: 'in' | 'out' = 'in';
-    if (action === 'message:sent') direction = 'out';
+  const session = event.session?.id || event.sessionId || 'unknown';
+  const channel = event.channel?.name || event.channel?.id || event.channelId || 'unknown';
 
-    const alerts = scanAll(content, sessionKey, direction, context.from as string | undefined);
+  const context: RuleContext = {
+    session,
+    channel,
+    timestamp: Date.now(),
+    recentMessages: store.getRecentMessages(50),
+    recentFindings: store.getRecentFindings(20),
+    sessionInfo: store.getSession(session),
+  };
 
-    for (const alert of alerts) {
-      addAlert(alert);
+  const findings = runSecurityScan(content, direction, context);
 
-      // Push critical/warning alerts to user
-      if (alert.severity === 'critical') {
-        event.messages.push(`🚨 [OpenClaw Watch] CRITICAL: ${alert.description}`);
-      } else if (alert.severity === 'warning' && alert.type === 'prompt_injection') {
-        event.messages.push(`⚠️ [OpenClaw Watch] ${alert.description}`);
+  // Update session security finding count
+  if (findings.length > 0) {
+    const sessionInfo = store.getSession(session);
+    if (sessionInfo) {
+      sessionInfo.securityFindings += findings.length;
+      store.upsertSession(sessionInfo);
+    }
+
+    // Export findings
+    const config = store.getConfig();
+    for (const finding of findings) {
+      if (config.exporters.syslog.enabled) {
+        sendToSyslog(finding, config.exporters.syslog.host, config.exporters.syslog.port);
+      }
+      if (config.exporters.webhook.enabled && config.exporters.webhook.url) {
+        sendWebhook(finding, config.exporters.webhook.url, config.exporters.webhook.secret);
       }
     }
-  } catch (err) {
-    console.error('[openclaw-watch/security]', err);
   }
-};
-
-export default handler;
+}

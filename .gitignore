@@ -1,8 +1,8 @@
 node_modules/
 dist/
 *.js
-*.js.map
 *.d.ts
-!hooks/**/*.ts
-!src/**/*.ts
-.DS_Store
+*.js.map
+!hooks/dashboard/public/**
+.env
+*.log

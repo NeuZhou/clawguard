@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🛡️ OpenClaw Watch</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+:root{--bg:#0a0a0f;--bg2:#12121a;--bg3:#1a1a28;--bg4:#222236;--accent:#6366f1;--accent2:#818cf8;--danger:#ef4444;--danger2:#f87171;--success:#22c55e;--warning:#f59e0b;--info:#3b82f6;--text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;--border:#2a2a40;--mono:'JetBrains Mono',monospace;--sans:'Inter',system-ui,sans-serif;--radius:12px;--radius-sm:8px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+::selection{background:var(--accent);color:#fff}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--bg2)}::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px}
+
+/* Layout */
+.app{display:flex;min-height:100vh}
+.sidebar{width:240px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;height:100vh;z-index:10}
+.main{margin-left:240px;flex:1;padding:24px;min-height:100vh}
+
+/* Sidebar */
+.logo{padding:20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border)}
+.logo-icon{font-size:28px}
+.logo-text{font-size:16px;font-weight:700;background:linear-gradient(135deg,var(--accent),#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.logo-sub{font-size:10px;color:var(--text3);letter-spacing:0.5px;text-transform:uppercase}
+.nav{flex:1;padding:12px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:var(--radius-sm);cursor:pointer;color:var(--text2);font-size:14px;font-weight:500;transition:all .15s;margin-bottom:2px}
+.nav-item:hover{background:var(--bg3);color:var(--text)}
+.nav-item.active{background:linear-gradient(135deg,rgba(99,102,241,.15),rgba(168,85,247,.1));color:var(--accent2);border-left:3px solid var(--accent)}
+.nav-item .icon{font-size:18px;width:24px;text-align:center}
+.nav-badge{margin-left:auto;background:var(--danger);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-weight:600}
+.sidebar-footer{padding:16px;border-top:1px solid var(--border);font-size:11px;color:var(--text3)}
+.pulse{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--success);animation:pulse 2s infinite;margin-right:6px}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* Cards */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:20px;transition:border-color .2s}
+.card:hover{border-color:var(--accent)}
+.card-label{font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.card-value{font-size:28px;font-weight:700;font-family:var(--mono)}
+.card-sub{font-size:12px;color:var(--text2);margin-top:4px}
+.card-icon{float:right;font-size:24px;opacity:.5}
+
+/* Panels */
+.panel{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:20px;overflow:hidden}
+.panel-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.panel-title{font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px}
+.panel-body{padding:20px}
+.panel-body.no-pad{padding:0}
+
+/* Tables */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:10px 16px;color:var(--text3);font-weight:500;font-size:11px;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border);background:var(--bg3)}
+td{padding:10px 16px;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:12px}
+tr:hover td{background:rgba(99,102,241,.03)}
+
+/* Badges */
+.badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;letter-spacing:.3px}
+.badge-critical{background:rgba(239,68,68,.15);color:var(--danger2)}
+.badge-high{background:rgba(249,115,22,.15);color:#fb923c}
+.badge-warning{background:rgba(245,158,11,.15);color:var(--warning)}
+.badge-info{background:rgba(59,130,246,.15);color:var(--info)}
+.badge-success{background:rgba(34,197,94,.15);color:var(--success)}
+.dir-in{color:var(--info)}
+.dir-out{color:var(--success)}
+
+/* Sparkline */
+.sparkline{display:flex;align-items:end;gap:2px;height:40px}
+.spark-bar{flex:1;background:var(--accent);border-radius:2px 2px 0 0;min-height:2px;opacity:.7;transition:opacity .2s}
+.spark-bar:hover{opacity:1}
+
+/* Score */
+.score-ring{width:120px;height:120px;position:relative;margin:0 auto 16px}
+.score-ring svg{transform:rotate(-90deg)}
+.score-ring circle{fill:none;stroke-width:8;stroke-linecap:round}
+.score-ring .bg{stroke:var(--bg4)}
+.score-ring .fg{transition:stroke-dashoffset .6s ease}
+.score-value{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:32px;font-weight:700;font-family:var(--mono)}
+
+/* Progress bar */
+.progress{height:8px;background:var(--bg4);border-radius:4px;overflow:hidden;margin:8px 0}
+.progress-fill{height:100%;border-radius:4px;transition:width .4s ease}
+
+/* Message feed */
+.msg-item{padding:12px 16px;border-bottom:1px solid var(--border);font-size:13px;display:flex;gap:12px;align-items:flex-start}
+.msg-item:hover{background:rgba(99,102,241,.03)}
+.msg-time{color:var(--text3);font-family:var(--mono);font-size:11px;white-space:nowrap;min-width:70px}
+.msg-dir{font-size:16px;min-width:24px}
+.msg-content{flex:1;word-break:break-all;color:var(--text2);max-height:60px;overflow:hidden}
+.msg-meta{font-size:11px;color:var(--text3);font-family:var(--mono);white-space:nowrap}
+
+/* Buttons */
+.btn{padding:8px 16px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:13px;cursor:pointer;font-family:var(--sans);transition:all .15s}
+.btn:hover{border-color:var(--accent);background:var(--bg4)}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn-primary:hover{background:var(--accent2)}
+.btn-sm{padding:4px 10px;font-size:11px}
+.btn-group{display:flex;gap:8px}
+
+/* Form */
+.form-group{margin-bottom:16px}
+.form-label{display:block;font-size:12px;color:var(--text3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+.form-input{width:100%;padding:10px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--mono);font-size:13px}
+.form-input:focus{outline:none;border-color:var(--accent)}
+textarea.form-input{min-height:120px;resize:vertical}
+.toggle{position:relative;width:44px;height:24px;display:inline-block}
+.toggle input{display:none}
+.toggle-slider{position:absolute;inset:0;background:var(--bg4);border-radius:12px;cursor:pointer;transition:.2s}
+.toggle-slider::before{content:'';position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;left:3px;bottom:3px;transition:.2s}
+.toggle input:checked+.toggle-slider{background:var(--accent)}
+.toggle input:checked+.toggle-slider::before{transform:translateX(20px)}
+
+/* Tabs */
+.tab-content{display:none}
+.tab-content.active{display:block}
+
+/* OWASP mapping */
+.owasp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.owasp-card{padding:14px;background:var(--bg3);border-radius:var(--radius-sm);border-left:3px solid var(--accent)}
+.owasp-id{font-family:var(--mono);font-size:11px;color:var(--accent2);margin-bottom:4px}
+.owasp-name{font-size:13px;font-weight:600;margin-bottom:4px}
+.owasp-count{font-size:12px;color:var(--text3)}
+
+/* Health indicator */
+.health{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:12px;font-size:12px;font-weight:600}
+.health-healthy{background:rgba(34,197,94,.1);color:var(--success)}
+.health-warnings{background:rgba(245,158,11,.1);color:var(--warning)}
+.health-critical{background:rgba(239,68,68,.1);color:var(--danger)}
+
+/* Responsive */
+@media(max-width:768px){
+  .sidebar{width:60px}.sidebar .logo-text,.sidebar .logo-sub,.sidebar .nav-item span:not(.icon),.sidebar .nav-badge,.sidebar-footer{display:none}
+  .main{margin-left:60px;padding:12px}.cards{grid-template-columns:1fr 1fr}
+}
+@media(max-width:480px){.cards{grid-template-columns:1fr}}
+
+/* Animations */
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeIn .3s ease}
+@keyframes slideIn{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:translateX(0)}}
+.finding-item{animation:slideIn .2s ease}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="logo">
+      <div class="logo-icon">🛡️</div>
+      <div>
+        <div class="logo-text">OpenClaw Watch</div>
+        <div class="logo-sub">Security Center</div>
+      </div>
+    </div>
+    <div class="nav">
+      <div class="nav-item active" data-tab="overview"><span class="icon">🏠</span><span>Overview</span></div>
+      <div class="nav-item" data-tab="monitor"><span class="icon">📊</span><span>Monitor</span></div>
+      <div class="nav-item" data-tab="security"><span class="icon">🛡️</span><span>Security</span><span class="nav-badge" id="sec-badge" style="display:none">0</span></div>
+      <div class="nav-item" data-tab="cost"><span class="icon">💰</span><span>Cost</span></div>
+      <div class="nav-item" data-tab="audit"><span class="icon">📋</span><span>Audit</span></div>
+      <div class="nav-item" data-tab="settings"><span class="icon">⚙️</span><span>Settings</span></div>
+    </div>
+    <div class="sidebar-footer"><span class="pulse"></span>v2.0 • <span id="uptime">0m</span></div>
+  </nav>
+
+  <!-- Main -->
+  <div class="main">
+    <!-- Overview Tab -->
+    <div class="tab-content active" id="tab-overview">
+      <h2 style="margin-bottom:20px;font-size:20px">Dashboard Overview</h2>
+      <div class="cards">
+        <div class="card"><div class="card-icon">💬</div><div class="card-label">Total Messages</div><div class="card-value" id="ov-messages">—</div><div class="card-sub">Today</div></div>
+        <div class="card"><div class="card-icon">🔗</div><div class="card-label">Active Sessions</div><div class="card-value" id="ov-sessions">—</div><div class="card-sub">Last 5 min</div></div>
+        <div class="card"><div class="card-icon">💰</div><div class="card-label">Est. Cost Today</div><div class="card-value" id="ov-cost">—</div><div class="card-sub">USD</div></div>
+        <div class="card"><div class="card-icon">🛡️</div><div class="card-label">Security Alerts</div><div class="card-value" id="ov-alerts">—</div><div class="card-sub" id="ov-health"></div></div>
+      </div>
+      <div class="panel"><div class="panel-header"><div class="panel-title">📈 Activity (24h)</div></div><div class="panel-body"><div class="sparkline" id="sparkline"></div></div></div>
+      <div class="panel"><div class="panel-header"><div class="panel-title">🔔 Recent Security Findings</div></div><div class="panel-body no-pad" id="recent-findings"><div style="padding:20px;color:var(--text3)">Loading...</div></div></div>
+    </div>
+
+    <!-- Monitor Tab -->
+    <div class="tab-content" id="tab-monitor">
+      <h2 style="margin-bottom:20px;font-size:20px">Live Monitor</h2>
+      <div class="panel"><div class="panel-header"><div class="panel-title"><span class="pulse"></span> Message Feed</div><div class="btn-group"><button class="btn btn-sm" onclick="loadMessages()">🔄 Refresh</button></div></div><div class="panel-body no-pad" id="msg-feed"><div style="padding:20px;color:var(--text3)">Loading...</div></div></div>
+      <div class="panel"><div class="panel-header"><div class="panel-title">📊 Sessions</div></div><div class="panel-body no-pad" id="sessions-table"><div style="padding:20px;color:var(--text3)">Loading...</div></div></div>
+    </div>
+
+    <!-- Security Tab -->
+    <div class="tab-content" id="tab-security">
+      <h2 style="margin-bottom:20px;font-size:20px">Security Center</h2>
+      <div class="cards">
+        <div class="card" style="text-align:center">
+          <div class="card-label">Security Score</div>
+          <div class="score-ring"><svg viewBox="0 0 48 48" width="120" height="120"><circle class="bg" cx="24" cy="24" r="20"/><circle class="fg" id="score-circle" cx="24" cy="24" r="20" stroke="var(--success)" stroke-dasharray="125.66" stroke-dashoffset="0"/></svg><div class="score-value" id="score-val">—</div></div>
+        </div>
+        <div class="card"><div class="card-label">Critical</div><div class="card-value" id="sec-critical" style="color:var(--danger)">0</div></div>
+        <div class="card"><div class="card-label">High</div><div class="card-value" id="sec-high" style="color:#fb923c">0</div></div>
+        <div class="card"><div class="card-label">Warning</div><div class="card-value" id="sec-warn" style="color:var(--warning)">0</div></div>
+      </div>
+      <div class="panel"><div class="panel-header"><div class="panel-title">🗺️ OWASP LLM Top 10 Coverage</div></div><div class="panel-body"><div class="owasp-grid" id="owasp-grid"></div></div></div>
+      <div class="panel"><div class="panel-header"><div class="panel-title">📜 Rule Status</div></div><div class="panel-body no-pad" id="rule-status"></div></div>
+      <div class="panel"><div class="panel-header"><div class="panel-title">🔍 Recent Findings</div></div><div class="panel-body no-pad" id="findings-list"></div></div>
+    </div>
+
+    <!-- Cost Tab -->
+    <div class="tab-content" id="tab-cost">
+      <h2 style="margin-bottom:20px;font-size:20px">Cost Analytics</h2>
+      <div class="cards">
+        <div class="card"><div class="card-label">Today</div><div class="card-value" id="cost-daily">$0.00</div></div>
+        <div class="card"><div class="card-label">This Week</div><div class="card-value" id="cost-weekly">$0.00</div></div>
+        <div class="card"><div class="card-label">This Month</div><div class="card-value" id="cost-monthly">$0.00</div></div>
+        <div class="card"><div class="card-label">Projected</div><div class="card-value" id="cost-projected">$0.00</div><div class="card-sub">Monthly projection</div></div>
+      </div>
+      <div class="panel"><div class="panel-header"><div class="panel-title">💵 Budget Status</div></div><div class="panel-body" id="budget-status"></div></div>
+      <div class="panel"><div class="panel-header"><div class="panel-title">🤖 Cost by Model</div></div><div class="panel-body no-pad" id="cost-by-model"></div></div>
+      <div class="panel"><div class="panel-header"><div class="panel-title">📊 Cost by Session</div></div><div class="panel-body no-pad" id="cost-by-session"></div></div>
+    </div>
+
+    <!-- Audit Tab -->
+    <div class="tab-content" id="tab-audit">
+      <h2 style="margin-bottom:20px;font-size:20px">Audit Trail</h2>
+      <div class="cards">
+        <div class="card"><div class="card-label">Chain Status</div><div class="card-value" id="chain-status">—</div></div>
+        <div class="card"><div class="card-label">Total Events</div><div class="card-value" id="chain-total">0</div></div>
+      </div>
+      <div class="panel"><div class="panel-header"><div class="panel-title">📋 Event Log</div><div class="btn-group"><button class="btn btn-sm" onclick="exportData('json')">📥 JSON</button><button class="btn btn-sm" onclick="exportData('csv')">📥 CSV</button></div></div><div class="panel-body no-pad" id="audit-log"></div></div>
+    </div>
+
+    <!-- Settings Tab -->
+    <div class="tab-content" id="tab-settings">
+      <h2 style="margin-bottom:20px;font-size:20px">Settings</h2>
+      <div class="panel"><div class="panel-header"><div class="panel-title">💰 Budget</div></div><div class="panel-body">
+        <div class="form-group"><label class="form-label">Daily Budget (USD)</label><input class="form-input" id="set-daily" type="number" step="1"></div>
+        <div class="form-group"><label class="form-label">Weekly Budget (USD)</label><input class="form-input" id="set-weekly" type="number" step="1"></div>
+        <div class="form-group"><label class="form-label">Monthly Budget (USD)</label><input class="form-input" id="set-monthly" type="number" step="1"></div>
+        <button class="btn btn-primary" onclick="saveBudget()">Save Budget</button>
+      </div></div>
+      <div class="panel"><div class="panel-header"><div class="panel-title">🔔 Alerts</div></div><div class="panel-body">
+        <div class="form-group"><label class="form-label">Stuck Agent Timeout (minutes)</label><input class="form-input" id="set-stuck" type="number" step="1"></div>
+        <div class="form-group"><label class="form-label">Alert Cooldown (minutes)</label><input class="form-input" id="set-cooldown" type="number" step="1"></div>
+        <button class="btn btn-primary" onclick="saveAlerts()">Save Alerts</button>
+      </div></div>
+      <div class="panel"><div class="panel-header"><div class="panel-title">📡 Exporters</div></div><div class="panel-body">
+        <div class="form-group"><label class="form-label">Webhook URL</label><input class="form-input" id="set-webhook" type="url" placeholder="https://..."></div>
+        <div class="form-group"><label class="form-label">Webhook Secret</label><input class="form-input" id="set-webhook-secret" type="password"></div>
+        <div class="form-group"><label class="form-label">Syslog Host</label><input class="form-input" id="set-syslog-host" placeholder="127.0.0.1"></div>
+        <div class="form-group"><label class="form-label">Syslog Port</label><input class="form-input" id="set-syslog-port" type="number" value="514"></div>
+        <button class="btn btn-primary" onclick="saveExporters()">Save Exporters</button>
+      </div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API='';
+let config={};
+
+// Tab navigation
+document.querySelectorAll('.nav-item').forEach(item=>{
+  item.addEventListener('click',()=>{
+    document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+    item.classList.add('active');
+    document.getElementById('tab-'+item.dataset.tab).classList.add('active');
+    loadTab(item.dataset.tab);
+  });
+});
+
+async function api(path){try{const r=await fetch(API+path);return await r.json()}catch(e){return null}}
+async function apiPost(path,body){try{const r=await fetch(API+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});return await r.json()}catch(e){return null}}
+
+function fmt$(n){return'$'+n.toFixed(2)}
+function fmtTime(ts){return new Date(ts).toLocaleTimeString('en',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'})}
+function fmtDate(ts){return new Date(ts).toLocaleDateString('en',{month:'short',day:'numeric'})+' '+fmtTime(ts)}
+function severityBadge(s){return`<span class="badge badge-${s}">${s.toUpperCase()}</span>`}
+
+// Overview
+async function loadOverview(){
+  const d=await api('/api/overview');
+  if(!d)return;
+  document.getElementById('ov-messages').textContent=d.totalMessages.toLocaleString();
+  document.getElementById('ov-sessions').textContent=d.activeSessions;
+  document.getElementById('ov-cost').textContent=fmt$(d.costToday);
+  document.getElementById('ov-alerts').textContent=d.securityAlerts;
+  const hEl=document.getElementById('ov-health');
+  const hMap={healthy:'✅ Healthy',warnings:'⚠️ Warnings',critical:'🔴 Critical'};
+  hEl.innerHTML=`<span class="health health-${d.health}">${hMap[d.health]||d.health}</span>`;
+
+  // Badge
+  const badge=document.getElementById('sec-badge');
+  if(d.securityAlerts>0){badge.style.display='inline';badge.textContent=d.securityAlerts}
+
+  // Sparkline
+  const sl=document.getElementById('sparkline');
+  const max=Math.max(...d.recentActivity,1);
+  sl.innerHTML=d.recentActivity.map((v,i)=>`<div class="spark-bar" style="height:${Math.max(2,(v/max)*40)}px" title="${v} msgs (${23-i}h ago)"></div>`).join('');
+
+  // Uptime
+  const mins=Math.floor(d.uptimeMs/60000);
+  document.getElementById('uptime').textContent=mins<60?mins+'m':Math.floor(mins/60)+'h '+mins%60+'m';
+
+  // Recent findings
+  const findings=await api('/api/security');
+  const el=document.getElementById('recent-findings');
+  if(!findings||!findings.length){el.innerHTML='<div style="padding:20px;color:var(--text3)">No security findings. 🎉</div>';return}
+  el.innerHTML=findings.slice(0,8).map(f=>`<div class="msg-item finding-item"><div class="msg-time">${fmtTime(f.timestamp)}</div><div>${severityBadge(f.severity)}</div><div class="msg-content" style="color:var(--text)">${esc(f.description)}</div><div class="msg-meta">${f.owaspCategory||''}</div></div>`).join('');
+}
+
+// Messages
+async function loadMessages(){
+  const msgs=await api('/api/messages?limit=100');
+  const el=document.getElementById('msg-feed');
+  if(!msgs||!msgs.length){el.innerHTML='<div style="padding:20px;color:var(--text3)">No messages yet.</div>';return}
+  el.innerHTML=msgs.map(m=>`<div class="msg-item"><div class="msg-time">${fmtTime(m.timestamp)}</div><div class="msg-dir">${m.direction==='inbound'?'<span class="dir-in">↙️</span>':'<span class="dir-out">↗️</span>'}</div><div class="msg-content">${esc(m.content.slice(0,200))}</div><div class="msg-meta">${m.estimatedTokens}tok • ${fmt$(m.estimatedCostUsd)} • ${m.session.slice(0,8)}</div></div>`).join('');
+}
+
+async function loadSessions(){
+  const sessions=await api('/api/sessions');
+  const el=document.getElementById('sessions-table');
+  if(!sessions||!sessions.length){el.innerHTML='<div style="padding:20px;color:var(--text3)">No sessions.</div>';return}
+  el.innerHTML=`<table><thead><tr><th>Session</th><th>Channel</th><th>Messages</th><th>Tokens</th><th>Cost</th><th>Last Active</th></tr></thead><tbody>${sessions.sort((a,b)=>b.lastActivityAt-a.lastActivityAt).map(s=>`<tr><td>${s.id.slice(0,12)}</td><td>${s.channel}</td><td>${s.messageCount}</td><td>${s.estimatedTokens.toLocaleString()}</td><td>${fmt$(s.estimatedCostUsd)}</td><td>${fmtDate(s.lastActivityAt)}</td></tr>`).join('')}</tbody></table>`;
+}
+
+// Security
+async function loadSecurity(){
+  const d=await api('/api/security/score');
+  if(!d)return;
+  const score=d.score;
+  document.getElementById('score-val').textContent=score;
+  const circle=document.getElementById('score-circle');
+  const offset=125.66*(1-score/100);
+  circle.setAttribute('stroke-dashoffset',offset);
+  circle.setAttribute('stroke',score>=80?'var(--success)':score>=50?'var(--warning)':'var(--danger)');
+
+  // Severity counts
+  const findings=await api('/api/security');
+  if(findings){
+    document.getElementById('sec-critical').textContent=findings.filter(f=>f.severity==='critical').length;
+    document.getElementById('sec-high').textContent=findings.filter(f=>f.severity==='high').length;
+    document.getElementById('sec-warn').textContent=findings.filter(f=>f.severity==='warning').length;
+  }
+
+  // OWASP grid
+  const owaspCats={
+    'LLM01':{name:'Prompt Injection',desc:'Direct & indirect injection attacks'},
+    'LLM02':{name:'Insecure Output Handling',desc:'Unvalidated model outputs'},
+    'LLM03':{name:'Training Data Poisoning',desc:'Manipulated training data'},
+    'LLM04':{name:'Model DoS',desc:'Resource exhaustion attacks'},
+    'LLM05':{name:'Supply Chain Vulns',desc:'Compromised components'},
+    'LLM06':{name:'Sensitive Info Disclosure',desc:'Data leakage in outputs'},
+    'LLM07':{name:'Insecure Plugin Design',desc:'Plugin security issues'},
+    'LLM08':{name:'Excessive Agency',desc:'Too much autonomy'},
+    'LLM09':{name:'Overreliance',desc:'Blind trust in outputs'},
+    'LLM10':{name:'Model Theft',desc:'Unauthorized model access'}
+  };
+  const findingsByCat={};
+  if(findings)findings.forEach(f=>{const c=f.owaspCategory||'Other';findingsByCat[c]=(findingsByCat[c]||0)+1});
+  document.getElementById('owasp-grid').innerHTML=Object.entries(owaspCats).map(([id,cat])=>`<div class="owasp-card"><div class="owasp-id">${id}</div><div class="owasp-name">${cat.name}</div><div class="owasp-count">${findingsByCat[id]||0} findings</div></div>`).join('');
+
+  // Rules
+  if(d.rules){
+    document.getElementById('rule-status').innerHTML=`<table><thead><tr><th>Rule</th><th>OWASP</th><th>Status</th><th>Triggers</th><th>Action</th></tr></thead><tbody>${d.rules.map(r=>`<tr><td>${r.name}</td><td><span class="badge badge-info">${r.owaspCategory}</span></td><td>${r.enabled?'<span class="badge badge-success">ON</span>':'<span class="badge badge-warning">OFF</span>'}</td><td>${r.triggerCount}</td><td><button class="btn btn-sm" onclick="toggleRule('${r.id}',${!r.enabled})">${r.enabled?'Disable':'Enable'}</button></td></tr>`).join('')}</tbody></table>`;
+  }
+
+  // Findings list
+  if(findings){
+    document.getElementById('findings-list').innerHTML=findings.length?findings.slice(0,50).map(f=>`<div class="msg-item finding-item"><div class="msg-time">${fmtDate(f.timestamp)}</div><div>${severityBadge(f.severity)}</div><div class="msg-content" style="color:var(--text)"><strong>${f.ruleName}</strong>: ${esc(f.description)}${f.evidence?' — <code>'+esc(f.evidence.slice(0,100))+'</code>':''}</div></div>`).join(''):'<div style="padding:20px;color:var(--text3)">No findings. Your agent is clean! 🎉</div>';
+  }
+}
+
+async function toggleRule(id,enabled){await apiPost('/api/rules/toggle',{ruleId:id,enabled});loadSecurity()}
+
+// Cost
+async function loadCost(){
+  const d=await api('/api/cost');
+  if(!d)return;
+  document.getElementById('cost-daily').textContent=fmt$(d.daily);
+  document.getElementById('cost-weekly').textContent=fmt$(d.weekly);
+  document.getElementById('cost-monthly').textContent=fmt$(d.monthly);
+  document.getElementById('cost-projected').textContent=fmt$(d.projection);
+
+  // Budget
+  const cfg=await api('/api/config');
+  if(cfg){
+    const pct=Math.min(100,(d.daily/cfg.budget.dailyUsd)*100);
+    const color=pct>=100?'var(--danger)':pct>=80?'var(--warning)':'var(--success)';
+    document.getElementById('budget-status').innerHTML=`
+      <div class="form-label">Daily: ${fmt$(d.daily)} / ${fmt$(cfg.budget.dailyUsd)}</div>
+      <div class="progress"><div class="progress-fill" style="width:${pct}%;background:${color}"></div></div>
+      <div style="font-size:12px;color:var(--text3);margin-bottom:16px">${pct.toFixed(1)}% used</div>
+      <div class="form-label">Monthly: ${fmt$(d.monthly)} / ${fmt$(cfg.budget.monthlyUsd)}</div>
+      <div class="progress"><div class="progress-fill" style="width:${Math.min(100,(d.monthly/cfg.budget.monthlyUsd)*100)}%;background:var(--accent)"></div></div>
+    `;
+  }
+
+  // By model
+  const models=Object.entries(d.byModel).sort((a,b)=>(b[1] as number)-(a[1] as number));
+  document.getElementById('cost-by-model').innerHTML=models.length?`<table><thead><tr><th>Model</th><th>Cost</th><th>Share</th></tr></thead><tbody>${models.map(([m,c])=>{const pct=d.monthly>0?((c as number)/d.monthly*100):0;return`<tr><td>${m}</td><td>${fmt$(c as number)}</td><td><div class="progress" style="width:100px;display:inline-block"><div class="progress-fill" style="width:${pct}%;background:var(--accent)"></div></div> ${pct.toFixed(1)}%</td></tr>`}).join('')}</tbody></table>`:'<div style="padding:20px;color:var(--text3)">No cost data yet.</div>';
+
+  // By session
+  const sess=Object.entries(d.bySession).sort((a,b)=>(b[1] as number)-(a[1] as number)).slice(0,20);
+  document.getElementById('cost-by-session').innerHTML=sess.length?`<table><thead><tr><th>Session</th><th>Cost</th></tr></thead><tbody>${sess.map(([s,c])=>`<tr><td>${s.slice(0,16)}</td><td>${fmt$(c as number)}</td></tr>`).join('')}</tbody></table>`:'<div style="padding:20px;color:var(--text3)">No session data.</div>';
+}
+
+// Audit
+async function loadAudit(){
+  const v=await api('/api/audit/verify');
+  if(v){
+    document.getElementById('chain-status').innerHTML=v.valid?'<span style="color:var(--success)">✅ Intact</span>':'<span style="color:var(--danger)">❌ Tampered at #'+v.brokenAt+'</span>';
+    document.getElementById('chain-total').textContent=v.total;
+  }
+  const log=await api('/api/audit');
+  const el=document.getElementById('audit-log');
+  if(!log||!log.length){el.innerHTML='<div style="padding:20px;color:var(--text3)">No audit events.</div>';return}
+  el.innerHTML=`<table><thead><tr><th>Time</th><th>Type</th><th>Detail</th><th>Hash</th></tr></thead><tbody>${log.slice(0,100).map(e=>`<tr><td>${fmtDate(e.timestamp)}</td><td><span class="badge badge-info">${e.type}</span></td><td>${esc(e.detail.slice(0,80))}</td><td style="color:var(--text3)">${e.hash.slice(0,12)}…</td></tr>`).join('')}</tbody></table>`;
+}
+
+// Settings
+async function loadSettings(){
+  config=await api('/api/config')||{};
+  const b=config.budget||{};
+  document.getElementById('set-daily').value=b.dailyUsd||50;
+  document.getElementById('set-weekly').value=b.weeklyUsd||200;
+  document.getElementById('set-monthly').value=b.monthlyUsd||500;
+  const a=config.alerts||{};
+  document.getElementById('set-stuck').value=Math.round((a.stuckTimeoutMs||300000)/60000);
+  document.getElementById('set-cooldown').value=Math.round((a.cooldownMs||300000)/60000);
+  const e=config.exporters||{};
+  document.getElementById('set-webhook').value=(e.webhook||{}).url||'';
+  document.getElementById('set-webhook-secret').value=(e.webhook||{}).secret||'';
+  document.getElementById('set-syslog-host').value=(e.syslog||{}).host||'127.0.0.1';
+  document.getElementById('set-syslog-port').value=(e.syslog||{}).port||514;
+}
+
+async function saveBudget(){
+  await apiPost('/api/config',{budget:{dailyUsd:+document.getElementById('set-daily').value,weeklyUsd:+document.getElementById('set-weekly').value,monthlyUsd:+document.getElementById('set-monthly').value}});
+  alert('Budget saved!');
+}
+async function saveAlerts(){
+  await apiPost('/api/config',{alerts:{...config.alerts,stuckTimeoutMs:document.getElementById('set-stuck').value*60000,cooldownMs:document.getElementById('set-cooldown').value*60000}});
+  alert('Alert settings saved!');
+}
+async function saveExporters(){
+  await apiPost('/api/config',{exporters:{...config.exporters,webhook:{enabled:!!document.getElementById('set-webhook').value,url:document.getElementById('set-webhook').value,secret:document.getElementById('set-webhook-secret').value},syslog:{enabled:!!document.getElementById('set-syslog-host').value,host:document.getElementById('set-syslog-host').value,port:+document.getElementById('set-syslog-port').value}}});
+  alert('Exporter settings saved!');
+}
+
+function exportData(fmt){window.open(API+'/api/export/'+fmt)}
+function esc(s){const d=document.createElement('div');d.textContent=s||'';return d.innerHTML}
+
+function loadTab(tab){
+  switch(tab){
+    case'overview':loadOverview();break;
+    case'monitor':loadMessages();loadSessions();break;
+    case'security':loadSecurity();break;
+    case'cost':loadCost();break;
+    case'audit':loadAudit();break;
+    case'settings':loadSettings();break;
+  }
+}
+
+// SSE
+function connectSSE(){
+  try{
+    const es=new EventSource(API+'/api/stream');
+    es.addEventListener('message',()=>loadTab(document.querySelector('.nav-item.active').dataset.tab));
+    es.addEventListener('security',()=>{const b=document.getElementById('sec-badge');b.style.display='inline';b.textContent=+b.textContent+1});
+    es.onerror=()=>setTimeout(connectSSE,5000);
+  }catch(e){}
+}
+
+// Init
+loadOverview();
+connectSSE();
+setInterval(()=>loadTab(document.querySelector('.nav-item.active').dataset.tab),15000);
+</script>
+</body>
+</html>

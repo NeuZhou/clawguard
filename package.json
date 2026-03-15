@@ -1,48 +1,36 @@
 {
   "name": "openclaw-watch",
-  "version": "1.0.0",
-  "description": "Monitor, secure, and understand your OpenClaw agents",
-  "author": "Kang Zhou (NeuZhou) <neuzhou@microsoft.com>",
+  "version": "2.0.0",
+  "description": "Security Center & Observability Platform for OpenClaw Agents",
+  "author": "Kang Zhou <kangzhou@microsoft.com>",
   "license": "MIT",
-  "type": "module",
-  "main": "dist/src/index.js",
-  "types": "dist/src/index.d.ts",
+  "keywords": ["openclaw", "security", "observability", "monitoring", "dashboard", "owasp", "llm-security"],
+  "homepage": "https://github.com/NeuZhou/openclaw-watch",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NeuZhou/openclaw-watch.git"
+  },
+  "main": "dist/src/types.js",
+  "types": "dist/src/types.d.ts",
   "files": [
-    "dist",
-    "hooks",
-    "src",
+    "dist/",
+    "hooks/",
+    "rules.d/",
     "README.md",
     "LICENSE"
   ],
   "scripts": {
     "build": "tsc",
-    "dev": "tsc --watch",
-    "lint": "tsc --noEmit",
-    "clean": "rimraf dist"
-  },
-  "openclaw": {
-    "hooks": [
-      "./hooks/monitor",
-      "./hooks/security",
-      "./hooks/dashboard"
-    ]
-  },
-  "keywords": [
-    "openclaw",
-    "monitoring",
-    "security",
-    "dashboard",
-    "observability",
-    "agent",
-    "hooks"
-  ],
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/kazhou2024/openclaw-watch"
+    "check": "tsc --noEmit",
+    "clean": "rimraf dist",
+    "prepublishOnly": "npm run build"
   },
   "devDependencies": {
     "typescript": "^5.4.0",
-    "rimraf": "^5.0.0",
-    "@types/node": "^20.0.0"
+    "@types/node": "^20.11.0",
+    "rimraf": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
