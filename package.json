@@ -1,5 +1,5 @@
 {
-  "name": "clawguard",
+  "name": "@neuzhou/clawguard",
   "version": "1.0.0",
   "description": "AI Agent Immune System - Security scanner, PII sanitizer, intent-action mismatch detector. 285+ patterns, OWASP Agentic AI Top 10. 100% local.",
   "author": "Kang Zhou <neuzhou@outlook.com>",

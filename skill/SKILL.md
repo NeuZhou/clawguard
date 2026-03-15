@@ -1,8 +1,8 @@
 ---
-name: ClawGuard-ai
+name: clawguard
 description: "🛡️ AI Agent Immune System — Security scanner + PII sanitizer + intent-action mismatch detector. 285+ patterns, OWASP Agentic AI Top 10. 100% local, zero cloud dependencies."
 user-invocable: true
-metadata: {"openclaw": {"emoji": "🛡️", "requires": {"bins": ["node"]}, "homepage": "https://github.com/NeuZhou/ClawGuard"}}
+metadata: {"openclaw": {"emoji": "🛡️", "requires": {"bins": ["node"]}, "homepage": "https://github.com/NeuZhou/clawguard"}}
 ---
 
 # ClawGuard — Your Immune System
