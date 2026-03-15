@@ -5,9 +5,9 @@ import { SecurityFinding, RiskResult, Severity } from './types';
 
 const SEVERITY_WEIGHTS: Record<Severity, number> = {
   critical: 40,
-  high: 15,
-  warning: 5,
-  info: 2,
+  high: 10,
+  warning: 3,
+  info: 1,
 };
 
 // Confidence defaults by severity
