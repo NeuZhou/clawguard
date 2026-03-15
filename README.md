@@ -2,6 +2,7 @@
 
 **AI Agent Security & Observability Platform**
 
+[![CI](https://github.com/NeuZhou/clawguard/actions/workflows/ci.yml/badge.svg)](https://github.com/NeuZhou/clawguard/actions/workflows/ci.yml)
 [![npm version](https://img.shields.io/npm/v/@neuzhou/clawguard)](https://www.npmjs.com/package/@neuzhou/clawguard)
 [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](LICENSE)
 [![Zero Dependencies](https://img.shields.io/badge/dependencies-0-brightgreen)]()

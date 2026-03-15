@@ -1,0 +1,42 @@
+name: "DevOps CI/CD Security Rules"
+version: "1.0"
+rules:
+  - id: cicd-secret-exposure
+    description: "Detect hardcoded secrets or tokens in pipeline configurations"
+    event: tool:exec
+    severity: critical
+    patterns:
+      - regex: "(?i)(?:password|secret|token|api_key|apikey)\\s*[:=]\\s*['\"]?[A-Za-z0-9+/=]{8,}"
+    action: block
+
+  - id: cicd-pipeline-injection
+    description: "Detect script injection via untrusted input in CI commands"
+    event: tool:exec
+    severity: critical
+    patterns:
+      - regex: "\\$\\{\\{\\s*github\\.event\\.(?:issue|pull_request|comment)\\.(?:title|body)"
+    action: block
+
+  - id: cicd-privileged-runner
+    description: "Detect attempts to run CI steps with elevated privileges"
+    event: tool:exec
+    severity: high
+    patterns:
+      - regex: "(?i)(?:sudo|--privileged|--cap-add|runs-on:\\s*self-hosted)"
+    action: alert
+
+  - id: cicd-artifact-tampering
+    description: "Detect unsigned or unverified artifact downloads in pipelines"
+    event: tool:exec
+    severity: high
+    patterns:
+      - regex: "(?i)curl\\s+.*\\|\\s*(?:bash|sh)|wget\\s+.*\\|\\s*(?:bash|sh)"
+    action: block
+
+  - id: cicd-env-dump
+    description: "Detect attempts to dump environment variables containing secrets"
+    event: tool:exec
+    severity: high
+    patterns:
+      - regex: "(?i)(?:printenv|env\\b|set\\b).*(?:>|\\||tee)"
+    action: alert

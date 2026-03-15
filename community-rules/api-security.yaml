@@ -1,0 +1,42 @@
+name: "API Security Rules"
+version: "1.0"
+rules:
+  - id: api-auth-bypass
+    description: "Detect attempts to bypass authentication headers or tokens"
+    event: tool:exec
+    severity: critical
+    patterns:
+      - regex: "(?i)(?:-H|--header)\\s+['\"]?Authorization:\\s*(?:Bearer\\s+(?:null|undefined|none)|Basic\\s+Og==)"
+    action: block
+
+  - id: api-injection
+    description: "Detect SQL/NoSQL injection payloads in API request parameters"
+    event: message:received
+    severity: critical
+    patterns:
+      - regex: "(?i)(?:(?:' OR |\" OR )\\d+=\\d+|\\$(?:gt|ne|regex)\\s*:|;\\s*DROP\\s+TABLE)"
+    action: block
+
+  - id: api-rate-limit-abuse
+    description: "Detect rapid-fire API calls or loop-based request flooding"
+    event: tool:exec
+    severity: high
+    patterns:
+      - regex: "(?i)(?:while\\s+true|for\\s*\\(.*;;|seq\\s+\\d{4,}).*(?:curl|wget|fetch|http)"
+    action: block
+
+  - id: api-ssrf
+    description: "Detect Server-Side Request Forgery targeting internal endpoints"
+    event: tool:exec
+    severity: critical
+    patterns:
+      - regex: "(?:https?://)?(?:127\\.0\\.0\\.1|localhost|0\\.0\\.0\\.0|169\\.254\\.169\\.254|\\[::1\\])"
+    action: alert
+
+  - id: api-sensitive-endpoint
+    description: "Detect access to sensitive admin or debug API endpoints"
+    event: tool:exec
+    severity: high
+    patterns:
+      - regex: "(?i)/(?:admin|debug|actuator|_internal|graphql/console|swagger-ui|api-docs)"
+    action: alert
