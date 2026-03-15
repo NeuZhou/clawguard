@@ -33,7 +33,7 @@ export function sendToSyslog(finding: SecurityFinding, host: string, port: numbe
 export function formatCEF(finding: SecurityFinding): string {
   const severityNum = SEVERITY_MAP[finding.severity] ?? 5;
   const cefSeverity = Math.max(0, 10 - severityNum);
-  return `CEF:0|OpenClaw|Watch|2.0|${finding.ruleId}|${finding.description}|${cefSeverity}|src=${finding.channel || 'unknown'} cat=${finding.category} cs1=${finding.owaspCategory || 'N/A'} cs1Label=OWASP msg=${finding.evidence || 'N/A'}`;
+  return `CEF:0|clawguard|2.0|${finding.ruleId}|${finding.description}|${cefSeverity}|src=${finding.channel || 'unknown'} cat=${finding.category} cs1=${finding.owaspCategory || 'N/A'} cs1Label=OWASP msg=${finding.evidence || 'N/A'}`;
 }
 
 

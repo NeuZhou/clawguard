@@ -64,7 +64,7 @@ describe('Exporters - JSONL', () => {
 describe('Exporters - Syslog/CEF', () => {
   it('formatCEF returns CEF format string', () => {
     const cef = formatCEF(makeFinding() as SecurityFinding);
-    assert.ok(cef.startsWith('CEF:0|OpenClaw|Watch|'));
+    assert.ok(cef.startsWith('CEF:0|clawguard|'));
     assert.ok(cef.includes('prompt-injection'));
   });
 

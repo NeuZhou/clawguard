@@ -2,7 +2,7 @@
 
 ## Overview
 
-Custom rules are YAML files placed in `~/.openclaw/openclaw-watch/rules.d/`. They're loaded automatically when the gateway starts.
+Custom rules are YAML files placed in `~/.openclaw/clawguard/rules.d/`. They're loaded automatically when the gateway starts.
 
 ## Schema
 

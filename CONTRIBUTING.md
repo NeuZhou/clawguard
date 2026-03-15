@@ -1,4 +1,4 @@
-# Contributing to OpenClaw Watch
+# Contributing to ClawGuard
 
 Thank you for helping make AI agents safer! 🛡️
 
@@ -24,7 +24,7 @@ rules:
     action: alert
 ```
 
-2. Test it locally by placing in `~/.openclaw/openclaw-watch/rules.d/`
+2. Test it locally by placing in `~/.openclaw/clawguard/rules.d/`
 3. Submit a PR to `community-rules/`
 
 ### Rule Severity Guide
@@ -57,8 +57,8 @@ rules:
 ### Setup
 
 ```bash
-git clone https://github.com/NeuZhou/openclaw-watch.git
-cd openclaw-watch
+git clone https://github.com/NeuZhou/clawguard.git
+cd clawguard
 npm install
 ```
 
@@ -96,7 +96,7 @@ npm run build     # Compile TypeScript
 ## 🐛 Bug Reports
 
 Include:
-- OpenClaw Watch version
+- ClawGuard version
 - Node.js version
 - OS
 - Steps to reproduce

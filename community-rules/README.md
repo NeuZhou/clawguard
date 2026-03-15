@@ -1,6 +1,6 @@
 # Community Security Rules
 
-Community-contributed security rule packs for OpenClaw Watch.
+Community-contributed security rule packs for ClawGuard.
 
 ## Available Rule Packs
 
@@ -15,7 +15,7 @@ Community-contributed security rule packs for OpenClaw Watch.
 Copy any YAML file to your rules directory:
 
 ```bash
-cp community-rules/healthcare-hipaa.yaml ~/.openclaw/openclaw-watch/rules.d/
+cp community-rules/healthcare-hipaa.yaml ~/.openclaw/clawguard/rules.d/
 ```
 
 Rules are loaded automatically on next gateway restart.

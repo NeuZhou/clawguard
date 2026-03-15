@@ -12,7 +12,7 @@ Gateway 事件
 
 ## 存储
 
-所有数据以 JSONL 格式存储在 `~/.openclaw/openclaw-watch/`：
+所有数据以 JSONL 格式存储在 `~/.openclaw/clawguard/`：
 
 | 文件 | 内容 |
 |------|------|

@@ -3,7 +3,7 @@
 ## Installation
 
 ```bash
-openclaw hooks install openclaw-watch
+openclaw hooks install clawguard
 openclaw gateway restart
 ```
 
@@ -16,7 +16,7 @@ Dashboard available at **http://localhost:19790**
 
 ## Configuration
 
-Config is auto-created at `~/.openclaw/openclaw-watch/config.json` on first run.
+Config is auto-created at `~/.openclaw/clawguard/config.json` on first run.
 
 ### Budget Limits
 
@@ -44,7 +44,7 @@ All rules are enabled by default. Disable specific rules:
 
 ### Custom Rules
 
-Drop YAML files in `~/.openclaw/openclaw-watch/rules.d/` — they're loaded automatically.
+Drop YAML files in `~/.openclaw/clawguard/rules.d/` — they're loaded automatically.
 
 ## Verify Installation
 

@@ -1,4 +1,4 @@
-# OpenClaw Watch — Dogfooding Iteration Log
+# ClawGuard — Dogfooding Iteration Log
 
 ## Round 1 (v5.0.0 → v5.0.2): False Positive Reduction
 - compliance "rm" regex → 要求命令上下文
@@ -46,4 +46,4 @@
 ### P1 行动项
 4. 增量扫描 baseline（heartbeat 场景）
 5. Intent-Action Mismatch 概念验证
-6. 自动发现并安装机制（让 agent 知道 openclaw-watch 存在）
+6. 自动发现并安装机制（让 agent 知道 clawguard 存在）

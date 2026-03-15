@@ -2,7 +2,7 @@
 
 ## Hook Pipeline
 
-OpenClaw Watch registers 4 hooks into the OpenClaw Gateway:
+ClawGuard registers 4 hooks into the OpenClaw Gateway:
 
 ```
 Gateway Events
@@ -23,7 +23,7 @@ Gateway Events
 
 ## Storage
 
-All data is stored as JSONL files in `~/.openclaw/openclaw-watch/`:
+All data is stored as JSONL files in `~/.openclaw/clawguard/`:
 
 | File | Contents |
 |------|----------|

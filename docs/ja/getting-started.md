@@ -3,7 +3,7 @@
 ## インストール
 
 ```bash
-openclaw hooks install openclaw-watch
+openclaw hooks install clawguard
 openclaw gateway restart
 ```
 
@@ -16,7 +16,7 @@ openclaw gateway restart
 
 ## 設定
 
-初回起動時に `~/.openclaw/openclaw-watch/config.json` が自動作成されます。
+初回起動時に `~/.openclaw/clawguard/config.json` が自動作成されます。
 
 ### 予算制限
 
@@ -44,7 +44,7 @@ openclaw gateway restart
 
 ### カスタムルール
 
-YAMLファイルを `~/.openclaw/openclaw-watch/rules.d/` に配置するだけで自動読み込みされます。
+YAMLファイルを `~/.openclaw/clawguard/rules.d/` に配置するだけで自動読み込みされます。
 
 ## 次のステップ
 

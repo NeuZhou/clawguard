@@ -2,7 +2,7 @@
 
 ## 概述
 
-自定义规则是 YAML 文件，放置在 `~/.openclaw/openclaw-watch/rules.d/`，网关启动时自动加载。
+自定义规则是 YAML 文件，放置在 `~/.openclaw/clawguard/rules.d/`，网关启动时自动加载。
 
 ## Schema
 

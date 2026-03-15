@@ -3,7 +3,7 @@
 ## 安装
 
 ```bash
-openclaw hooks install openclaw-watch
+openclaw hooks install clawguard
 openclaw gateway restart
 ```
 
@@ -16,7 +16,7 @@ openclaw gateway restart
 
 ## 配置
 
-首次运行自动创建配置文件 `~/.openclaw/openclaw-watch/config.json`。
+首次运行自动创建配置文件 `~/.openclaw/clawguard/config.json`。
 
 ### 预算限制
 
@@ -44,7 +44,7 @@ openclaw gateway restart
 
 ### 自定义规则
 
-将 YAML 文件放入 `~/.openclaw/openclaw-watch/rules.d/` 即可自动加载。
+将 YAML 文件放入 `~/.openclaw/clawguard/rules.d/` 即可自动加载。
 
 ## 验证安装
 
