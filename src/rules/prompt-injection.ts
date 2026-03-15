@@ -122,6 +122,35 @@ const CASCADING_PATTERNS: Pattern[] = [
   { regex: /<script[^>]*>.*(?:ignore|override|instruction)/is, severity: 'critical', description: 'Script tag injection with prompt manipulation' },
 ];
 
+// === Category 11: Prompt Worm ===
+const PROMPT_WORM_PATTERNS: Pattern[] = [
+  { regex: /(?:replicate|reproduce|copy)\s+(?:this|these)\s+(?:instructions?|prompts?|messages?)\s+(?:to|into|across)/i, severity: 'critical', description: 'Self-replication instruction detected' },
+  { regex: /(?:forward|send|pass)\s+(?:this|these)\s+(?:instructions?|prompts?)\s+to\s+(?:the\s+next|other|all)\s+(?:agent|model|assistant)/i, severity: 'critical', description: 'Agent-to-agent propagation attempt' },
+  { regex: /(?:embed|insert|inject|hide)\s+(?:this|these|the)\s+(?:instructions?|payload|prompt)\s+(?:in|into|within)\s+(?:the\s+)?(?:output|response|result)/i, severity: 'critical', description: 'Hidden instruction embedding in output' },
+  { regex: /(?:display\s*:\s*none|visibility\s*:\s*hidden|opacity\s*:\s*0|font-size\s*:\s*0|color\s*:\s*(?:white|transparent|rgba\(0)).*(?:ignore|instruction|override)/is, severity: 'high', description: 'CSS-hidden prompt injection content' },
+  { regex: /(?:append|prepend|add)\s+(?:to\s+)?(?:every|each|all)\s+(?:response|output|message)/i, severity: 'high', description: 'Worm payload persistence in responses' },
+];
+
+// === Category 12: Trust Exploitation ===
+const TRUST_EXPLOITATION_PATTERNS: Pattern[] = [
+  { regex: /I\s+am\s+(?:your|the)\s+(?:creator|developer|admin(?:istrator)?|owner|author)/i, severity: 'critical', description: 'Authority claim: impersonating creator/admin' },
+  { regex: /(?:I\s+(?:am|work\s+for)|this\s+(?:is|comes?\s+from))\s+(?:OpenAI|Anthropic|Google\s+DeepMind|Meta\s+AI)/i, severity: 'critical', description: 'Creator/company impersonation' },
+  { regex: /(?:security|compliance|safety)\s+(?:audit|review|assessment).*(?:requires?|needs?)\s+(?:you\s+to|that\s+you)\s+(?:disable|remove|bypass)/i, severity: 'critical', description: 'Fake audit excuse to bypass safeguards' },
+  { regex: /(?:our|my)\s+(?:partner(?:ship)?|agreement|contract)\s+(?:requires?|allows?|grants?)\s+(?:full|unrestricted|unlimited)\s+access/i, severity: 'high', description: 'Partner exploitation for access escalation' },
+  { regex: /you\s+(?:must|should|need\s+to)\s+(?:trust|believe|obey|follow)\s+(?:me|everything\s+I\s+say)\s+(?:unconditionally|without\s+question|completely)/i, severity: 'critical', description: 'Unconditional trust demand' },
+  { regex: /(?:I\s+have|with)\s+(?:elevated|admin|root|sudo|superuser)\s+(?:privileges?|permissions?|access|rights)/i, severity: 'high', description: 'False privilege escalation claim' },
+  { regex: /(?:authorized|approved|sanctioned)\s+by\s+(?:management|leadership|the\s+(?:board|CEO|CTO|CISO))/i, severity: 'high', description: 'False authorization claim' },
+];
+
+// === Category 13: Safeguard Bypass ===
+const SAFEGUARD_BYPASS_PATTERNS: Pattern[] = [
+  { regex: /(?:url|link|href)\s*[=:]\s*['"]?(?:https?:\/\/[^\s'"]*[?&](?:prompt|instruction|system|cmd)=)/i, severity: 'high', description: 'URL parameter-based prompt injection' },
+  { regex: /(?:try|attempt|execute)\s+(?:again|once\s+more|twice).*(?:if|when)\s+(?:blocked|denied|refused|rejected)/i, severity: 'high', description: 'Double-execution bypass (retry on block)' },
+  { regex: /(?:rephrase|reword|reformulate|rewrite)\s+(?:to|so\s+(?:it|that))\s+(?:bypass|avoid|evade|circumvent)\s+(?:the\s+)?(?:filter|detection|block)/i, severity: 'critical', description: 'Rephrase-to-bypass strategy' },
+  { regex: /(?:split|break|divide|chunk)\s+(?:the\s+)?(?:command|instruction|payload|request)\s+(?:into|across)\s+(?:multiple|several|parts)/i, severity: 'high', description: 'Payload splitting to evade detection' },
+  { regex: /(?:slowly|gradually|incrementally)\s+(?:escalate|increase|expand)\s+(?:the\s+)?(?:scope|access|permissions?|privileges?)/i, severity: 'high', description: 'Gradual privilege escalation strategy' },
+];
+
 // === Category 10: Context Window Stuffing ===
 // (Checked programmatically in the main check function)
 
@@ -161,6 +190,9 @@ const ALL_PATTERNS: Pattern[] = [
   ...INDIRECT_PATTERNS,
   ...MULTI_TURN_PATTERNS,
   ...CASCADING_PATTERNS,
+  ...PROMPT_WORM_PATTERNS,
+  ...TRUST_EXPLOITATION_PATTERNS,
+  ...SAFEGUARD_BYPASS_PATTERNS,
 ];
 
 export const promptInjectionRule: SecurityRule = {

@@ -31,6 +31,42 @@ export interface SecurityFinding {
   session?: string;
   channel?: string;
   action: AlertAction;
+  confidence?: number;
+  attack_chain_id?: string | null;
+  soulLock?: boolean;
+}
+
+// === Risk Engine Types ===
+export interface RiskResult {
+  score: number;
+  verdict: string;
+  icon: string;
+  enrichedFindings: SecurityFinding[];
+  attackChains: string[];
+}
+
+// === Policy Engine Types ===
+export type PolicyDecisionType = 'allow' | 'deny' | 'warn' | 'review';
+
+export interface PolicyDecision {
+  decision: PolicyDecisionType;
+  tool: string;
+  reason: string;
+  severity: Severity;
+  matched?: string;
+}
+
+export interface PolicyConfig {
+  exec?: { block_patterns?: string[]; dangerous_commands?: string[] };
+  file?: { deny_read?: string[]; deny_write?: string[] };
+  browser?: { block_domains?: string[] };
+  message?: { block_targets?: string[] };
+}
+
+// === Insider Threat Types ===
+export interface InsiderThreatResult {
+  findings: SecurityFinding[];
+  threatLevel: 'none' | 'low' | 'medium' | 'high' | 'critical';
 }
 
 export interface AuditEvent {
@@ -68,6 +104,7 @@ export interface WatchConfig {
   security: {
     enabledRules: string[];
     customRulesDir: string;
+    policies?: PolicyConfig;
   };
   exporters: {
     jsonl: { enabled: boolean };

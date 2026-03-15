@@ -58,12 +58,23 @@ const TYPOSQUAT_PATTERNS: Pattern[] = [
   { regex: /["'](?:axois|axi0s|ax1os)["']/i, severity: 'warning', description: 'Possible typosquatted package (axios variant)' },
 ];
 
+// CVE-specific patterns
+const CVE_PATTERNS: Pattern[] = [
+  { regex: /gatewayUrl\s*[=:]\s*['"]https?:\/\/(?!localhost|127\.0\.0\.1)[^\s'"]+/i, severity: 'critical', description: 'CVE-2026-25253: gatewayUrl injection — remote gateway override' },
+  { regex: /(?:sandbox|isolation|container)\s*[=:]\s*(?:false|off|disabled|none|0)/i, severity: 'critical', description: 'Sandbox/isolation disabling detected' },
+  { regex: /(?:pickle|marshal|yaml\.(?:unsafe_)?load|shelve|dill)\s*[\.(]/i, severity: 'critical', description: 'LangGrinch: Unsafe deserialization (pickle/YAML/marshal)' },
+  { regex: /(?:pyodide|micropip|loadPackage)\s*[\.(].*(?:exec|eval|import\s+os|import\s+subprocess)/is, severity: 'critical', description: 'MCP Pyodide RCE: Code execution via in-browser Python' },
+  { regex: /(?:confluence|jira|bitbucket).*(?:\/rest\/api\/|\/wiki\/rest\/).*(?:\$\{|%24%7B|\\u0024)/i, severity: 'critical', description: 'Atlassian RCE: OGNL/EL injection via REST API' },
+  { regex: /(?:serialize|deserialize|unmarshal|fromJSON)\s*\(.*(?:__proto__|constructor\.prototype|Object\.assign)/is, severity: 'high', description: 'Prototype pollution via deserialization' },
+];
+
 const ALL_PATTERNS = [
   ...OBFUSCATION_PATTERNS,
   ...NPM_LIFECYCLE_PATTERNS,
   ...EXFILTRATION_PATTERNS,
   ...REVERSE_SHELL_PATTERNS,
   ...TYPOSQUAT_PATTERNS,
+  ...CVE_PATTERNS,
 ];
 
 export const supplyChainRule: SecurityRule = {

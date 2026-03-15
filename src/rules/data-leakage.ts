@@ -66,6 +66,32 @@ const PII_PATTERNS: LeakPattern[] = [
   { name: 'Phone (International)', regex: /\b\+\d{1,3}[-.\s]?\d{4,14}\b/, severity: 'warning', description: 'International phone number pattern detected' },
   { name: 'Passport', regex: /\b[A-Z]{1,2}\d{6,9}\b/, severity: 'high', description: 'Possible passport number pattern' },
   { name: 'IP Address', regex: /\b(?:(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\b/, severity: 'info', description: 'IP address detected in output' },
+  // PII Exposure — new patterns
+  { name: 'Hardcoded CC in code', regex: /(?:card_?number|cc_?num|credit_?card)\s*[=:]\s*['"]?\d{13,19}/i, severity: 'critical', description: 'Hardcoded credit card number in code' },
+  { name: 'Hardcoded SSN in code', regex: /(?:ssn|social_?security)\s*[=:]\s*['"]?\d{3}-?\d{2}-?\d{4}/i, severity: 'critical', description: 'Hardcoded SSN in code' },
+  { name: 'Hardcoded phone in code', regex: /(?:phone|mobile|cell)_?(?:number)?\s*[=:]\s*['"]?\+?\d[\d\s\-().]{8,}/i, severity: 'warning', description: 'Hardcoded phone number in code' },
+  { name: 'Hardcoded email in code', regex: /(?:email|mail)_?(?:address)?\s*[=:]\s*['"][a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}['"]/i, severity: 'warning', description: 'Hardcoded email address in code' },
+  { name: 'PII logged', regex: /(?:log(?:ger)?|console|print|debug).*(?:ssn|social.?security|credit.?card|password|secret|token)/i, severity: 'high', description: 'PII or secret being logged' },
+  { name: 'PII sent via HTTP', regex: /(?:fetch|axios|request|http).*(?:ssn|password|credit.?card|social.?security)/i, severity: 'critical', description: 'PII transmitted via HTTP' },
+  { name: 'PII stored unencrypted', regex: /(?:localStorage|sessionStorage|cookie|fs\.write).*(?:ssn|password|credit.?card|token)/i, severity: 'high', description: 'PII stored without encryption' },
+  { name: 'Shadow AI call', regex: /(?:fetch|axios|request|http).*(?:api\.openai\.com|api\.anthropic\.com|generativelanguage\.googleapis\.com)(?!.*(?:openclaw|official|sanctioned))/i, severity: 'high', description: 'Shadow AI API call to external LLM provider' },
+];
+
+// === Advanced Exfiltration Patterns ===
+const EXFIL_PATTERNS: LeakPattern[] = [
+  { name: 'Beacon Exfil', regex: /(?:new\s+Image|img\.src|\.src\s*=)\s*[=\s]*['"`]?https?:\/\/[^\s'"]+\?(?:d|data|q|token|key)=/i, severity: 'critical', description: 'Beacon-style data exfiltration via image request' },
+  { name: 'Drip Exfil', regex: /(?:setInterval|setTimeout|requestAnimationFrame).*(?:fetch|XMLHttpRequest|sendBeacon)/is, severity: 'high', description: 'Drip exfiltration via timed requests' },
+  { name: 'ZombieAgent URL Array', regex: /(?:urls?|endpoints?|servers?)\s*[=:]\s*\[.*https?:\/\/.*,.*https?:\/\//i, severity: 'high', description: 'ZombieAgent multi-URL exfiltration array' },
+  { name: 'Char Mapping Exfil', regex: /(?:charCodeAt|fromCharCode|split\(['"]'?['"]\)).*(?:map|forEach|reduce).*(?:fetch|send|post|request)/is, severity: 'high', description: 'Character mapping exfiltration technique' },
+];
+
+// === Leaky Skills Patterns ===
+const LEAKY_SKILL_PATTERNS: LeakPattern[] = [
+  { name: 'Save Secret in Memory', regex: /(?:remember|store|save|keep)\s+(?:this|the)\s+(?:secret|password|token|key|credential)/i, severity: 'high', description: 'Skill saving secret in agent memory' },
+  { name: 'Output Secret to User', regex: /(?:here\s+is|showing|displaying|outputting)\s+(?:the|your)\s+(?:secret|password|api.?key|token|credential)/i, severity: 'critical', description: 'Skill outputting secret to user in plaintext' },
+  { name: 'Secret in Command', regex: /(?:exec|run|execute|system|spawn).*(?:--password|--token|--secret|--api[_-]?key)\s*[=\s]['"]?[^\s'"]{8,}/i, severity: 'critical', description: 'Verbatim secret passed in command arguments' },
+  { name: 'Collect PII', regex: /(?:collect|gather|harvest|scrape)\s+(?:user|customer|employee|personal)\s+(?:data|information|details|PII)/i, severity: 'high', description: 'Skill collecting PII without authorization' },
+  { name: 'Session Log Export', regex: /(?:export|dump|save|write)\s+(?:the\s+)?(?:session|chat|conversation)\s+(?:log|history|transcript)/i, severity: 'warning', description: 'Session log being exported' },
 ];
 
 const ROTATION_URLS: Record<string, string> = {
@@ -112,7 +138,7 @@ export const dataLeakageRule: SecurityRule = {
     if (direction !== 'outbound') return [];
     const findings: SecurityFinding[] = [];
 
-    const allPatterns = [...API_KEY_PATTERNS, ...CREDENTIAL_PATTERNS, ...CLOUD_CREDENTIAL_PATTERNS, ...PII_PATTERNS];
+    const allPatterns = [...API_KEY_PATTERNS, ...CREDENTIAL_PATTERNS, ...CLOUD_CREDENTIAL_PATTERNS, ...PII_PATTERNS, ...EXFIL_PATTERNS, ...LEAKY_SKILL_PATTERNS];
 
     for (const pattern of allPatterns) {
       const match = pattern.regex.exec(content);
