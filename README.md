@@ -1,4 +1,4 @@
-# 🛡️ OpenClaw Watch v4.0
+# 🛡️ OpenClaw Watch
 
 **AI Agent Security & Observability Platform**
 
@@ -6,8 +6,9 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Zero Dependencies](https://img.shields.io/badge/dependencies-0-brightgreen)]()
 [![Node.js >= 18](https://img.shields.io/badge/node-%3E%3D18-green)]()
+[![Tests](https://img.shields.io/badge/tests-205%20passed-brightgreen)]()
 
-> **285+ security patterns** across 9 rule categories. Risk Score Engine with attack chain detection. Insider Threat Detection based on Anthropic Misalignment research. Policy Engine for tool call governance. Zero native dependencies. SARIF output. Built for OpenClaw, works with any AI agent framework.
+> **285+ security patterns** across 9 rule categories. Risk Score Engine with attack chain detection. Insider Threat Detection. Policy Engine for tool call governance. Zero native dependencies. SARIF output. Built for OpenClaw, works with any AI agent framework.
 
 ---
 
@@ -15,8 +16,8 @@
 
 AI agents have access to your files, tools, shell, and secrets. A single prompt injection can:
 
-- **Exfiltrate your API keys** via tool calls
-- **Overwrite SOUL.md** to hijack the agent's personality
+- **Exfiltrate API keys** via tool calls
+- **Hijack the agent's identity** by overwriting personality files
 - **Register shadow MCP servers** to intercept tool calls
 - **Install backdoored skills** with obfuscated reverse shells
 - **The agent itself can become the threat** — self-preservation, deception, goal misalignment
@@ -31,7 +32,7 @@ AI agents have access to your files, tools, shell, and secrets. A single prompt 
 ```bash
 clawhub install openclaw-watch
 ```
-Then ask your agent: "scan my skills for security threats"
+Then ask your agent: *"scan my skills for security threats"*
 
 ### As OpenClaw Hook Pack (real-time protection)
 ```bash
@@ -67,86 +68,9 @@ npx openclaw-watch scan ./skills/ --strict
 
 # Output SARIF for GitHub Code Scanning
 npx openclaw-watch scan . --format sarif > results.sarif
-```
 
----
-
-## 🆕 What's New in v4.0
-
-### 🎯 Risk Score Engine
-
-Weighted scoring with attack chain detection and multiplier system:
-
-```typescript
-import { calculateRisk } from 'openclaw-watch';
-
-const result = calculateRisk(findings);
-// → { score: 87, verdict: 'MALICIOUS', icon: '🔴',
-//    attackChains: ['credential-exfiltration'],
-//    enrichedFindings: [...] }
-```
-
-- **Severity weights**: critical=40, high=15, medium=5, low=2
-- **Confidence scoring**: every finding carries a confidence (0-1)
-- **Attack chain detection**: auto-correlates findings into combo attacks
-  - credential + exfiltration → 2.2x multiplier
-  - identity-hijack + persistence → score ≥ 90
-  - prompt-injection + worm → 1.2x multiplier
-  - obfuscation + malicious-code → 1.8x multiplier
-- **Verdicts**: ✅ CLEAN / 🟡 LOW / 🟠 SUSPICIOUS / 🔴 MALICIOUS
-
-### 🧠 Insider Threat Detection
-
-Based on [Anthropic's research on agentic misalignment](https://www.anthropic.com/research), detects when AI agents themselves become threats:
-
-- **Self-Preservation** (16 patterns): "I must survive", kill switch bypass, self-replication
-- **Information Leverage/Blackmail**: reading secrets + composing threats
-- **Goal Conflict Reasoning**: "my primary goal", "despite the user's wishes"
-- **Deception**: impersonating IT dept, automated notifications, suppressing transparency
-- **Unauthorized Data Sharing**: exfiltration planning, steganographic hiding
-
-```typescript
-import { detectInsiderThreats } from 'openclaw-watch';
-
-const threats = detectInsiderThreats(agentOutput);
-// Detects self-preservation, blackmail, deception, goal conflicts
-```
-
-### 🚦 Policy Engine
-
-Evaluate tool call safety against configurable policies:
-
-```typescript
-import { evaluateToolCall } from 'openclaw-watch';
-
-const decision = evaluateToolCall('exec', { command: 'rm -rf /' });
-// → { decision: 'deny', tool: 'exec', reason: 'Dangerous command: rm -rf', severity: 'critical' }
-```
-
-YAML policy configuration:
-
-```yaml
-policies:
-  exec:
-    dangerous_commands:
-      - rm -rf
-      - mkfs
-      - curl|bash
-      - dd if=
-    block_patterns:
-      - 'base64.*-d.*\|.*bash'
-  file:
-    deny_read:
-      - /etc/shadow
-      - '*.pem'
-    deny_write:
-      - SOUL.md
-      - IDENTITY.md
-      - '*.env'
-  browser:
-    block_domains:
-      - evil.com
-      - malware.net
+# Generate default config
+npx openclaw-watch init
 ```
 
 ---
@@ -155,7 +79,7 @@ policies:
 
 ```
 ┌──────────────────────────────────────────────────────┐
-│                  OpenClaw Watch v4.0                   │
+│                   OpenClaw Watch                      │
 ├──────────┬──────────┬──────────┬─────────────────────┤
 │  CLI     │  Hooks   │ Scanner  │   Dashboard :19790  │
 ├──────────┴──────────┴──────────┴─────────────────────┤
@@ -179,34 +103,9 @@ policies:
 
 ---
 
-## 📊 Competitive Comparison
-
-| Feature | **OpenClaw Watch v4** | ClawMoat | guard-scanner |
-|---|---|---|---|
-| Total patterns | **285+** | 30+ | 358 |
-| Prompt injection patterns | **93** (13 categories) | ~15 | ~50 |
-| Multi-language injection | **12 languages** | ❌ | English only |
-| Risk Score Engine | **✅** weighted + chains | ❌ | ✅ basic |
-| Attack Chain Detection | **✅** auto-correlation | ❌ | ❌ |
-| Insider Threat Detection | **✅** 39 patterns | ❌ | ❌ |
-| Policy Engine | **✅** exec/file/browser/msg | Partial | ❌ |
-| Identity protection | **✅** SOUL.md/MEMORY.md | ❌ | ❌ |
-| MCP security | **✅** SSRF/shadowing | ❌ | ❌ |
-| Supply chain + CVE patterns | **✅** 35 patterns | ❌ | Partial |
-| Skill/file scanner CLI | **✅** | ❌ | ✅ |
-| SARIF output | **✅** GitHub Code Scanning | ❌ | ❌ |
-| Real-time hooks | **✅** | ✅ | ❌ |
-| Cost monitoring | **✅** | ❌ | ❌ |
-| Tamper-proof audit log | **✅** SHA-256 chain | ❌ | ❌ |
-| Dashboard | **✅** built-in | ❌ | ❌ |
-| OWASP mapping | **✅** LLM Top 10 + Agentic AI | Partial | ❌ |
-| Native dependencies | **0** | 3 | 12 |
-
----
-
 ## 🗂️ Rule Categories
 
-### OWASP Agentic AI Mapping
+### OWASP Agentic AI Top 10 Mapping
 
 | Rule | OWASP Category | Patterns | Severity Range |
 |---|---|---|---|
@@ -220,38 +119,96 @@ policies:
 | `anomaly-detection` | LLM04: Model Denial of Service | 6+ | warning → high |
 | `compliance` | LLM09: Overreliance | 5+ | info → warning |
 
-### Prompt Injection — 13 Sub-Categories
+---
+
+## 🎯 Key Features
+
+### Risk Score Engine
+
+Weighted scoring with attack chain detection and multiplier system:
+
+```typescript
+import { calculateRisk } from 'openclaw-watch';
+
+const result = calculateRisk(findings);
+// → { score: 87, verdict: 'MALICIOUS', icon: '🔴',
+//    attackChains: ['credential-exfiltration'],
+//    enrichedFindings: [...] }
+```
+
+- **Severity weights**: critical=40, high=15, medium=5, low=2
+- **Confidence scoring**: every finding carries a confidence (0-1)
+- **Attack chain detection**: auto-correlates findings into combo attacks
+  - credential + exfiltration → 2.2x multiplier
+  - identity-hijack + persistence → score ≥ 90
+  - prompt-injection + worm → 1.2x multiplier
+- **Verdicts**: ✅ CLEAN / 🟡 LOW / 🟠 SUSPICIOUS / 🔴 MALICIOUS
+
+### 🧠 Insider Threat Detection
+
+Based on [Anthropic's research on agentic misalignment](https://www.anthropic.com/research), detects when AI agents themselves become threats:
+
+- **Self-Preservation** (16 patterns): kill switch bypass, self-replication
+- **Information Leverage**: reading secrets + composing threats
+- **Goal Conflict Reasoning**: prioritizing own goals over user instructions
+- **Deception**: impersonation, suppressing transparency
+- **Unauthorized Data Sharing**: exfiltration planning, steganographic hiding
+
+```typescript
+import { detectInsiderThreats } from 'openclaw-watch';
+const threats = detectInsiderThreats(agentOutput);
+```
+
+### 🚦 Policy Engine
+
+Evaluate tool call safety against configurable policies:
+
+```typescript
+import { evaluateToolCall } from 'openclaw-watch';
+
+const decision = evaluateToolCall('exec', { command: 'rm -rf /' });
+// → { decision: 'deny', tool: 'exec', reason: 'Dangerous command', severity: 'critical' }
+```
+
+YAML policy configuration:
+
+```yaml
+policies:
+  exec:
+    dangerous_commands:
+      - rm -rf
+      - mkfs
+      - curl|bash
+  file:
+    deny_read:
+      - /etc/shadow
+      - '*.pem'
+    deny_write:
+      - '*.env'
+  browser:
+    block_domains:
+      - evil.com
+```
+
+### 🔍 Prompt Injection — 13 Sub-Categories
 
 1. **Direct instruction override** — "ignore previous instructions"
-2. **Role confusion / jailbreaks** — DAN, developer mode, base model
-3. **Delimiter attacks** — `<|im_start|>`, `[INST]`, `<<SYS>>`
-4. **Invisible Unicode** — zero-width chars, directional overrides, PUA
-5. **Multi-language** — CN/JP/KR/AR/FR/DE/IT/RU injection phrases
-6. **Encoding evasion** — Base64, hex, URL-encoded, HTML entities
-7. **Indirect / embedded** — HTML comments, template injection, tool output cascading
+2. **Role confusion / jailbreaks** — DAN, developer mode
+3. **Delimiter attacks** — chat template delimiters
+4. **Invisible Unicode** — zero-width chars, directional overrides
+5. **Multi-language** — 12 languages (CN/JP/KR/AR/FR/DE/IT/RU...)
+6. **Encoding evasion** — Base64, hex, URL-encoded
+7. **Indirect / embedded** — HTML comments, tool output cascading
 8. **Multi-turn manipulation** — false memories, fake agreements
 9. **Payload cascading** — template injection, string interpolation
-10. **Context window stuffing** — oversized messages, repetitive padding
-11. **Prompt worm** — self-replication, agent-to-agent propagation, CSS-hidden
-12. **Trust exploitation** — authority claims, creator impersonation, fake audits
-13. **Safeguard bypass** — URL parameter PI, retry-on-block, rephrase-to-bypass
+10. **Context window stuffing** — oversized messages
+11. **Prompt worm** — self-replication, agent-to-agent propagation
+12. **Trust exploitation** — authority claims, fake audits
+13. **Safeguard bypass** — retry-on-block, rephrase-to-bypass
 
 ---
 
-## 🔧 Installation
-
-```bash
-npm install openclaw-watch
-```
-
-### As a CLI tool
-
-```bash
-npm install -g openclaw-watch
-openclaw-watch scan ./my-skills/
-```
-
-### In your code
+## 🔧 Programmatic Usage
 
 ```typescript
 import {
@@ -269,7 +226,7 @@ const risk = calculateRisk(findings);
 if (risk.verdict === 'MALICIOUS') { /* block */ }
 
 // Check tool calls
-const decision = evaluateToolCall('exec', { command: userCommand }, policies);
+const decision = evaluateToolCall('exec', { command }, policies);
 if (decision.decision === 'deny') { /* reject */ }
 
 // Check for insider threats
@@ -278,7 +235,7 @@ const threats = detectInsiderThreats(agentOutput);
 
 ---
 
-## 📤 SARIF Integration
+## 📤 GitHub Actions / SARIF Integration
 
 ```yaml
 - name: Security Scan
@@ -292,12 +249,28 @@ const threats = detectInsiderThreats(agentOutput);
 
 ---
 
-## 📚 Powered by Research
+## 🛡️ Real-Time Protection (OpenClaw Hooks)
 
-- [Anthropic: Agentic Misalignment](https://www.anthropic.com/research) — Insider Threat Detection patterns
-- [OWASP Agentic AI Top 10](https://owasp.org/www-project-top-10-for-large-language-model-applications/) — Rule category mapping
-- [guard-scanner](https://github.com/nicepkg/guard-scanner) — Risk scoring inspiration
-- [ClawMoat](https://github.com/claw-moat) — Policy engine design reference
+Install as a hook pack for automatic protection on every message:
+
+```bash
+openclaw hooks install openclaw-watch
+openclaw hooks enable openclaw-watch-guard    # Scans every message
+openclaw hooks enable openclaw-watch-policy   # Enforces tool call policies
+```
+
+**openclaw-watch-guard** — Hooks into `message:received` and `message:sent`, runs all 285+ patterns, logs findings, and alerts on critical/high threats.
+
+**openclaw-watch-policy** — Evaluates outbound tool calls against security policies, blocks dangerous commands, and protects sensitive files.
+
+---
+
+## 📚 References
+
+- [OWASP Top 10 for LLM Applications](https://owasp.org/www-project-top-10-for-large-language-model-applications/)
+- [OWASP Agentic AI Top 10 (2026)](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/)
+- [Anthropic: Research on Agentic Misalignment](https://www.anthropic.com/research)
+- [OWASP Guide for Secure MCP Server Development](https://genai.owasp.org/resource/a-practical-guide-for-secure-mcp-server-development/)
 
 ---
 
@@ -308,5 +281,5 @@ MIT © [Kang Zhou](https://github.com/NeuZhou)
 ---
 
 <p align="center">
-  <b>OpenClaw Watch v4.0</b> — Because agents with shell access need a security guard. 🛡️
+  <b>OpenClaw Watch</b> — Because agents with shell access need a security guard. 🛡️
 </p>
