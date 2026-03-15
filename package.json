@@ -1,0 +1,48 @@
+{
+  "name": "openclaw-watch",
+  "version": "1.0.0",
+  "description": "Monitor, secure, and understand your OpenClaw agents",
+  "author": "Kang Zhou (NeuZhou) <neuzhou@microsoft.com>",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
+  "files": [
+    "dist",
+    "hooks",
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "lint": "tsc --noEmit",
+    "clean": "rimraf dist"
+  },
+  "openclaw": {
+    "hooks": [
+      "./hooks/monitor",
+      "./hooks/security",
+      "./hooks/dashboard"
+    ]
+  },
+  "keywords": [
+    "openclaw",
+    "monitoring",
+    "security",
+    "dashboard",
+    "observability",
+    "agent",
+    "hooks"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kazhou2024/openclaw-watch"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "rimraf": "^5.0.0",
+    "@types/node": "^20.0.0"
+  }
+}

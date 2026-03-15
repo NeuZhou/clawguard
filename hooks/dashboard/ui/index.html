@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenClaw Watch — Dashboard</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0d1117;--card:#161b22;--border:#30363d;--text:#e6edf3;--dim:#8b949e;--accent:#58a6ff;--green:#3fb950;--red:#f85149;--yellow:#d29922;--purple:#bc8cff;--gradient:linear-gradient(135deg,#58a6ff,#bc8cff)}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.header{padding:20px 32px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px}
+.header h1{font-size:24px;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.header .badge{font-size:11px;background:var(--green);color:#000;padding:2px 8px;border-radius:12px;font-weight:600}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;padding:24px 32px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;transition:border-color .2s}
+.card:hover{border-color:var(--accent)}
+.card .label{font-size:12px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.card .value{font-size:32px;font-weight:700}
+.card .sub{font-size:12px;color:var(--dim);margin-top:4px}
+.card.alert .value{color:var(--red)}
+.card.cost .value{color:var(--green)}
+.card.sessions .value{color:var(--purple)}
+.card.speed .value{color:var(--yellow)}
+.panels{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:0 32px 32px}
+.panel{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;max-height:480px;overflow-y:auto}
+.panel h2{font-size:14px;text-transform:uppercase;letter-spacing:.5px;color:var(--dim);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.panel h2 .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.dot.live{background:var(--green);animation:pulse 2s infinite}
+.dot.shield{background:var(--red)}
+.msg{padding:10px 0;border-bottom:1px solid var(--border);font-size:13px;display:flex;gap:10px;align-items:flex-start}
+.msg:last-child{border-bottom:none}
+.msg .dir{font-size:11px;font-weight:600;padding:2px 6px;border-radius:4px;flex-shrink:0}
+.msg .dir.in{background:#1f3a28;color:var(--green)}
+.msg .dir.out{background:#1c2a3f;color:var(--accent)}
+.msg .body{color:var(--dim);word-break:break-word;flex:1}
+.msg .time{color:var(--dim);font-size:11px;flex-shrink:0;opacity:.6}
+.alert-item{padding:10px 0;border-bottom:1px solid var(--border);font-size:13px}
+.alert-item:last-child{border-bottom:none}
+.alert-item .sev{font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;text-transform:uppercase;margin-right:8px}
+.sev.critical{background:#3d1214;color:var(--red)}
+.sev.warning{background:#3d2e08;color:var(--yellow)}
+.sev.info{background:#1c2a3f;color:var(--accent)}
+.alert-item .desc{color:var(--dim)}
+.chart-area{padding:0 32px 32px}
+.chart-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px}
+.chart-card h2{font-size:14px;text-transform:uppercase;letter-spacing:.5px;color:var(--dim);margin-bottom:16px}
+.bars{display:flex;align-items:flex-end;gap:4px;height:120px}
+.bar{flex:1;background:var(--gradient);border-radius:4px 4px 0 0;min-width:12px;position:relative;transition:height .3s}
+.bar:hover{opacity:.8}
+.bar .tip{position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--dim);white-space:nowrap;display:none}
+.bar:hover .tip{display:block}
+.bar-labels{display:flex;gap:4px;margin-top:4px}
+.bar-labels span{flex:1;text-align:center;font-size:9px;color:var(--dim)}
+.empty{color:var(--dim);font-size:13px;text-align:center;padding:40px}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@media(max-width:768px){.panels{grid-template-columns:1fr}.grid{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>🛡️👁️ OpenClaw Watch</h1>
+  <span class="badge" id="status">LIVE</span>
+</div>
+
+<div class="grid">
+  <div class="card"><div class="label">Total Messages</div><div class="value" id="totalMessages">—</div><div class="sub" id="msgRate"></div></div>
+  <div class="card sessions"><div class="label">Active Sessions</div><div class="value" id="activeSessions">—</div><div class="sub" id="uptime"></div></div>
+  <div class="card cost"><div class="label">Est. Cost (USD)</div><div class="value" id="estCost">—</div><div class="sub" id="tokens"></div></div>
+  <div class="card alert"><div class="label">Security Alerts</div><div class="value" id="secAlerts">—</div><div class="sub" id="avgResponse"></div></div>
+</div>
+
+<div class="panels">
+  <div class="panel" id="feedPanel">
+    <h2><span class="dot live"></span> Live Message Feed</h2>
+    <div id="feed"><div class="empty">Waiting for messages…</div></div>
+  </div>
+  <div class="panel" id="alertPanel">
+    <h2><span class="dot shield"></span> Security Alerts</h2>
+    <div id="alerts"><div class="empty">No alerts — all clear 🎉</div></div>
+  </div>
+</div>
+
+<div class="chart-area">
+  <div class="chart-card">
+    <h2>📊 Daily Message Volume & Cost</h2>
+    <div class="bars" id="chartBars"></div>
+    <div class="bar-labels" id="chartLabels"></div>
+  </div>
+</div>
+
+<script>
+const API = '';
+const $ = (s) => document.getElementById(s);
+
+function fmt(n) { return n < 10 ? n.toFixed(1) : Math.round(n).toLocaleString(); }
+function fmtCost(n) { return '$' + n.toFixed(4); }
+function timeAgo(ts) {
+  const s = Math.floor((Date.now()-ts)/1000);
+  if(s<60) return s+'s ago'; if(s<3600) return Math.floor(s/60)+'m ago';
+  return Math.floor(s/3600)+'h ago';
+}
+function truncate(s, n=120) { return s&&s.length>n ? s.slice(0,n)+'…' : s||''; }
+
+async function fetchJSON(url) {
+  try { const r=await fetch(API+url); return r.ok?r.json():null; } catch { return null; }
+}
+
+function renderMessages(msgs) {
+  const el=$('feed');
+  if(!msgs||!msgs.length){el.innerHTML='<div class="empty">Waiting for messages…</div>';return;}
+  el.innerHTML=msgs.slice(0,30).map(m=>`<div class="msg">
+    <span class="dir ${m.direction}">${m.direction==='in'?'IN':'OUT'}</span>
+    <span class="body">${escHtml(truncate(m.content))}</span>
+    <span class="time">${timeAgo(m.timestamp)}</span>
+  </div>`).join('');
+}
+
+function renderAlerts(alerts) {
+  const el=$('alerts');
+  if(!alerts||!alerts.length){el.innerHTML='<div class="empty">No alerts — all clear 🎉</div>';return;}
+  el.innerHTML=alerts.slice(0,20).map(a=>`<div class="alert-item">
+    <span class="sev ${a.severity}">${a.severity}</span>
+    <span class="desc">${escHtml(a.description)}</span>
+    <span class="time" style="float:right;font-size:11px;color:#8b949e">${timeAgo(a.timestamp)}</span>
+  </div>`).join('');
+}
+
+function renderChart(costData) {
+  if(!costData||!costData.byDay||!Object.keys(costData.byDay).length){
+    $('chartBars').innerHTML='<div class="empty" style="width:100%">No data yet</div>';return;
+  }
+  const days=Object.entries(costData.byDay).sort((a,b)=>a[0].localeCompare(b[0])).slice(-14);
+  const maxMsgs=Math.max(...days.map(d=>d[1].messages),1);
+  $('chartBars').innerHTML=days.map(([day,d])=>{
+    const h=Math.max(4,Math.round((d.messages/maxMsgs)*110));
+    return `<div class="bar" style="height:${h}px"><span class="tip">${d.messages} msgs / ${fmtCost(d.cost)}</span></div>`;
+  }).join('');
+  $('chartLabels').innerHTML=days.map(([d])=>`<span>${d.slice(5)}</span>`).join('');
+}
+
+function escHtml(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+async function refresh() {
+  const [stats,msgs,alerts,cost]=await Promise.all([
+    fetchJSON('/api/stats'),fetchJSON('/api/messages?limit=30'),
+    fetchJSON('/api/security'),fetchJSON('/api/cost')
+  ]);
+  if(stats){
+    $('totalMessages').textContent=fmt(stats.totalMessages);
+    $('activeSessions').textContent=stats.activeSessions;
+    $('estCost').textContent=fmtCost(stats.estimatedCost);
+    $('secAlerts').textContent=stats.securityAlerts;
+    $('msgRate').textContent=fmt(stats.messagesPerHour)+' msgs/hr';
+    $('uptime').textContent='Uptime: '+fmt(stats.uptimeHours)+'h';
+    $('tokens').textContent=cost?fmt(cost.totalEstimatedTokens)+' tokens':'';
+    $('avgResponse').textContent=stats.avgResponseTimeMs?'Avg response: '+fmt(stats.avgResponseTimeMs)+'ms':'';
+  }
+  renderMessages(msgs);
+  renderAlerts(alerts);
+  renderChart(cost);
+}
+
+// SSE real-time
+function connectSSE() {
+  const es=new EventSource(API+'/api/stream');
+  es.onmessage=()=>refresh();
+  es.onerror=()=>{es.close();setTimeout(connectSSE,5000);};
+}
+
+refresh();
+setInterval(refresh,10000);
+connectSSE();
+</script>
+</body>
+</html>
