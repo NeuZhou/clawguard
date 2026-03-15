@@ -5,7 +5,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as crypto from 'crypto';
-import { SecurityFinding, Direction, RuleContext } from './types';
+import { SecurityFinding, RuleContext } from './types';
 import { builtinRules } from './rules';
 import { ScanFinding, toSarif } from './exporters/sarif';
 
@@ -39,26 +39,22 @@ function makeContext(): RuleContext {
 function scanContent(content: string, filePath: string): ScanFinding[] {
   const ctx = makeContext();
   const findings: ScanFinding[] = [];
-  const directions: Direction[] = ['inbound', 'outbound'];
 
   for (const rule of builtinRules) {
     if (!rule.enabled) continue;
-    for (const dir of directions) {
-      try {
-        const ruleFindings = rule.check(content, dir, ctx);
-        for (const f of ruleFindings) {
-          // Find the line number of the evidence
-          let line = 1;
-          if (f.evidence) {
-            const idx = content.indexOf(f.evidence.slice(0, 30));
-            if (idx >= 0) {
-              line = content.slice(0, idx).split('\n').length;
-            }
+    try {
+      const ruleFindings = rule.check(content, 'inbound', ctx);
+      for (const f of ruleFindings) {
+        let line = 1;
+        if (f.evidence) {
+          const idx = content.indexOf(f.evidence.slice(0, 30));
+          if (idx >= 0) {
+            line = content.slice(0, idx).split('\n').length;
           }
-          findings.push({ ...f, file: filePath, line });
         }
-      } catch { /* skip rule errors */ }
-    }
+        findings.push({ ...f, file: filePath, line });
+      }
+    } catch { /* skip rule errors */ }
   }
 
   return findings;
@@ -87,6 +83,7 @@ function collectFiles(targetPath: string): string[] {
   return files;
 }
 
+/** Scan a file or directory for security threats, returning aggregated results */
 export function scan(targetPath: string, options: Partial<ScanOptions> = {}): ScanResult {
   const resolved = path.resolve(targetPath);
   if (!fs.existsSync(resolved)) {
@@ -117,6 +114,7 @@ export function scan(targetPath: string, options: Partial<ScanOptions> = {}): Sc
   };
 }
 
+/** Format scan results as human-readable text */
 export function formatText(result: ScanResult): string {
   const lines: string[] = [];
   lines.push('');
@@ -154,14 +152,17 @@ export function formatText(result: ScanResult): string {
   return lines.join('\n');
 }
 
+/** Format scan results as JSON */
 export function formatJson(result: ScanResult): string {
   return JSON.stringify(result, null, 2);
 }
 
+/** Format scan results as SARIF 2.1.0 for GitHub Code Scanning */
 export function formatSarif(result: ScanResult): string {
   return JSON.stringify(toSarif(result.findings), null, 2);
 }
 
+/** Run scan and output results to stdout, exiting with code 1 in strict mode on high/critical findings */
 export function runScan(targetPath: string, options: Partial<ScanOptions> = {}): void {
   const format = options.format || 'text';
   const strict = options.strict || false;

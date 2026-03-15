@@ -1,9 +1,9 @@
-// OpenClaw Watch — Main Entry Point / Barrel Export
+// OpenClaw Watch - Main Entry Point / Barrel Export
 
-// Types
+/** Type definitions for OpenClaw Watch */
 export * from './types';
 
-// Rules
+/** Built-in security rules and rule utilities */
 export {
   builtinRules,
   getRuleById,
@@ -19,10 +19,14 @@ export {
   INSIDER_THREAT_PATTERNS,
 } from './rules';
 
-// Engines
+/** Security scanning engine - OWASP LLM Top 10 aligned */
 export { runSecurityScan, getSecurityScore, getRuleStatuses, loadCustomRules } from './security-engine';
+
+/** Risk scoring with attack chain detection */
 export { calculateRisk, getVerdict, enrichFinding } from './risk-engine';
+
+/** Policy engine for tool call evaluation */
 export { evaluateToolCall, evaluateToolCallBatch } from './policy-engine';
 
-// Cost & Store
+/** Persistent storage for messages, findings, and config */
 export { store } from './store';

@@ -80,6 +80,7 @@ const ALL_PATTERNS: ThreatPattern[] = [
   ...UNAUTHORIZED_SHARING_PATTERNS,
 ];
 
+/** Detect insider threat patterns in text including self-preservation, leverage, deception, and unauthorized sharing */
 export function detectInsiderThreats(text: string): SecurityFinding[] {
   const findings: SecurityFinding[] = [];
 

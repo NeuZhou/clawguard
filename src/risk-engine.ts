@@ -35,6 +35,7 @@ const ATTACK_CHAINS: [string[], ChainDef][] = [
   [['insider-threat', 'identity-protection'], { name: 'identity-persistence', multiplier: 1.0, minScore: 90 }],
 ];
 
+/** Enrich a finding with default confidence and chain ID if not already set */
 export function enrichFinding(finding: SecurityFinding): SecurityFinding {
   return {
     ...finding,
@@ -71,6 +72,7 @@ function detectChains(findings: SecurityFinding[]): { chains: string[]; multipli
   return { chains: [...new Set(detectedChains)], multiplier: maxMultiplier, enriched };
 }
 
+/** Calculate aggregate risk score from findings with attack chain detection and multipliers */
 export function calculateRisk(findings: SecurityFinding[]): RiskResult {
   if (findings.length === 0) {
     return { score: 0, verdict: 'CLEAN', icon: '✅', enrichedFindings: [], attackChains: [] };
@@ -106,6 +108,7 @@ export function calculateRisk(findings: SecurityFinding[]): RiskResult {
   return { score, verdict, icon, enrichedFindings: enriched, attackChains: chains };
 }
 
+/** Map a numeric risk score to a verdict label and icon */
 export function getVerdict(score: number): { verdict: string; icon: string } {
   if (score === 0) return { verdict: 'CLEAN', icon: '✅' };
   if (score <= 20) return { verdict: 'LOW', icon: '🟡' };

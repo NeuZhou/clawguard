@@ -55,6 +55,7 @@ function matchesGlob(path: string, globs: string[]): string | undefined {
   return undefined;
 }
 
+/** Evaluate a single tool call against security policies, returning allow/deny/warn decision */
 export function evaluateToolCall(
   tool: string,
   args: Record<string, unknown>,
@@ -124,6 +125,7 @@ export function evaluateToolCall(
   return { decision: 'allow', tool, reason: 'No policy violation', severity: 'info' };
 }
 
+/** Evaluate a batch of tool calls against policies, returning decisions for each */
 export function evaluateToolCallBatch(
   calls: { tool: string; args: Record<string, unknown> }[],
   policies?: PolicyConfig,

@@ -1,7 +1,7 @@
 {
   "name": "openclaw-watch",
-  "version": "2.0.0",
-  "description": "AI Agent Security & Observability Platform — 150+ threat patterns, OWASP Agentic AI mapping, SARIF output, zero native dependencies",
+  "version": "5.0.0",
+  "description": "AI Agent Security & Observability Platform - 285+ threat patterns, OWASP Agentic AI mapping, SARIF output, zero native dependencies",
   "author": "Kang Zhou <kangzhou@microsoft.com>",
   "license": "MIT",
   "keywords": [
@@ -15,8 +15,15 @@
     "type": "git",
     "url": "https://github.com/NeuZhou/openclaw-watch.git"
   },
-  "main": "dist/src/types.js",
-  "types": "dist/src/types.d.ts",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/src/index.js",
+      "require": "./dist/src/index.js",
+      "types": "./dist/src/index.d.ts"
+    }
+  },
   "bin": {
     "openclaw-watch": "./dist/src/cli.js",
     "openclaw-watch-scan": "./dist/src/skill-scanner.js"
@@ -24,6 +31,7 @@
   "files": [
     "dist/",
     "hooks/",
+    "skill/",
     "rules.d/",
     "README.md",
     "LICENSE"

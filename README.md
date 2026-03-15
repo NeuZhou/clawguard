@@ -25,6 +25,37 @@ AI agents have access to your files, tools, shell, and secrets. A single prompt 
 
 ---
 
+## 🚀 Installation
+
+### As OpenClaw Skill (static scanning)
+```bash
+clawhub install openclaw-watch
+```
+Then ask your agent: "scan my skills for security threats"
+
+### As OpenClaw Hook Pack (real-time protection)
+```bash
+openclaw hooks install openclaw-watch
+openclaw hooks enable openclaw-watch-guard
+openclaw hooks enable openclaw-watch-policy
+```
+Every message is now automatically scanned. Critical threats trigger alerts.
+
+### As CLI Tool
+```bash
+npx openclaw-watch scan ./path/to/scan
+```
+
+### As npm Library
+```bash
+npm install openclaw-watch
+```
+```typescript
+import { runSecurityScan, calculateRisk, evaluateToolCall } from 'openclaw-watch';
+```
+
+---
+
 ## ⚡ Quick Start
 
 ```bash

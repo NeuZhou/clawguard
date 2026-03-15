@@ -10,6 +10,7 @@ import * as crypto from 'crypto';
 
 let customRulesLoaded: { id: string; check: SecurityRule['check'] }[] = [];
 
+/** Load custom YAML rule files from a directory */
 export function loadCustomRules(dir: string): void {
   customRulesLoaded = [];
   const resolvedDir = dir.replace(/^~/, process.env.HOME || process.env.USERPROFILE || '');
@@ -35,7 +36,6 @@ export function loadCustomRules(dir: string): void {
 
 function parseSimpleYaml(raw: string): CustomRuleDefinition | null {
   try {
-    // Very basic YAML-like parser for our specific schema
     const lines = raw.split('\n');
     const def: CustomRuleDefinition = { name: '', version: '', rules: [] };
     let currentRule: Record<string, unknown> | null = null;
@@ -46,8 +46,20 @@ function parseSimpleYaml(raw: string): CustomRuleDefinition | null {
 
     for (const line of lines) {
       const trimmed = line.trim();
-      if (trimmed.startsWith('name:')) def.name = trimmed.slice(5).trim().replace(/^["']|["']$/g, '');
-      else if (trimmed.startsWith('version:')) def.version = trimmed.slice(8).trim().replace(/^["']|["']$/g, '');
+      // Skip empty lines and comments
+      if (!trimmed || trimmed.startsWith('#')) continue;
+
+      const extractValue = (s: string): string => {
+        let v = s.trim();
+        // Handle quoted values (preserves colons inside quotes)
+        if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) {
+          v = v.slice(1, -1);
+        }
+        return v;
+      };
+
+      if (trimmed.startsWith('name:')) def.name = extractValue(trimmed.slice(5));
+      else if (trimmed.startsWith('version:')) def.version = extractValue(trimmed.slice(8));
       else if (trimmed === '- id:' || trimmed.startsWith('- id:')) {
         if (currentRule) {
           def.rules.push({
@@ -60,29 +72,29 @@ function parseSimpleYaml(raw: string): CustomRuleDefinition | null {
             action: (currentRule.action as 'alert' | 'log' | 'block') || 'alert',
           });
         }
-        currentRule = { id: trimmed.replace('- id:', '').trim().replace(/^["']|["']$/g, '') };
+        currentRule = { id: extractValue(trimmed.replace('- id:', '')) };
         currentPatterns = [];
         currentConditions = [];
         inPatterns = false;
         inConditions = false;
       } else if (currentRule) {
-        if (trimmed.startsWith('description:')) currentRule.description = trimmed.slice(12).trim().replace(/^["']|["']$/g, '');
-        else if (trimmed.startsWith('event:')) currentRule.event = trimmed.slice(6).trim();
-        else if (trimmed.startsWith('severity:')) currentRule.severity = trimmed.slice(9).trim();
-        else if (trimmed.startsWith('action:')) currentRule.action = trimmed.slice(7).trim();
+        if (trimmed.startsWith('description:')) currentRule.description = extractValue(trimmed.slice(12));
+        else if (trimmed.startsWith('event:')) currentRule.event = extractValue(trimmed.slice(6));
+        else if (trimmed.startsWith('severity:')) currentRule.severity = extractValue(trimmed.slice(9));
+        else if (trimmed.startsWith('action:')) currentRule.action = extractValue(trimmed.slice(7));
         else if (trimmed === 'patterns:') { inPatterns = true; inConditions = false; }
         else if (trimmed === 'conditions:') { inConditions = true; inPatterns = false; }
         else if (inPatterns && trimmed.startsWith('- regex:')) {
-          currentPatterns.push({ regex: trimmed.slice(8).trim().replace(/^["']|["']$/g, '') });
+          currentPatterns.push({ regex: extractValue(trimmed.slice(8)) });
         } else if (inPatterns && trimmed.startsWith('- keyword:')) {
-          currentPatterns.push({ keyword: trimmed.slice(10).trim().replace(/^["']|["']$/g, '') });
+          currentPatterns.push({ keyword: extractValue(trimmed.slice(10)) });
         } else if (inConditions && trimmed.startsWith('- metric:')) {
           currentConditions.push({
-            metric: trimmed.slice(9).trim(),
+            metric: extractValue(trimmed.slice(9)),
             operator: '', value: 0,
           });
         } else if (inConditions && trimmed.startsWith('operator:') && currentConditions.length > 0) {
-          currentConditions[currentConditions.length - 1].operator = trimmed.slice(9).trim().replace(/^["']|["']$/g, '');
+          currentConditions[currentConditions.length - 1].operator = extractValue(trimmed.slice(9));
         } else if (inConditions && trimmed.startsWith('value:') && currentConditions.length > 0) {
           currentConditions[currentConditions.length - 1].value = parseFloat(trimmed.slice(6).trim());
         }
@@ -101,7 +113,11 @@ function parseSimpleYaml(raw: string): CustomRuleDefinition | null {
       });
     }
     return def;
-  } catch {
+  } catch (err) {
+    // Log parse errors for debugging
+    if (typeof process !== 'undefined' && process.env.WATCH_DEBUG) {
+      process.stderr.write(`[openclaw-watch] YAML parse error: ${(err as Error).message}\n`);
+    }
     return null;
   }
 }
@@ -139,6 +155,7 @@ function createCustomRuleCheck(rule: { id: string; description: string; severity
   };
 }
 
+/** Run security scan on content using built-in and custom rules, storing findings */
 export function runSecurityScan(content: string, direction: Direction, context: RuleContext): SecurityFinding[] {
   const config = store.getConfig();
   const findings: SecurityFinding[] = [];
@@ -167,6 +184,7 @@ export function runSecurityScan(content: string, direction: Direction, context: 
   return findings;
 }
 
+/** Get security health score (0-100) based on today's findings */
 export function getSecurityScore(): number {
   const findings = store.getFindings(1000);
   const dayStart = new Date();

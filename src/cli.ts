@@ -7,9 +7,11 @@
 //   openclaw-watch audit <path>   — audit session logs
 //   openclaw-watch version        — show version
 
+import * as fs from 'fs';
+import * as path from 'path';
 import { runScan, ScanOptions } from './skill-scanner';
 
-const VERSION = '2.0.0';
+const VERSION = '5.0.0';
 
 function printHelp(): void {
   const help = `
@@ -19,6 +21,7 @@ Usage: openclaw-watch <command> [options]
 
 Commands:
   scan <path>        Scan files/directories for security threats
+  init               Generate openclaw-watch.yaml config file
   start              Start real-time monitoring hooks
   dashboard          Open the security dashboard
   audit <path>       Audit session log files
@@ -56,6 +59,67 @@ function parseArgs(args: string[]): { command: string; target?: string; options:
   return { command, target, options };
 }
 
+function initConfig(): void {
+  const configPath = path.join(process.cwd(), 'openclaw-watch.yaml');
+  if (fs.existsSync(configPath)) {
+    process.stderr.write('openclaw-watch.yaml already exists. Delete it first to regenerate.\n');
+    process.exit(1);
+  }
+  const yaml = `# OpenClaw Watch Configuration
+# See https://github.com/NeuZhou/openclaw-watch for details
+
+dashboard:
+  port: 19790
+  enabled: true
+
+budget:
+  dailyUsd: 50
+  weeklyUsd: 200
+  monthlyUsd: 500
+
+alerts:
+  costThresholds:
+    - 0.8
+    - 0.9
+    - 1.0
+  securityEscalate:
+    - critical
+    - high
+  stuckTimeoutMs: 300000
+  cooldownMs: 300000
+
+security:
+  enabledRules:
+    - prompt-injection
+    - data-leakage
+    - anomaly-detection
+    - compliance
+    - file-protection
+    - identity-protection
+    - mcp-security
+    - supply-chain
+  customRulesDir: "~/.openclaw/openclaw-watch/rules.d"
+
+exporters:
+  jsonl:
+    enabled: true
+  syslog:
+    enabled: false
+    host: "127.0.0.1"
+    port: 514
+  webhook:
+    enabled: false
+    url: ""
+    secret: ""
+
+retention:
+  days: 30
+  maxFileSizeMb: 50
+`;
+  fs.writeFileSync(configPath, yaml);
+  process.stdout.write('✅ Created openclaw-watch.yaml — edit to customize\n');
+}
+
 function main(): void {
   const args = process.argv.slice(2);
   const { command, target, options } = parseArgs(args);
@@ -68,6 +132,10 @@ function main(): void {
         process.exit(2);
       }
       runScan(target, options);
+      break;
+
+    case 'init':
+      initConfig();
       break;
 
     case 'version':
