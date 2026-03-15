@@ -2,7 +2,7 @@
   "name": "openclaw-watch",
   "version": "5.0.0",
   "description": "AI Agent Security & Observability Platform - 285+ threat patterns, OWASP Agentic AI mapping, SARIF output, zero native dependencies",
-  "author": "Kang Zhou <kangzhou@microsoft.com>",
+  "author": "Kang Zhou <neuzhou@outlook.com>",
   "license": "MIT",
   "keywords": [
     "openclaw", "security", "observability", "monitoring", "dashboard",
