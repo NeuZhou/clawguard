@@ -1,4 +1,4 @@
-// Carapace - Tests: Store (extended)
+// ClawGuard - Tests: Store (extended)
 
 import { describe, it } from 'node:test';
 import * as assert from 'node:assert';
@@ -58,7 +58,8 @@ describe('Store - Extended', () => {
   it('getDataDir returns a string path', () => {
     const dir = store.getDataDir();
     assert.ok(typeof dir === 'string');
-    assert.ok(dir.includes('carapace'));
+    assert.ok(dir.includes('ClawGuard'));
   });
 });
+
 

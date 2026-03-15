@@ -1,4 +1,4 @@
-// Carapace — Integrity Engine (SHA-256 Hash Chain)
+// ClawGuard — Integrity Engine (SHA-256 Hash Chain)
 
 import * as crypto from 'crypto';
 import { AuditEvent } from './types';
@@ -47,4 +47,5 @@ export function initIntegrity(): void {
     prevHash = events[events.length - 1].hash;
   }
 }
+
 

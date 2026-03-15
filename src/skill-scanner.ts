@@ -1,6 +1,6 @@
-// Carapace — Skill Scanner
+// ClawGuard — Skill Scanner
 // Standalone CLI tool for scanning files/directories for security threats
-// Usage: carapace scan <path> [--strict] [--format json|sarif|text]
+// Usage: ClawGuard scan <path> [--strict] [--format json|sarif|text]
 
 import * as fs from 'fs';
 import * as path from 'path';
@@ -120,7 +120,7 @@ export function scan(targetPath: string, options: Partial<ScanOptions> = {}): Sc
 export function formatText(result: ScanResult): string {
   const lines: string[] = [];
   lines.push('');
-  lines.push('🛡️  Carapace — Security Scan Results');
+  lines.push('🛡️  ClawGuard — Security Scan Results');
   lines.push('═'.repeat(50));
   lines.push(`📁 Files scanned: ${result.totalFiles}`);
   lines.push(`🔍 Findings: ${result.totalFindings}`);
@@ -209,3 +209,4 @@ export function runScan(targetPath: string, options: Partial<ScanOptions> = {}):
     process.exit(2);
   }
 }
+

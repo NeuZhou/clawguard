@@ -1,4 +1,4 @@
-// Carapace — Security Rules Index
+// ClawGuard — Security Rules Index
 
 import { SecurityRule } from '../types';
 import { promptInjectionRule } from './prompt-injection';
@@ -38,4 +38,5 @@ export {
 
 // Re-export insider threat as standalone module (not a SecurityRule, uses different API)
 export { detectInsiderThreats, INSIDER_THREAT_PATTERNS } from './insider-threat';
+
 

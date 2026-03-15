@@ -1,4 +1,4 @@
-// Carapace — Security Hook
+// ClawGuard — Security Hook
 // Real-time security scanning pipeline
 
 import { store } from '../../src/store';
@@ -88,4 +88,5 @@ export default function handler(event: HookEvent): void {
     }
   }
 }
+
 

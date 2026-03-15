@@ -138,3 +138,4 @@ GitHub: https://github.com/NeuZhou/openclaw-watch
 3. **Agent-first**: designed for agents to use autonomously, not just humans
 4. **Quality**: 229 tests, OWASP 2026 full coverage, SARIF output
 5. **Real problem**: AI agents have filesystem/network/email access but zero security oversight
+

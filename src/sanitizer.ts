@@ -1,4 +1,4 @@
-// Carapace — PII Sanitizer
+// ClawGuard — PII Sanitizer
 // Sanitizes PII, credentials, and secrets from text LOCALLY before sending to LLMs.
 // Unlike cloud-based alternatives, nothing leaves your machine.
 
@@ -123,4 +123,5 @@ export function containsPII(text: string): boolean {
   }
   return false;
 }
+
 

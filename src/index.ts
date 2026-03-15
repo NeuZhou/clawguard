@@ -1,6 +1,6 @@
-// Carapace - Main Entry Point / Barrel Export
+// ClawGuard - Main Entry Point / Barrel Export
 
-/** Type definitions for Carapace */
+/** Type definitions for ClawGuard */
 export * from './types';
 
 /** Built-in security rules and rule utilities */
@@ -38,4 +38,5 @@ export type { SanitizeResult, Replacement } from './sanitizer';
 /** Intent-Action Mismatch Detection — catches agents that say one thing but do another */
 export { checkIntentAction, checkIntentActionBatch } from './intent-action';
 export type { IntentActionCheck } from './intent-action';
+
 

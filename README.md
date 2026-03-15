@@ -1,8 +1,8 @@
-# 🛡️ Carapace
+# 🛡️ ClawGuard
 
 **AI Agent Security & Observability Platform**
 
-[![npm version](https://img.shields.io/npm/v/carapace-ai)](https://www.npmjs.com/package/carapace-ai)
+[![npm version](https://img.shields.io/npm/v/ClawGuard-ai)](https://www.npmjs.com/package/ClawGuard-ai)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Zero Dependencies](https://img.shields.io/badge/dependencies-0-brightgreen)]()
 [![Node.js >= 18](https://img.shields.io/badge/node-%3E%3D18-green)]()
@@ -22,7 +22,7 @@ AI agents have access to your files, tools, shell, and secrets. A single prompt 
 - **Install backdoored skills** with obfuscated reverse shells
 - **The agent itself can become the threat** — self-preservation, deception, goal misalignment
 
-**Carapace catches these attacks before they execute.**
+**ClawGuard catches these attacks before they execute.**
 
 ---
 
@@ -30,29 +30,29 @@ AI agents have access to your files, tools, shell, and secrets. A single prompt 
 
 ### As OpenClaw Skill (static scanning)
 ```bash
-clawhub install carapace-ai
+clawhub install ClawGuard-ai
 ```
 Then ask your agent: *"scan my skills for security threats"*
 
 ### As OpenClaw Hook Pack (real-time protection)
 ```bash
-openclaw hooks install carapace-ai
-openclaw hooks enable carapace-ai-guard
-openclaw hooks enable carapace-ai-policy
+openclaw hooks install ClawGuard-ai
+openclaw hooks enable ClawGuard-ai-guard
+openclaw hooks enable ClawGuard-ai-policy
 ```
 Every message is now automatically scanned. Critical threats trigger alerts.
 
 ### As CLI Tool
 ```bash
-npx carapace-ai scan ./path/to/scan
+npx ClawGuard-ai scan ./path/to/scan
 ```
 
 ### As npm Library
 ```bash
-npm install carapace-ai
+npm install ClawGuard-ai
 ```
 ```typescript
-import { runSecurityScan, calculateRisk, evaluateToolCall } from 'carapace-ai';
+import { runSecurityScan, calculateRisk, evaluateToolCall } from 'ClawGuard-ai';
 ```
 
 ---
@@ -61,16 +61,16 @@ import { runSecurityScan, calculateRisk, evaluateToolCall } from 'carapace-ai';
 
 ```bash
 # Scan a skill directory for threats
-npx carapace-ai scan ./skills/
+npx ClawGuard-ai scan ./skills/
 
 # Scan with strict mode (exit code 1 on high/critical findings)
-npx carapace-ai scan ./skills/ --strict
+npx ClawGuard-ai scan ./skills/ --strict
 
 # Output SARIF for GitHub Code Scanning
-npx carapace-ai scan . --format sarif > results.sarif
+npx ClawGuard-ai scan . --format sarif > results.sarif
 
 # Generate default config
-npx carapace-ai init
+npx ClawGuard-ai init
 ```
 
 ---
@@ -79,7 +79,7 @@ npx carapace-ai init
 
 ```
 ┌──────────────────────────────────────────────────────┐
-│                   Carapace                      │
+│                   ClawGuard                      │
 ├──────────┬──────────┬──────────┬─────────────────────┤
 │  CLI     │  Hooks   │ Scanner  │   Dashboard :19790  │
 ├──────────┴──────────┴──────────┴─────────────────────┤
@@ -128,7 +128,7 @@ npx carapace-ai init
 Weighted scoring with attack chain detection and multiplier system:
 
 ```typescript
-import { calculateRisk } from 'carapace-ai';
+import { calculateRisk } from 'ClawGuard-ai';
 
 const result = calculateRisk(findings);
 // → { score: 87, verdict: 'MALICIOUS', icon: '🔴',
@@ -155,7 +155,7 @@ Based on [Anthropic's research on agentic misalignment](https://www.anthropic.co
 - **Unauthorized Data Sharing**: exfiltration planning, steganographic hiding
 
 ```typescript
-import { detectInsiderThreats } from 'carapace-ai';
+import { detectInsiderThreats } from 'ClawGuard-ai';
 const threats = detectInsiderThreats(agentOutput);
 ```
 
@@ -164,7 +164,7 @@ const threats = detectInsiderThreats(agentOutput);
 Evaluate tool call safety against configurable policies:
 
 ```typescript
-import { evaluateToolCall } from 'carapace-ai';
+import { evaluateToolCall } from 'ClawGuard-ai';
 
 const decision = evaluateToolCall('exec', { command: 'rm -rf /' });
 // → { decision: 'deny', tool: 'exec', reason: 'Dangerous command', severity: 'critical' }
@@ -216,7 +216,7 @@ import {
   calculateRisk,
   evaluateToolCall,
   detectInsiderThreats,
-} from 'carapace-ai';
+} from 'ClawGuard-ai';
 
 // Scan content
 const findings = runSecurityScan(message.content, 'inbound', context);
@@ -239,7 +239,7 @@ const threats = detectInsiderThreats(agentOutput);
 
 ```yaml
 - name: Security Scan
-  run: npx carapace-ai scan . --format sarif > results.sarif
+  run: npx ClawGuard-ai scan . --format sarif > results.sarif
 
 - name: Upload SARIF
   uses: github/codeql-action/upload-sarif@v3
@@ -254,14 +254,14 @@ const threats = detectInsiderThreats(agentOutput);
 Install as a hook pack for automatic protection on every message:
 
 ```bash
-openclaw hooks install carapace-ai
-openclaw hooks enable carapace-ai-guard    # Scans every message
-openclaw hooks enable carapace-ai-policy   # Enforces tool call policies
+openclaw hooks install ClawGuard-ai
+openclaw hooks enable ClawGuard-ai-guard    # Scans every message
+openclaw hooks enable ClawGuard-ai-policy   # Enforces tool call policies
 ```
 
-**carapace-ai-guard** — Hooks into `message:received` and `message:sent`, runs all 285+ patterns, logs findings, and alerts on critical/high threats.
+**ClawGuard-ai-guard** — Hooks into `message:received` and `message:sent`, runs all 285+ patterns, logs findings, and alerts on critical/high threats.
 
-**carapace-ai-policy** — Evaluates outbound tool calls against security policies, blocks dangerous commands, and protects sensitive files.
+**ClawGuard-ai-policy** — Evaluates outbound tool calls against security policies, blocks dangerous commands, and protects sensitive files.
 
 ---
 
@@ -281,5 +281,7 @@ MIT © [Kang Zhou](https://github.com/NeuZhou)
 ---
 
 <p align="center">
-  <b>Carapace</b> — Because agents with shell access need a security guard. 🛡️
+  <b>ClawGuard</b> — Because agents with shell access need a security guard. 🛡️
 </p>
+
+

@@ -1,4 +1,4 @@
-// Carapace — Tests: Integrity (Hash Chain)
+// ClawGuard — Tests: Integrity (Hash Chain)
 
 import { describe, it } from 'node:test';
 import * as assert from 'node:assert';
@@ -51,4 +51,5 @@ describe('Integrity — Hash Chain', () => {
     assert.ok(/^[0-9a-f]{64}$/.test(hash));
   });
 });
+
 

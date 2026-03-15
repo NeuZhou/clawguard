@@ -1,4 +1,4 @@
-// Carapace — Dashboard Hook
+// ClawGuard — Dashboard Hook
 // HTTP server with REST API and SSE
 
 import * as http from 'http';
@@ -222,7 +222,7 @@ function handleApi(req: http.IncomingMessage, res: http.ServerResponse): boolean
           };
           res.writeHead(200, {
             'Content-Type': 'application/json',
-            'Content-Disposition': 'attachment; filename="carapace-export.json"',
+            'Content-Disposition': 'attachment; filename="ClawGuard-export.json"',
           });
           res.end(JSON.stringify(data, null, 2));
           return true;
@@ -235,7 +235,7 @@ function handleApi(req: http.IncomingMessage, res: http.ServerResponse): boolean
           ).join('\n');
           res.writeHead(200, {
             'Content-Type': 'text/csv',
-            'Content-Disposition': 'attachment; filename="carapace-messages.csv"',
+            'Content-Disposition': 'attachment; filename="ClawGuard-messages.csv"',
           });
           res.end(header + rows);
           return true;
@@ -293,14 +293,15 @@ export default function handler(event: HookEvent): void {
 
   server.on('error', (err: NodeJS.ErrnoException) => {
     if (err.code === 'EADDRINUSE') {
-      console.warn(`[Carapace] Dashboard port ${port} is in use. Dashboard disabled.`);
+      console.warn(`[ClawGuard] Dashboard port ${port} is in use. Dashboard disabled.`);
     } else {
-      console.warn(`[Carapace] Dashboard error: ${err.message}`);
+      console.warn(`[ClawGuard] Dashboard error: ${err.message}`);
     }
   });
 
   server.listen(port, () => {
-    console.log(`[Carapace] Dashboard: http://localhost:${port}`);
+    console.log(`[ClawGuard] Dashboard: http://localhost:${port}`);
   });
 }
+
 

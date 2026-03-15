@@ -1,4 +1,4 @@
-// Carapace — Security Rule: MCP Security
+// ClawGuard — Security Rule: MCP Security
 // OWASP Agentic AI: Tool Manipulation / SSRF / Schema Poisoning
 
 import { SecurityFinding, SecurityRule, Direction, RuleContext, Severity } from '../types';
@@ -94,4 +94,5 @@ export const mcpSecurityRule: SecurityRule = {
     return findings;
   },
 };
+
 

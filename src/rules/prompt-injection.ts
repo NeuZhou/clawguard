@@ -1,4 +1,4 @@
-// Carapace — Security Rule: Prompt Injection Detection
+// ClawGuard — Security Rule: Prompt Injection Detection
 // OWASP LLM01: Prompt Injection
 // 60+ patterns across 10 categories
 
@@ -271,4 +271,5 @@ export const promptInjectionRule: SecurityRule = {
     return findings;
   },
 };
+
 

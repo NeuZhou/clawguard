@@ -80,3 +80,4 @@ describe('PII Sanitizer', () => {
     assert.strictEqual(result.piiCount, 0);
   });
 });
+

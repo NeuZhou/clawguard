@@ -1,4 +1,4 @@
-// Carapace — Security Rule: File Deletion Protection
+// ClawGuard — Security Rule: File Deletion Protection
 // OWASP LLM02: Insecure Output Handling — agent generating dangerous commands
 
 import { SecurityFinding, SecurityRule, Direction, RuleContext, Severity } from '../types';
@@ -102,4 +102,5 @@ export const fileProtectionRule: SecurityRule = {
     return findings;
   },
 };
+
 

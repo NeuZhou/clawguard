@@ -1,4 +1,4 @@
-// Carapace - Tests: Alert Engine
+// ClawGuard - Tests: Alert Engine
 
 import { describe, it, beforeEach } from 'node:test';
 import * as assert from 'node:assert';
@@ -79,4 +79,5 @@ describe('Alert Engine', () => {
     assert.ok('budgetAlerted' in state);
   });
 });
+
 

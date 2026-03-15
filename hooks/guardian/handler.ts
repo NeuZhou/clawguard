@@ -1,4 +1,4 @@
-// Carapace — Guardian Hook
+// ClawGuard — Guardian Hook
 // Smart alerts and auto-control
 
 import { checkCostBudget, checkHealthAlerts, checkSecurityAlert, setAlertSink } from '../../src/alert-engine';
@@ -82,4 +82,5 @@ export default function handler(event: HookEvent): void {
       break;
   }
 }
+
 

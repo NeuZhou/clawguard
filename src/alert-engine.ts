@@ -1,4 +1,4 @@
-// Carapace — Alert Engine
+// ClawGuard — Alert Engine
 
 import { SecurityFinding, AlertState, WatchConfig, Severity } from './types';
 import { store } from './store';
@@ -88,4 +88,5 @@ export function resetDailyBudgetAlerts(): void {
 export function getAlertState(): AlertState {
   return { ...alertState };
 }
+
 

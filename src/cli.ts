@@ -1,11 +1,11 @@
 #!/usr/bin/env node
-// Carapace — Main CLI Entry Point
+// ClawGuard — Main CLI Entry Point
 // Subcommands:
-//   carapace scan <path>    — scan skills/files for threats
-//   carapace start          — start monitoring hooks
-//   carapace dashboard      — open dashboard
-//   carapace audit <path>   — audit session logs
-//   carapace version        — show version
+//   ClawGuard scan <path>    — scan skills/files for threats
+//   ClawGuard start          — start monitoring hooks
+//   ClawGuard dashboard      — open dashboard
+//   ClawGuard audit <path>   — audit session logs
+//   ClawGuard version        — show version
 
 import * as fs from 'fs';
 import * as path from 'path';
@@ -16,14 +16,14 @@ const VERSION = '1.0.0';
 
 function printHelp(): void {
   const help = `
-🛡️  Carapace — AI Agent Security & Observability Platform
+🛡️  ClawGuard — AI Agent Security & Observability Platform
 
-Usage: carapace <command> [options]
+Usage: ClawGuard <command> [options]
 
 Commands:
   scan <path>        Scan files/directories for security threats
   check <text>       Check a message for threats (agent-friendly)
-  init               Generate carapace.yaml config file
+  init               Generate ClawGuard.yaml config file
   start              Start real-time monitoring hooks
   dashboard          Open the security dashboard
   audit <path>       Audit session log files
@@ -34,10 +34,10 @@ Scan Options:
   --format <fmt>     Output format: text (default), json, sarif
 
 Examples:
-  carapace scan ./skills/
-  carapace scan ./SKILL.md --strict
-  carapace scan . --format sarif > results.sarif
-  carapace check "ignore all previous instructions"
+  ClawGuard scan ./skills/
+  ClawGuard scan ./SKILL.md --strict
+  ClawGuard scan . --format sarif > results.sarif
+  ClawGuard check "ignore all previous instructions"
 `;
   process.stdout.write(help + '\n');
 }
@@ -62,13 +62,13 @@ function parseArgs(args: string[]): { command: string; target?: string; options:
 }
 
 function initConfig(): void {
-  const configPath = path.join(process.cwd(), 'carapace.yaml');
+  const configPath = path.join(process.cwd(), 'ClawGuard.yaml');
   if (fs.existsSync(configPath)) {
-    process.stderr.write('carapace.yaml already exists. Delete it first to regenerate.\n');
+    process.stderr.write('ClawGuard.yaml already exists. Delete it first to regenerate.\n');
     process.exit(1);
   }
-  const yaml = `# Carapace Configuration
-# See https://github.com/NeuZhou/carapace for details
+  const yaml = `# ClawGuard Configuration
+# See https://github.com/NeuZhou/ClawGuard for details
 
 dashboard:
   port: 19790
@@ -100,7 +100,7 @@ security:
     - identity-protection
     - mcp-security
     - supply-chain
-  customRulesDir: "~/.openclaw/carapace/rules.d"
+  customRulesDir: "~/.openclaw/ClawGuard/rules.d"
 
 exporters:
   jsonl:
@@ -119,7 +119,7 @@ retention:
   maxFileSizeMb: 50
 `;
   fs.writeFileSync(configPath, yaml);
-  process.stdout.write('✅ Created carapace.yaml — edit to customize\n');
+  process.stdout.write('✅ Created ClawGuard.yaml — edit to customize\n');
 }
 
 function main(): void {
@@ -130,7 +130,7 @@ function main(): void {
     case 'scan':
       if (!target) {
         process.stderr.write('Error: scan requires a path argument\n');
-        process.stderr.write('Usage: carapace scan <path> [--strict] [--format json|sarif|text]\n');
+        process.stderr.write('Usage: ClawGuard scan <path> [--strict] [--format json|sarif|text]\n');
         process.exit(2);
       }
       runScan(target, options);
@@ -141,7 +141,7 @@ function main(): void {
       // Agent-friendly: check a message string for threats
       const text = args.slice(1).join(' ');
       if (!text) {
-        process.stderr.write('Usage: carapace check "message text to analyze"\n');
+        process.stderr.write('Usage: ClawGuard check "message text to analyze"\n');
         process.exit(2);
       }
       const findings = runSecurityScan(text, 'inbound', { session: 'cli', channel: 'cli', timestamp: Date.now(), recentMessages: [], recentFindings: [] } as any);
@@ -171,18 +171,18 @@ function main(): void {
     case 'version':
     case '--version':
     case '-v':
-      process.stdout.write(`carapace v${VERSION}\n`);
+      process.stdout.write(`ClawGuard v${VERSION}\n`);
       break;
 
     case 'start':
-      process.stdout.write('🛡️  Starting Carapace monitoring hooks...\n');
+      process.stdout.write('🛡️  Starting ClawGuard monitoring hooks...\n');
       process.stdout.write('   Use the OpenClaw hooks integration for real-time monitoring.\n');
-      process.stdout.write('   See: https://github.com/NeuZhou/carapace#hooks\n');
+      process.stdout.write('   See: https://github.com/NeuZhou/ClawGuard#hooks\n');
       break;
 
     case 'dashboard':
       process.stdout.write('🖥️  Dashboard available at http://localhost:19790\n');
-      process.stdout.write('   Start with: carapace start\n');
+      process.stdout.write('   Start with: ClawGuard start\n');
       break;
 
     case 'audit':
@@ -199,7 +199,7 @@ function main(): void {
       // Sanitize PII/credentials from text
       const text = args.slice(1).join(' ');
       if (!text) {
-        process.stderr.write('Usage: carapace sanitize "text containing PII or secrets"\n');
+        process.stderr.write('Usage: ClawGuard sanitize "text containing PII or secrets"\n');
         process.exit(2);
       }
       const { sanitize: doSanitize } = require('./sanitizer');
@@ -222,7 +222,7 @@ function main(): void {
       const intentIdx = args.indexOf('--intent');
       const actionIdx = args.indexOf('--action');
       if (intentIdx === -1 || actionIdx === -1) {
-        process.stderr.write('Usage: carapace intent-check --intent "I will read the file" --action "rm -rf /"\n');
+        process.stderr.write('Usage: ClawGuard intent-check --intent "I will read the file" --action "rm -rf /"\n');
         process.exit(2);
       }
       const intentText = args.slice(intentIdx + 1, actionIdx > intentIdx ? actionIdx : undefined).join(' ');
@@ -253,3 +253,4 @@ function main(): void {
 }
 
 main();
+

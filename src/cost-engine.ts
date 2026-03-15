@@ -1,4 +1,4 @@
-// Carapace — Cost Calculation Engine
+// ClawGuard — Cost Calculation Engine
 
 export interface ModelPricing {
   input: number;  // USD per 1M tokens
@@ -78,4 +78,5 @@ export function calculateCost(tokens: number, direction: 'inbound' | 'outbound',
 export function getAllModelPricing(): Record<string, ModelPricing> {
   return { ...MODEL_PRICING };
 }
+
 

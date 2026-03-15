@@ -1,4 +1,4 @@
-// Carapace — Webhook Exporter
+// ClawGuard — Webhook Exporter
 
 import * as https from 'https';
 import * as http from 'http';
@@ -20,7 +20,7 @@ export function sendWebhook(finding: SecurityFinding, url: string, secret: strin
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       'Content-Length': Buffer.byteLength(payload).toString(),
-      'User-Agent': 'carapace/2.0',
+      'User-Agent': 'ClawGuard/2.0',
     };
 
     if (secret) {
@@ -41,4 +41,5 @@ export function sendWebhook(finding: SecurityFinding, url: string, secret: strin
     req.end();
   } catch { /* ignore */ }
 }
+
 

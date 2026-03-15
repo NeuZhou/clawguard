@@ -1,4 +1,4 @@
-// Carapace — Storage Engine
+// ClawGuard — Storage Engine
 // Pure JSON/JSONL file storage, zero native deps
 
 import * as fs from 'fs';
@@ -10,7 +10,7 @@ import {
   WatchConfig, DEFAULT_CONFIG,
 } from './types';
 
-const DATA_DIR = path.join(os.homedir(), '.openclaw', 'carapace');
+const DATA_DIR = path.join(os.homedir(), '.openclaw', 'ClawGuard');
 
 function ensureDir(dir: string): void {
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
@@ -233,4 +233,5 @@ export const store = {
     store.flush();
   },
 };
+
 

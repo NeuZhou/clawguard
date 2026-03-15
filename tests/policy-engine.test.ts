@@ -1,4 +1,4 @@
-// Carapace — Tests: Policy Engine
+// ClawGuard — Tests: Policy Engine
 
 import { describe, it } from 'node:test';
 import * as assert from 'node:assert';
@@ -125,4 +125,5 @@ describe('Policy Engine', () => {
     assert.strictEqual(r.decision, 'deny');
   });
 });
+
 

@@ -1,4 +1,4 @@
-// Carapace — Tests: MCP Security
+// ClawGuard — Tests: MCP Security
 
 import { describe, it } from 'node:test';
 import * as assert from 'node:assert';
@@ -66,4 +66,5 @@ describe('MCP Security', () => {
     assert.strictEqual(r.length, 0);
   });
 });
+
 

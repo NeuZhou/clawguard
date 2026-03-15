@@ -20,3 +20,4 @@ Collects all agent activity for monitoring and analysis.
 - Response latency tracking
 - Session lifecycle events
 - Sub-agent spawn/complete detection
+

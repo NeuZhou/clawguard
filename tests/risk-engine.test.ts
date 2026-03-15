@@ -1,4 +1,4 @@
-// Carapace — Tests: Risk Score Engine
+// ClawGuard — Tests: Risk Score Engine
 
 import { describe, it } from 'node:test';
 import * as assert from 'node:assert';
@@ -122,4 +122,5 @@ describe('Risk Score Engine', () => {
     assert.strictEqual(r.attackChains.length, 0);
   });
 });
+
 

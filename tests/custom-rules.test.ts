@@ -1,4 +1,4 @@
-// Carapace - Tests: Custom Rules
+// ClawGuard - Tests: Custom Rules
 
 import { describe, it, afterEach } from 'node:test';
 import * as assert from 'node:assert';
@@ -167,4 +167,5 @@ rules:
     assert.ok(!findings.some(f => f.category === 'custom'));
   });
 });
+
 

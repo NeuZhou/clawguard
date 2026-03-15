@@ -1,4 +1,4 @@
-// Carapace — Security Rule: Anomaly Detection
+// ClawGuard — Security Rule: Anomaly Detection
 
 import { SecurityFinding, SecurityRule, Direction, RuleContext } from '../types';
 import * as crypto from 'crypto';
@@ -177,4 +177,5 @@ export const anomalyDetectionRule: SecurityRule = {
     return findings;
   },
 };
+
 

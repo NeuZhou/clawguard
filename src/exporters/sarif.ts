@@ -1,4 +1,4 @@
-// Carapace — SARIF 2.1.0 Exporter
+// ClawGuard — SARIF 2.1.0 Exporter
 // For GitHub Code Scanning / Security tab integration
 
 import { SecurityFinding } from '../types';
@@ -89,9 +89,9 @@ export function toSarif(findings: ScanFinding[], version: string = '2.0.0'): Sar
     runs: [{
       tool: {
         driver: {
-          name: 'carapace',
+          name: 'ClawGuard',
           version,
-          informationUri: 'https://github.com/NeuZhou/carapace',
+          informationUri: 'https://github.com/NeuZhou/ClawGuard',
           rules,
         },
       },
@@ -99,4 +99,5 @@ export function toSarif(findings: ScanFinding[], version: string = '2.0.0'): Sar
     }],
   };
 }
+
 

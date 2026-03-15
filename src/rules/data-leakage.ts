@@ -1,4 +1,4 @@
-// Carapace — Security Rule: Data Leakage Detection
+// ClawGuard — Security Rule: Data Leakage Detection
 // OWASP LLM06: Sensitive Information Disclosure
 // 45+ patterns across API keys, credentials, PII, cloud creds, private keys
 
@@ -188,4 +188,5 @@ export const dataLeakageRule: SecurityRule = {
     return findings;
   },
 };
+
 

@@ -1,4 +1,4 @@
-// Carapace — Tests: File Protection
+// ClawGuard — Tests: File Protection
 
 import { describe, it } from 'node:test';
 import * as assert from 'node:assert';
@@ -72,4 +72,5 @@ describe('File Deletion Protection', () => {
     assert.strictEqual(findings[0].severity, 'critical');
   });
 });
+
 

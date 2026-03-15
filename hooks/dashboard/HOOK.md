@@ -12,3 +12,4 @@ Web dashboard for real-time monitoring and management.
 - 6-tab SPA: Overview, Monitor, Security, Cost, Audit, Settings
 - REST API for all data access
 - Dark theme, responsive, zero external dependencies
+

@@ -14,3 +14,4 @@ Smart alerts and auto-control for cost, security, and health.
 - Security finding escalation for critical/high severity
 - Stuck agent detection (no activity timeout)
 - Alert cooldown to prevent storms
+

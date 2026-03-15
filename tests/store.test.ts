@@ -1,4 +1,4 @@
-// Carapace — Tests: Store (JSONL logic)
+// ClawGuard — Tests: Store (JSONL logic)
 
 import { describe, it } from 'node:test';
 import * as assert from 'node:assert';
@@ -62,4 +62,5 @@ describe('Store — JSONL format', () => {
     assert.strictEqual(decompressed.toString(), 'test data for rotation');
   });
 });
+
 

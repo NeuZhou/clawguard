@@ -28,7 +28,7 @@ const DEFAULT_POLICY: Policy = {
 function loadPolicy(): Policy {
   const policyPath = path.join(
     process.env.HOME || process.env.USERPROFILE || '.',
-    '.openclaw', 'carapace', 'policies.yaml'
+    '.openclaw', 'ClawGuard', 'policies.yaml'
   );
   // For simplicity, use defaults if no yaml parser available
   if (!fs.existsSync(policyPath)) return DEFAULT_POLICY;
@@ -36,7 +36,7 @@ function loadPolicy(): Policy {
     // Simple YAML-like parsing for flat structure
     const raw = fs.readFileSync(policyPath, 'utf-8');
     // Fall back to defaults — full YAML parsing would need a dependency
-    console.log('[carapace-policy] Custom policy file found, using defaults + custom (full YAML requires js-yaml)');
+    console.log('[ClawGuard-policy] Custom policy file found, using defaults + custom (full YAML requires js-yaml)');
     return DEFAULT_POLICY;
   } catch {
     return DEFAULT_POLICY;
@@ -104,17 +104,18 @@ const handler = async (event: any) => {
 
   if (warnings.length > 0) {
     // Log
-    const logDir = path.join(process.env.HOME || process.env.USERPROFILE || '.', '.openclaw', 'carapace');
+    const logDir = path.join(process.env.HOME || process.env.USERPROFILE || '.', '.openclaw', 'ClawGuard');
     if (!fs.existsSync(logDir)) fs.mkdirSync(logDir, { recursive: true });
     const logFile = path.join(logDir, 'policy-blocks.jsonl');
     for (const w of warnings) {
       fs.appendFileSync(logFile, JSON.stringify({ warning: w, timestamp: Date.now(), content: content.slice(0, 200) }) + '\n');
     }
 
-    const msg = `🔒 **Carapace Policy** (${warnings.length} violation${warnings.length > 1 ? 's' : ''}):\n${warnings.join('\n')}`;
+    const msg = `🔒 **ClawGuard Policy** (${warnings.length} violation${warnings.length > 1 ? 's' : ''}):\n${warnings.join('\n')}`;
     event.messages.push(msg);
   }
 };
 
 export default handler;
+
 

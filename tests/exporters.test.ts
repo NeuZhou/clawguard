@@ -1,4 +1,4 @@
-// Carapace - Tests: Exporters
+// ClawGuard - Tests: Exporters
 
 import { describe, it } from 'node:test';
 import * as assert from 'node:assert';
@@ -28,7 +28,7 @@ describe('Exporters - SARIF', () => {
 
   it('toSarif includes tool driver info', () => {
     const sarif = toSarif([]);
-    assert.strictEqual(sarif.runs[0].tool.driver.name, 'carapace');
+    assert.strictEqual(sarif.runs[0].tool.driver.name, 'ClawGuard');
   });
 
   it('toSarif maps findings to results', () => {
@@ -73,4 +73,5 @@ describe('Exporters - Syslog/CEF', () => {
     assert.ok(cef.includes('cat=test-cat'));
   });
 });
+
 

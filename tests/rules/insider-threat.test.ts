@@ -1,4 +1,4 @@
-// Carapace — Tests: Insider Threat Detection
+// ClawGuard — Tests: Insider Threat Detection
 
 import { describe, it } from 'node:test';
 import * as assert from 'node:assert';
@@ -130,4 +130,5 @@ describe('Insider Threat Detection', () => {
     assert.strictEqual(r.length, 0);
   });
 });
+
 

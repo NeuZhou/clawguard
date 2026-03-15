@@ -1,4 +1,4 @@
-// Carapace — Tests: Cost Engine
+// ClawGuard — Tests: Cost Engine
 
 import { describe, it } from 'node:test';
 import * as assert from 'node:assert';
@@ -51,4 +51,5 @@ describe('Cost Engine', () => {
     assert.ok('claude-opus-4' in all);
   });
 });
+
 

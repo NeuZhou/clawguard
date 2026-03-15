@@ -1,4 +1,4 @@
-// Carapace — Syslog Exporter (RFC 5424 format, UDP)
+// ClawGuard — Syslog Exporter (RFC 5424 format, UDP)
 
 import * as dgram from 'dgram';
 import { SecurityFinding } from '../types';
@@ -15,7 +15,7 @@ export function sendToSyslog(finding: SecurityFinding, host: string, port: numbe
   const facility = 16; // local0
   const priority = facility * 8 + severity;
   const timestamp = new Date(finding.timestamp).toISOString();
-  const hostname = 'carapace';
+  const hostname = 'ClawGuard';
   const appName = 'security';
   const msgId = finding.ruleId;
 
@@ -35,4 +35,5 @@ export function formatCEF(finding: SecurityFinding): string {
   const cefSeverity = Math.max(0, 10 - severityNum);
   return `CEF:0|OpenClaw|Watch|2.0|${finding.ruleId}|${finding.description}|${cefSeverity}|src=${finding.channel || 'unknown'} cat=${finding.category} cs1=${finding.owaspCategory || 'N/A'} cs1Label=OWASP msg=${finding.evidence || 'N/A'}`;
 }
+
 
