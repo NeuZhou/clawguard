@@ -1,4 +1,4 @@
-// OpenClaw Watch - Tests: Security Engine
+// Carapace - Tests: Security Engine
 
 import { describe, it, beforeEach } from 'node:test';
 import * as assert from 'node:assert';
@@ -97,3 +97,4 @@ rules:
     assert.ok(statuses.every(s => typeof s.triggerCount === 'number'));
   });
 });
+

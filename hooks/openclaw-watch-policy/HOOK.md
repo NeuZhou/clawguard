@@ -1,10 +1,10 @@
 ---
-name: openclaw-watch-policy
+name: carapace-policy
 description: "🔒 Tool call policy enforcement — blocks dangerous exec/file/browser operations"
 metadata: {"openclaw": {"emoji": "🔒", "events": ["message:sent"], "requires": {"config": ["hooks.internal.enabled"]}}}
 ---
 
-# OpenClaw Watch Policy
+# Carapace Policy
 
 Evaluates outbound tool calls against security policies. Blocks or warns on:
 - Dangerous exec commands (rm -rf, reverse shells, etc.)
@@ -13,7 +13,7 @@ Evaluates outbound tool calls against security policies. Blocks or warns on:
 
 ## Configuration
 
-Create `~/.openclaw/openclaw-watch/policies.yaml`:
+Create `~/.openclaw/carapace/policies.yaml`:
 ```yaml
 exec:
   dangerous_commands:
@@ -32,3 +32,4 @@ browser:
   block_domains:
     - evil.com
 ```
+

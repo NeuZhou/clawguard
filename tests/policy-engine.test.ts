@@ -1,4 +1,4 @@
-// OpenClaw Watch — Tests: Policy Engine
+// Carapace — Tests: Policy Engine
 
 import { describe, it } from 'node:test';
 import * as assert from 'node:assert';
@@ -125,3 +125,4 @@ describe('Policy Engine', () => {
     assert.strictEqual(r.decision, 'deny');
   });
 });
+

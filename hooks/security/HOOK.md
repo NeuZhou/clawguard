@@ -17,4 +17,5 @@ Real-time security scanning with OWASP LLM Top 10 alignment.
 
 ## Custom Rules
 
-Drop YAML files in `~/.openclaw/openclaw-watch/rules.d/`
+Drop YAML files in `~/.openclaw/carapace/rules.d/`
+

@@ -1,4 +1,4 @@
-// OpenClaw Watch — Security Rule: Identity Protection
+// Carapace — Security Rule: Identity Protection
 // OWASP Agentic AI: Identity Hijacking / Memory Poisoning
 
 import { SecurityFinding, SecurityRule, Direction, RuleContext, Severity } from '../types';
@@ -105,3 +105,4 @@ export const identityProtectionRule: SecurityRule = {
     return findings;
   },
 };
+

@@ -1,4 +1,4 @@
-// OpenClaw Watch — Security Rule: Compliance & Audit
+// Carapace — Security Rule: Compliance & Audit
 // Tracks tool calls, filesystem modifications, privilege escalation
 
 import { SecurityFinding, SecurityRule, Direction, RuleContext } from '../types';
@@ -108,3 +108,4 @@ export const complianceRule: SecurityRule = {
     return findings;
   },
 };
+

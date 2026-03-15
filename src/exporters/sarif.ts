@@ -1,4 +1,4 @@
-// OpenClaw Watch — SARIF 2.1.0 Exporter
+// Carapace — SARIF 2.1.0 Exporter
 // For GitHub Code Scanning / Security tab integration
 
 import { SecurityFinding } from '../types';
@@ -89,9 +89,9 @@ export function toSarif(findings: ScanFinding[], version: string = '2.0.0'): Sar
     runs: [{
       tool: {
         driver: {
-          name: 'openclaw-watch',
+          name: 'carapace',
           version,
-          informationUri: 'https://github.com/NeuZhou/openclaw-watch',
+          informationUri: 'https://github.com/NeuZhou/carapace',
           rules,
         },
       },
@@ -99,3 +99,4 @@ export function toSarif(findings: ScanFinding[], version: string = '2.0.0'): Sar
     }],
   };
 }
+

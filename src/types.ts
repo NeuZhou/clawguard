@@ -1,4 +1,4 @@
-// OpenClaw Watch — Type Definitions
+// Carapace — Type Definitions
 
 export type Severity = 'critical' | 'high' | 'warning' | 'info';
 export type Direction = 'inbound' | 'outbound';
@@ -125,7 +125,7 @@ export const DEFAULT_CONFIG: WatchConfig = {
   },
   security: {
     enabledRules: ['prompt-injection', 'data-leakage', 'anomaly-detection', 'compliance', 'file-protection', 'identity-protection', 'mcp-security', 'supply-chain'],
-    customRulesDir: '~/.openclaw/openclaw-watch/rules.d',
+    customRulesDir: '~/.openclaw/carapace/rules.d',
   },
   exporters: {
     jsonl: { enabled: true },
@@ -194,3 +194,4 @@ export interface OverviewStats {
   health: 'healthy' | 'warnings' | 'critical';
   recentActivity: number[];
 }
+

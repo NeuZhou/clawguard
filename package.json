@@ -1,32 +1,25 @@
 {
-  "name": "openclaw-watch",
-  "version": "6.0.0",
-  "description": "AI Agent Security & Observability Platform - 285+ threat patterns, OWASP Agentic AI mapping, SARIF output, zero native dependencies",
+  "name": "carapace-ai",
+  "version": "1.0.0",
+  "description": "AI Agent Immune System - Security scanner, PII sanitizer, intent-action mismatch detector. 285+ patterns, OWASP Agentic AI Top 10. 100% local.",
   "author": "Kang Zhou <neuzhou@outlook.com>",
   "license": "MIT",
   "keywords": [
-    "openclaw",
+    "ai-agent",
     "security",
-    "observability",
-    "monitoring",
-    "dashboard",
+    "scanner",
+    "pii",
+    "sanitizer",
     "owasp",
-    "llm-security",
     "prompt-injection",
-    "mcp-security",
-    "agent-security",
-    "supply-chain",
-    "sarif",
-    "identity-protection",
+    "carapace",
     "ai-safety",
-    "agentic-ai",
-    "data-leakage",
-    "skill-scanner"
+    "guardrails"
   ],
-  "homepage": "https://github.com/NeuZhou/openclaw-watch",
+  "homepage": "https://github.com/NeuZhou/carapace",
   "repository": {
     "type": "git",
-    "url": "https://github.com/NeuZhou/openclaw-watch.git"
+    "url": "https://github.com/NeuZhou/carapace.git"
   },
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
@@ -38,8 +31,8 @@
     }
   },
   "bin": {
-    "openclaw-watch": "./dist/src/cli.js",
-    "openclaw-watch-scan": "./dist/src/skill-scanner.js"
+    "carapace": "./dist/src/cli.js",
+    "carapace-scan": "./dist/src/skill-scanner.js"
   },
   "files": [
     "dist/",
@@ -66,5 +59,8 @@
   },
   "engines": {
     "node": ">=18.0.0"
+  },
+  "bugs": {
+    "url": "https://github.com/NeuZhou/carapace/issues"
   }
 }

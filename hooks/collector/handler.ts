@@ -1,4 +1,4 @@
-// OpenClaw Watch — Collector Hook
+// Carapace — Collector Hook
 // Collects all agent activity into the store
 
 import * as crypto from 'crypto';
@@ -106,7 +106,7 @@ export default function handler(event: HookEvent): void {
       startupTime = Date.now();
       store.init();
       initIntegrity();
-      createAuditEvent('system', 'Gateway started — OpenClaw Watch collector active');
+      createAuditEvent('system', 'Gateway started — Carapace collector active');
       break;
 
     case 'message:received':
@@ -155,3 +155,4 @@ export default function handler(event: HookEvent): void {
 }
 
 export { startupTime };
+

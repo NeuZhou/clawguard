@@ -1,4 +1,4 @@
-// OpenClaw Watch — JSONL Exporter
+// Carapace — JSONL Exporter
 
 import * as fs from 'fs';
 import * as path from 'path';
@@ -14,3 +14,4 @@ export function exportJsonl(data: (WatchMessage | SecurityFinding | AuditEvent)[
 export function formatJsonlLine(record: unknown): string {
   return JSON.stringify(record);
 }
+

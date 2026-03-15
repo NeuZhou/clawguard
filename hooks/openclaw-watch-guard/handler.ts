@@ -12,7 +12,7 @@ const handler = async (event: any) => {
   const rulesPath = path.join(pkgRoot, 'dist', 'src', 'rules', 'index.js');
 
   if (!fs.existsSync(rulesPath)) {
-    console.error('[openclaw-watch-guard] Built rules not found. Run: npm run build');
+    console.error('[carapace-guard] Built rules not found. Run: npm run build');
     return;
   }
 
@@ -38,7 +38,7 @@ const handler = async (event: any) => {
     if (findings.length === 0) return;
 
     // Log findings
-    const logDir = path.join(process.env.HOME || process.env.USERPROFILE || '.', '.openclaw', 'openclaw-watch');
+    const logDir = path.join(process.env.HOME || process.env.USERPROFILE || '.', '.openclaw', 'carapace');
     if (!fs.existsSync(logDir)) fs.mkdirSync(logDir, { recursive: true });
     const logFile = path.join(logDir, 'findings.jsonl');
 
@@ -51,12 +51,13 @@ const handler = async (event: any) => {
     if (critical.length > 0) {
       const icon = direction === 'inbound' ? '🚨' : '⚠️';
       const summary = critical.map((f: any) => `• ${f.ruleName}: ${f.description}`).slice(0, 3).join('\n');
-      const msg = `${icon} **OpenClaw Watch Alert** (${critical.length} ${direction} threat${critical.length > 1 ? 's' : ''}):\n${summary}`;
+      const msg = `${icon} **Carapace Alert** (${critical.length} ${direction} threat${critical.length > 1 ? 's' : ''}):\n${summary}`;
       event.messages.push(msg);
     }
   } catch (err) {
-    console.error('[openclaw-watch-guard] Error:', err instanceof Error ? err.message : String(err));
+    console.error('[carapace-guard] Error:', err instanceof Error ? err.message : String(err));
   }
 };
 
 export default handler;
+

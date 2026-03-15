@@ -1,4 +1,4 @@
-// OpenClaw Watch — Tests: MCP Security
+// Carapace — Tests: MCP Security
 
 import { describe, it } from 'node:test';
 import * as assert from 'node:assert';
@@ -66,3 +66,4 @@ describe('MCP Security', () => {
     assert.strictEqual(r.length, 0);
   });
 });
+

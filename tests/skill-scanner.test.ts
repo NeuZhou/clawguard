@@ -1,4 +1,4 @@
-// OpenClaw Watch - Tests: Skill Scanner
+// Carapace - Tests: Skill Scanner
 
 import { describe, it, beforeEach, afterEach } from 'node:test';
 import * as assert from 'node:assert';
@@ -68,7 +68,7 @@ describe('Skill Scanner', () => {
     const result = scan(tmpDir);
     const text = formatText(result);
     assert.ok(typeof text === 'string');
-    assert.ok(text.includes('OpenClaw Watch'));
+    assert.ok(text.includes('Carapace'));
   });
 
   it('formatText shows no issues for clean scan', () => {
@@ -94,7 +94,7 @@ describe('Skill Scanner', () => {
     const parsed = JSON.parse(sarif);
     assert.strictEqual(parsed.version, '2.1.0');
     assert.ok(Array.isArray(parsed.runs));
-    assert.ok(parsed.runs[0].tool.driver.name === 'openclaw-watch');
+    assert.ok(parsed.runs[0].tool.driver.name === 'carapace');
   });
 
   it('scan returns summary with severity counts', () => {
@@ -106,3 +106,4 @@ describe('Skill Scanner', () => {
     assert.ok('info' in result.summary);
   });
 });
+

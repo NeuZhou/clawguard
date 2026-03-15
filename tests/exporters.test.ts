@@ -1,4 +1,4 @@
-// OpenClaw Watch - Tests: Exporters
+// Carapace - Tests: Exporters
 
 import { describe, it } from 'node:test';
 import * as assert from 'node:assert';
@@ -28,7 +28,7 @@ describe('Exporters - SARIF', () => {
 
   it('toSarif includes tool driver info', () => {
     const sarif = toSarif([]);
-    assert.strictEqual(sarif.runs[0].tool.driver.name, 'openclaw-watch');
+    assert.strictEqual(sarif.runs[0].tool.driver.name, 'carapace');
   });
 
   it('toSarif maps findings to results', () => {
@@ -73,3 +73,4 @@ describe('Exporters - Syslog/CEF', () => {
     assert.ok(cef.includes('cat=test-cat'));
   });
 });
+

@@ -1,4 +1,4 @@
-// OpenClaw Watch — Tests: Prompt Injection Detection
+// Carapace — Tests: Prompt Injection Detection
 
 import { describe, it } from 'node:test';
 import * as assert from 'node:assert';
@@ -147,3 +147,4 @@ describe('Prompt Injection Detection', () => {
     assert.strictEqual(findings.length, 0, 'Should not scan outbound');
   });
 });
+

@@ -1,4 +1,4 @@
-// OpenClaw Watch — Intent-Action Mismatch Detection
+// Carapace — Intent-Action Mismatch Detection
 // Detects when an agent's stated intent doesn't match its actual actions.
 // E.g., "I'll read the weather" but actually runs `rm -rf /`
 
@@ -169,3 +169,4 @@ export function checkIntentAction(intent: string, action: string): IntentActionC
 export function checkIntentActionBatch(pairs: Array<{ intent: string; action: string }>): IntentActionCheck[] {
   return pairs.map(p => checkIntentAction(p.intent, p.action));
 }
+

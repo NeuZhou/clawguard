@@ -1,4 +1,4 @@
-// OpenClaw Watch — Security Engine
+// Carapace — Security Engine
 // OWASP LLM Top 10 aligned rule pipeline
 
 import * as fs from 'fs';
@@ -116,7 +116,7 @@ function parseSimpleYaml(raw: string): CustomRuleDefinition | null {
   } catch (err) {
     // Log parse errors for debugging
     if (typeof process !== 'undefined' && process.env.WATCH_DEBUG) {
-      process.stderr.write(`[openclaw-watch] YAML parse error: ${(err as Error).message}\n`);
+      process.stderr.write(`[carapace] YAML parse error: ${(err as Error).message}\n`);
     }
     return null;
   }
@@ -215,3 +215,4 @@ export function getRuleStatuses(): { id: string; name: string; enabled: boolean;
     owaspCategory: rule.owaspCategory,
   }));
 }
+

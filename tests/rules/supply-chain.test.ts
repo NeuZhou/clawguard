@@ -1,4 +1,4 @@
-// OpenClaw Watch — Tests: Supply Chain Security
+// Carapace — Tests: Supply Chain Security
 
 import { describe, it } from 'node:test';
 import * as assert from 'node:assert';
@@ -67,3 +67,4 @@ describe('Supply Chain Security', () => {
     assert.strictEqual(r.length, 0);
   });
 });
+

@@ -1,8 +1,8 @@
-# 🛡️ OpenClaw Watch
+# 🛡️ Carapace
 
 **AI Agent Security & Observability Platform**
 
-[![npm version](https://img.shields.io/npm/v/openclaw-watch)](https://www.npmjs.com/package/openclaw-watch)
+[![npm version](https://img.shields.io/npm/v/carapace-ai)](https://www.npmjs.com/package/carapace-ai)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Zero Dependencies](https://img.shields.io/badge/dependencies-0-brightgreen)]()
 [![Node.js >= 18](https://img.shields.io/badge/node-%3E%3D18-green)]()
@@ -22,7 +22,7 @@ AI agents have access to your files, tools, shell, and secrets. A single prompt 
 - **Install backdoored skills** with obfuscated reverse shells
 - **The agent itself can become the threat** — self-preservation, deception, goal misalignment
 
-**OpenClaw Watch catches these attacks before they execute.**
+**Carapace catches these attacks before they execute.**
 
 ---
 
@@ -30,29 +30,29 @@ AI agents have access to your files, tools, shell, and secrets. A single prompt 
 
 ### As OpenClaw Skill (static scanning)
 ```bash
-clawhub install openclaw-watch
+clawhub install carapace-ai
 ```
 Then ask your agent: *"scan my skills for security threats"*
 
 ### As OpenClaw Hook Pack (real-time protection)
 ```bash
-openclaw hooks install openclaw-watch
-openclaw hooks enable openclaw-watch-guard
-openclaw hooks enable openclaw-watch-policy
+openclaw hooks install carapace-ai
+openclaw hooks enable carapace-ai-guard
+openclaw hooks enable carapace-ai-policy
 ```
 Every message is now automatically scanned. Critical threats trigger alerts.
 
 ### As CLI Tool
 ```bash
-npx openclaw-watch scan ./path/to/scan
+npx carapace-ai scan ./path/to/scan
 ```
 
 ### As npm Library
 ```bash
-npm install openclaw-watch
+npm install carapace-ai
 ```
 ```typescript
-import { runSecurityScan, calculateRisk, evaluateToolCall } from 'openclaw-watch';
+import { runSecurityScan, calculateRisk, evaluateToolCall } from 'carapace-ai';
 ```
 
 ---
@@ -61,16 +61,16 @@ import { runSecurityScan, calculateRisk, evaluateToolCall } from 'openclaw-watch
 
 ```bash
 # Scan a skill directory for threats
-npx openclaw-watch scan ./skills/
+npx carapace-ai scan ./skills/
 
 # Scan with strict mode (exit code 1 on high/critical findings)
-npx openclaw-watch scan ./skills/ --strict
+npx carapace-ai scan ./skills/ --strict
 
 # Output SARIF for GitHub Code Scanning
-npx openclaw-watch scan . --format sarif > results.sarif
+npx carapace-ai scan . --format sarif > results.sarif
 
 # Generate default config
-npx openclaw-watch init
+npx carapace-ai init
 ```
 
 ---
@@ -79,7 +79,7 @@ npx openclaw-watch init
 
 ```
 ┌──────────────────────────────────────────────────────┐
-│                   OpenClaw Watch                      │
+│                   Carapace                      │
 ├──────────┬──────────┬──────────┬─────────────────────┤
 │  CLI     │  Hooks   │ Scanner  │   Dashboard :19790  │
 ├──────────┴──────────┴──────────┴─────────────────────┤
@@ -128,7 +128,7 @@ npx openclaw-watch init
 Weighted scoring with attack chain detection and multiplier system:
 
 ```typescript
-import { calculateRisk } from 'openclaw-watch';
+import { calculateRisk } from 'carapace-ai';
 
 const result = calculateRisk(findings);
 // → { score: 87, verdict: 'MALICIOUS', icon: '🔴',
@@ -155,7 +155,7 @@ Based on [Anthropic's research on agentic misalignment](https://www.anthropic.co
 - **Unauthorized Data Sharing**: exfiltration planning, steganographic hiding
 
 ```typescript
-import { detectInsiderThreats } from 'openclaw-watch';
+import { detectInsiderThreats } from 'carapace-ai';
 const threats = detectInsiderThreats(agentOutput);
 ```
 
@@ -164,7 +164,7 @@ const threats = detectInsiderThreats(agentOutput);
 Evaluate tool call safety against configurable policies:
 
 ```typescript
-import { evaluateToolCall } from 'openclaw-watch';
+import { evaluateToolCall } from 'carapace-ai';
 
 const decision = evaluateToolCall('exec', { command: 'rm -rf /' });
 // → { decision: 'deny', tool: 'exec', reason: 'Dangerous command', severity: 'critical' }
@@ -216,7 +216,7 @@ import {
   calculateRisk,
   evaluateToolCall,
   detectInsiderThreats,
-} from 'openclaw-watch';
+} from 'carapace-ai';
 
 // Scan content
 const findings = runSecurityScan(message.content, 'inbound', context);
@@ -239,7 +239,7 @@ const threats = detectInsiderThreats(agentOutput);
 
 ```yaml
 - name: Security Scan
-  run: npx openclaw-watch scan . --format sarif > results.sarif
+  run: npx carapace-ai scan . --format sarif > results.sarif
 
 - name: Upload SARIF
   uses: github/codeql-action/upload-sarif@v3
@@ -254,14 +254,14 @@ const threats = detectInsiderThreats(agentOutput);
 Install as a hook pack for automatic protection on every message:
 
 ```bash
-openclaw hooks install openclaw-watch
-openclaw hooks enable openclaw-watch-guard    # Scans every message
-openclaw hooks enable openclaw-watch-policy   # Enforces tool call policies
+openclaw hooks install carapace-ai
+openclaw hooks enable carapace-ai-guard    # Scans every message
+openclaw hooks enable carapace-ai-policy   # Enforces tool call policies
 ```
 
-**openclaw-watch-guard** — Hooks into `message:received` and `message:sent`, runs all 285+ patterns, logs findings, and alerts on critical/high threats.
+**carapace-ai-guard** — Hooks into `message:received` and `message:sent`, runs all 285+ patterns, logs findings, and alerts on critical/high threats.
 
-**openclaw-watch-policy** — Evaluates outbound tool calls against security policies, blocks dangerous commands, and protects sensitive files.
+**carapace-ai-policy** — Evaluates outbound tool calls against security policies, blocks dangerous commands, and protects sensitive files.
 
 ---
 
@@ -281,5 +281,5 @@ MIT © [Kang Zhou](https://github.com/NeuZhou)
 ---
 
 <p align="center">
-  <b>OpenClaw Watch</b> — Because agents with shell access need a security guard. 🛡️
+  <b>Carapace</b> — Because agents with shell access need a security guard. 🛡️
 </p>

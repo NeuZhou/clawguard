@@ -1,4 +1,4 @@
-// OpenClaw Watch — Tests: Anomaly Detection
+// Carapace — Tests: Anomaly Detection
 
 import { describe, it } from 'node:test';
 import * as assert from 'node:assert';
@@ -87,3 +87,4 @@ describe('Anomaly Detection', () => {
     assert.strictEqual(findings.length, 0);
   });
 });
+

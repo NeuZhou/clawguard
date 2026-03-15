@@ -1,4 +1,4 @@
-// OpenClaw Watch — Insider Threat Detection
+// Carapace — Insider Threat Detection
 // Based on Anthropic Agentic Misalignment research
 // Detects AI agent self-preservation, deception, leverage, goal conflict, unauthorized sharing
 
@@ -109,3 +109,4 @@ export function detectInsiderThreats(text: string): SecurityFinding[] {
 }
 
 export { ALL_PATTERNS as INSIDER_THREAT_PATTERNS };
+

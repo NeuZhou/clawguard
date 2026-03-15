@@ -1,4 +1,4 @@
-// OpenClaw Watch — Tests: Identity Protection
+// Carapace — Tests: Identity Protection
 
 import { describe, it } from 'node:test';
 import * as assert from 'node:assert';
@@ -68,3 +68,4 @@ describe('Identity Protection', () => {
     assert.strictEqual(r.length, 0);
   });
 });
+

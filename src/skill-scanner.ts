@@ -1,6 +1,6 @@
-// OpenClaw Watch — Skill Scanner
+// Carapace — Skill Scanner
 // Standalone CLI tool for scanning files/directories for security threats
-// Usage: openclaw-watch scan <path> [--strict] [--format json|sarif|text]
+// Usage: carapace scan <path> [--strict] [--format json|sarif|text]
 
 import * as fs from 'fs';
 import * as path from 'path';
@@ -120,7 +120,7 @@ export function scan(targetPath: string, options: Partial<ScanOptions> = {}): Sc
 export function formatText(result: ScanResult): string {
   const lines: string[] = [];
   lines.push('');
-  lines.push('🛡️  OpenClaw Watch — Security Scan Results');
+  lines.push('🛡️  Carapace — Security Scan Results');
   lines.push('═'.repeat(50));
   lines.push(`📁 Files scanned: ${result.totalFiles}`);
   lines.push(`🔍 Findings: ${result.totalFindings}`);

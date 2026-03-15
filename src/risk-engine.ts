@@ -1,4 +1,4 @@
-// OpenClaw Watch — Risk Score Engine
+// Carapace — Risk Score Engine
 // Weighted scoring with attack chain detection and multiplier system
 
 import { SecurityFinding, RiskResult, Severity } from './types';
@@ -115,3 +115,4 @@ export function getVerdict(score: number): { verdict: string; icon: string } {
   if (score <= 60) return { verdict: 'SUSPICIOUS', icon: '🟠' };
   return { verdict: 'MALICIOUS', icon: '🔴' };
 }
+

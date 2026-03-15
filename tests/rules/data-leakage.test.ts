@@ -1,4 +1,4 @@
-// OpenClaw Watch — Tests: Data Leakage Detection
+// Carapace — Tests: Data Leakage Detection
 
 import { describe, it } from 'node:test';
 import * as assert from 'node:assert';
@@ -105,3 +105,4 @@ describe('Data Leakage Detection', () => {
     assert.strictEqual(r.length, 0);
   });
 });
+

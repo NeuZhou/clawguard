@@ -1,4 +1,4 @@
-// OpenClaw Watch — Policy Engine
+// Carapace — Policy Engine
 // Evaluates tool call safety against configurable policies
 
 import { PolicyDecision, PolicyDecisionType, PolicyConfig, Severity } from './types';
@@ -132,3 +132,4 @@ export function evaluateToolCallBatch(
 ): PolicyDecision[] {
   return calls.map(c => evaluateToolCall(c.tool, c.args, policies));
 }
+

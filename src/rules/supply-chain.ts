@@ -1,4 +1,4 @@
-// OpenClaw Watch — Security Rule: Supply Chain Security
+// Carapace — Security Rule: Supply Chain Security
 // OWASP Agentic AI: Supply Chain / Skill Tampering
 
 import { SecurityFinding, SecurityRule, Direction, RuleContext, Severity } from '../types';
@@ -110,3 +110,4 @@ export const supplyChainRule: SecurityRule = {
     return findings;
   },
 };
+
