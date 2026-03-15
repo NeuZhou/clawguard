@@ -289,6 +289,14 @@ For commercial inquiries: neuzhou@outlook.com
 
 ---
 
+## 👀 See Also
+
+- [repo2skill](https://github.com/NeuZhou/repo2skill) — Convert GitHub repos into OpenClaw skills
+- [FinClaw](https://github.com/NeuZhou/finclaw) — AI Financial Intelligence Engine
+- [awesome-llm-security](https://github.com/NeuZhou/awesome-llm-security) — Curated LLM security resources
+
+---
+
 <p align="center">
   <b>ClawGuard</b> — Because agents with shell access need a security guard. 🛡️
 </p>
