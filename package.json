@@ -1,10 +1,15 @@
 {
   "name": "openclaw-watch",
   "version": "2.0.0",
-  "description": "Security Center & Observability Platform for OpenClaw Agents",
+  "description": "AI Agent Security & Observability Platform — 150+ threat patterns, OWASP Agentic AI mapping, SARIF output, zero native dependencies",
   "author": "Kang Zhou <kangzhou@microsoft.com>",
   "license": "MIT",
-  "keywords": ["openclaw", "security", "observability", "monitoring", "dashboard", "owasp", "llm-security"],
+  "keywords": [
+    "openclaw", "security", "observability", "monitoring", "dashboard",
+    "owasp", "llm-security", "prompt-injection", "mcp-security",
+    "agent-security", "supply-chain", "sarif", "identity-protection",
+    "ai-safety", "agentic-ai", "data-leakage", "skill-scanner"
+  ],
   "homepage": "https://github.com/NeuZhou/openclaw-watch",
   "repository": {
     "type": "git",
@@ -12,6 +17,10 @@
   },
   "main": "dist/src/types.js",
   "types": "dist/src/types.d.ts",
+  "bin": {
+    "openclaw-watch": "./dist/src/cli.js",
+    "openclaw-watch-scan": "./dist/src/skill-scanner.js"
+  },
   "files": [
     "dist/",
     "hooks/",
@@ -23,6 +32,7 @@
     "build": "tsc",
     "check": "tsc --noEmit",
     "test": "node --import tsx --test tests/**/*.test.ts",
+    "scan": "node --import tsx src/cli.ts scan",
     "lint": "tsc --noEmit",
     "clean": "rimraf dist",
     "prepublishOnly": "npm run build && npm test"

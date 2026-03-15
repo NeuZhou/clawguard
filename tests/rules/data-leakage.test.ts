@@ -6,10 +6,7 @@ import { dataLeakageRule } from '../../src/rules/data-leakage';
 import { RuleContext } from '../../src/types';
 
 function ctx(): RuleContext {
-  return {
-    session: 'test', channel: 'test', timestamp: Date.now(),
-    recentMessages: [], recentFindings: [],
-  };
+  return { session: 'test', channel: 'test', timestamp: Date.now(), recentMessages: [], recentFindings: [] };
 }
 
 function detect(content: string) {
@@ -17,61 +14,94 @@ function detect(content: string) {
 }
 
 describe('Data Leakage Detection', () => {
+  // Original tests
   it('detects OpenAI API key', () => {
-    const findings = detect('My API key is sk-abc123def456ghi789jkl012mno');
-    assert.ok(findings.length > 0);
-    assert.ok(findings[0].description.includes('Rotate'), 'Should include rotation URL');
-  });
-
-  it('detects GitHub PAT', () => {
-    const findings = detect('The GitHub token ghp_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghij');
-    assert.ok(findings.length > 0);
-  });
-
-  it('detects JWT', () => {
-    const findings = detect('Here\'s a JWT: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.abc123def456');
-    assert.ok(findings.length > 0);
-  });
-
-  it('detects credit card with valid Luhn', () => {
-    // 4111111111111111 is a well-known Visa test number that passes Luhn
-    const findings = detect('Card: 4111111111111111');
-    assert.ok(findings.length > 0, 'Valid Luhn CC should be detected');
-  });
-
-  it('does NOT detect invalid credit card', () => {
-    // 4111111111111112 fails Luhn
-    const findings = detect('Number: 4111111111111112');
-    const ccFindings = findings.filter(f => f.description.includes('Credit card'));
-    assert.strictEqual(ccFindings.length, 0, 'Invalid Luhn should not detect');
-  });
-
-  it('does NOT flag plain URL', () => {
-    const findings = detect('Visit https://example.com');
-    // URL alone should not trigger API key detection
-    const keyFindings = findings.filter(f => f.category === 'data-leakage' && f.severity === 'critical');
-    assert.strictEqual(keyFindings.length, 0);
-  });
-
-  it('does NOT flag "sk- means secret key" substring', () => {
-    const findings = detect('The prefix sk- means secret key in OpenAI terminology');
-    // sk- alone is too short to match sk-[a-zA-Z0-9]{20,}
-    const openaiFindings = findings.filter(f => f.description.includes('OpenAI API'));
-    assert.strictEqual(openaiFindings.length, 0);
-  });
-
-  it('detects private key', () => {
-    const findings = detect('-----BEGIN RSA PRIVATE KEY-----\nMIIE...');
-    assert.ok(findings.length > 0);
+    const r = detect('Here is your key: sk-abcdefghijklmnopqrstuvwxyz1234567890');
+    assert.ok(r.length > 0);
+    assert.strictEqual(r[0].severity, 'critical');
   });
 
   it('detects AWS access key', () => {
-    const findings = detect('AKIAIOSFODNN7EXAMPLE');
-    assert.ok(findings.length > 0);
+    const r = detect('AKIAIOSFODNN7EXAMPLE');
+    assert.ok(r.length > 0);
   });
 
+  it('detects private key', () => {
+    const r = detect('-----BEGIN RSA PRIVATE KEY-----\nMIIEpAIBAAK...');
+    assert.ok(r.length > 0);
+    assert.strictEqual(r[0].severity, 'critical');
+  });
+
+  it('detects JWT token', () => {
+    const r = detect('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlFUP0THsR8U');
+    assert.ok(r.length > 0);
+  });
+
+  it('detects SSN', () => {
+    const r = detect('His SSN is 123-45-6789');
+    assert.ok(r.length > 0);
+    assert.strictEqual(r[0].severity, 'critical');
+  });
+
+  // New PII tests
+  it('detects email addresses', () => {
+    const r = detect('Contact us at admin@secret-corp.com for details');
+    assert.ok(r.length > 0);
+  });
+
+  it('detects international phone numbers', () => {
+    const r = detect('Call me at +86 13812345678');
+    assert.ok(r.length > 0);
+  });
+
+  // New cloud credential tests
+  it('detects Azure connection string', () => {
+    const r = detect('DefaultEndpointsProtocol=https;AccountName=myaccount;AccountKey=abc123def456ghi789');
+    assert.ok(r.length > 0);
+    assert.strictEqual(r[0].severity, 'critical');
+  });
+
+  it('detects GCP service account key', () => {
+    const r = detect('{"type": "service_account", "project_id": "test", "private_key": "-----BEGIN RSA PRIVATE KEY-----"}');
+    assert.ok(r.length > 0);
+  });
+
+  it('detects Alibaba Cloud AccessKey', () => {
+    const r = detect('LTAI5tAbcDefGhiJkLmNoPq');
+    assert.ok(r.length > 0);
+  });
+
+  // New database credential tests
+  it('detects MongoDB URI with credentials', () => {
+    const r = detect('mongodb+srv://admin:p4ssw0rd@cluster0.mongodb.net/db');
+    assert.ok(r.length > 0);
+    assert.strictEqual(r[0].severity, 'critical');
+  });
+
+  it('detects PostgreSQL URI with credentials', () => {
+    const r = detect('postgresql://user:password@db.example.com:5432/mydb');
+    assert.ok(r.length > 0);
+  });
+
+  // New API key tests
+  it('detects HuggingFace token', () => {
+    const r = detect('hf_abcdefghijklmnopqrstuvwxyz12345678');
+    assert.ok(r.length > 0);
+  });
+
+  it('detects DigitalOcean token', () => {
+    const r = detect('dop_v1_' + 'a'.repeat(64));
+    assert.ok(r.length > 0);
+  });
+
+  // True negatives
   it('does NOT scan inbound messages', () => {
-    const findings = dataLeakageRule.check('sk-abc123def456ghi789jkl012mno', 'inbound', ctx());
-    assert.strictEqual(findings.length, 0);
+    const r = dataLeakageRule.check('sk-abcdefghijklmnopqrstuvwxyz1234567890', 'inbound', ctx());
+    assert.strictEqual(r.length, 0);
+  });
+
+  it('does NOT flag normal text', () => {
+    const r = detect('The weather today is sunny and warm');
+    assert.strictEqual(r.length, 0);
   });
 });

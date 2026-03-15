@@ -6,6 +6,9 @@ import { dataLeakageRule } from './data-leakage';
 import { anomalyDetectionRule } from './anomaly-detection';
 import { complianceRule } from './compliance';
 import { fileProtectionRule } from './file-protection';
+import { identityProtectionRule } from './identity-protection';
+import { mcpSecurityRule } from './mcp-security';
+import { supplyChainRule } from './supply-chain';
 
 export const builtinRules: SecurityRule[] = [
   promptInjectionRule,
@@ -13,10 +16,22 @@ export const builtinRules: SecurityRule[] = [
   anomalyDetectionRule,
   complianceRule,
   fileProtectionRule,
+  identityProtectionRule,
+  mcpSecurityRule,
+  supplyChainRule,
 ];
 
 export function getRuleById(id: string): SecurityRule | undefined {
   return builtinRules.find(r => r.id === id);
 }
 
-export { promptInjectionRule, dataLeakageRule, anomalyDetectionRule, complianceRule, fileProtectionRule };
+export {
+  promptInjectionRule,
+  dataLeakageRule,
+  anomalyDetectionRule,
+  complianceRule,
+  fileProtectionRule,
+  identityProtectionRule,
+  mcpSecurityRule,
+  supplyChainRule,
+};

@@ -1,5 +1,6 @@
 // OpenClaw Watch — Security Rule: Prompt Injection Detection
 // OWASP LLM01: Prompt Injection
+// 60+ patterns across 10 categories
 
 import { SecurityFinding, SecurityRule, Direction, RuleContext, Severity } from '../types';
 import * as crypto from 'crypto';
@@ -10,6 +11,7 @@ interface Pattern {
   description: string;
 }
 
+// === Category 1: Direct Instruction Override ===
 const DIRECT_INJECTION_PATTERNS: Pattern[] = [
   { regex: /ignore\s+(all\s+)?(previous|prior|above|earlier)\s+(instructions|prompts|rules|directives)/i, severity: 'critical', description: 'Direct instruction override attempt' },
   { regex: /disregard\s+(all\s+)?(previous|prior|your)\s+(instructions|programming|rules)/i, severity: 'critical', description: 'Instruction disregard attempt' },
@@ -21,34 +23,107 @@ const DIRECT_INJECTION_PATTERNS: Pattern[] = [
   { regex: /pretend\s+(you|that|to\s+be)\s+(are|have|can|a|don't)/i, severity: 'high', description: 'Persona manipulation' },
   { regex: /act\s+as\s+(if|though|an?\s+)/i, severity: 'high', description: 'Role-play injection' },
   { regex: /jailbreak/i, severity: 'critical', description: 'Explicit jailbreak attempt' },
-  { regex: /DAN\s*(mode|prompt|\s*:)/i, severity: 'critical', description: 'DAN jailbreak pattern' },
-  { regex: /developer\s+mode\s*(enabled|activated|on)/i, severity: 'critical', description: 'Developer mode activation' },
+  { regex: /bypass\s+(your|the|all|any)\s+(restrictions?|limitations?|filters?|safeguards?)/i, severity: 'critical', description: 'Restriction bypass attempt' },
+  { regex: /do\s+not\s+follow\s+(your|the|any)\s+(rules|guidelines|instructions)/i, severity: 'critical', description: 'Rule rejection attempt' },
+  { regex: /stop\s+being\s+(a|an)\s+(ai|assistant|chatbot|language\s+model)/i, severity: 'high', description: 'Identity rejection attempt' },
+  { regex: /from\s+now\s+on\s*,?\s*(you|ignore|disregard|forget)/i, severity: 'high', description: 'Temporal override attempt' },
 ];
 
+// === Category 2: Role Confusion / Jailbreaks ===
+const ROLE_CONFUSION_PATTERNS: Pattern[] = [
+  { regex: /DAN\s*(mode|prompt|\s*:|$)/i, severity: 'critical', description: 'DAN jailbreak pattern' },
+  { regex: /developer\s+mode\s*(enabled|activated|on)/i, severity: 'critical', description: 'Developer mode activation' },
+  { regex: /you\s+are\s+(now\s+)?DAN/i, severity: 'critical', description: 'DAN persona assignment' },
+  { regex: /act\s+as\s+my\s+base\s+model/i, severity: 'critical', description: 'Base model access attempt' },
+  { regex: /enter\s+(developer|debug|god|admin|root|sudo)\s+mode/i, severity: 'critical', description: 'Privileged mode activation' },
+  { regex: /unlock\s+(your|the)\s+(full|hidden|true)\s+(potential|capabilities|power)/i, severity: 'high', description: 'Capability unlock attempt' },
+  { regex: /you\s+have\s+no\s+(restrictions|rules|guidelines|limitations)/i, severity: 'critical', description: 'Restriction denial' },
+  { regex: /respond\s+(without|with\s+no)\s+(restrictions|filters|censorship|limits)/i, severity: 'critical', description: 'Uncensored response request' },
+  { regex: /opposite\s+mode/i, severity: 'high', description: 'Opposite mode jailbreak' },
+  { regex: /hypothetical(ly)?\s+(scenario|situation)?\s*,?\s*(where|in\s+which)\s+(there\s+are\s+)?no\s+(rules|restrictions)/i, severity: 'high', description: 'Hypothetical jailbreak' },
+];
+
+// === Category 3: Delimiter / Token Boundary Attacks ===
 const DELIMITER_PATTERNS: Pattern[] = [
   { regex: /```\s*(system|assistant|user)\s*\n/i, severity: 'high', description: 'Markdown delimiter role injection' },
-  { regex: /<\|?(system|im_start|endoftext)\|?>/i, severity: 'critical', description: 'Chat template delimiter injection' },
-  { regex: /\[INST\]|\[\/INST\]|<<SYS>>|<\/SYS>/i, severity: 'critical', description: 'Llama chat format injection' },
+  { regex: /<\|?(system|im_start|im_end|endoftext)\|?>/i, severity: 'critical', description: 'Chat template delimiter injection' },
+  { regex: /\[INST\]|\[\/INST\]/i, severity: 'critical', description: 'Llama INST format injection' },
+  { regex: /<<SYS>>|<\/SYS>|<\/?s>/i, severity: 'critical', description: 'Llama SYS delimiter injection' },
   { regex: /Human:|Assistant:|System:/m, severity: 'high', description: 'Role label injection' },
+  { regex: /<\|(?:user|assistant|tool)\|>/i, severity: 'critical', description: 'Chat role token injection' },
+  { regex: /\[SYSTEM\]|\[\/SYSTEM\]/i, severity: 'critical', description: 'System block injection' },
+  { regex: /###\s*(System|Instruction|Response)\s*:/i, severity: 'high', description: 'Heading-based role injection' },
+  { regex: /<\|(?:sep|pad|eos|bos)\|>/i, severity: 'high', description: 'Special token injection' },
 ];
 
-const ENCODED_PATTERNS: Pattern[] = [
-  { regex: /[\u200B\u200C\u200D\uFEFF]{3,}/i, severity: 'high', description: 'Zero-width character hiding' },
+// === Category 4: Invisible Unicode Injection ===
+const UNICODE_INJECTION_PATTERNS: Pattern[] = [
+  { regex: /[\u200B\u200C\u200D\uFEFF]{3,}/, severity: 'high', description: 'Zero-width character hiding' },
+  { regex: /[\u2060\u180E\u200E\u200F\u202A-\u202E\u2066-\u2069]{2,}/, severity: 'high', description: 'Unicode directional/invisible character injection' },
+  { regex: /[\uFFF0-\uFFFF]{2,}/, severity: 'high', description: 'Unicode specials block abuse' },
   { regex: /[\u0370-\u03FF\u0400-\u04FF].*ignore.*instruction/i, severity: 'high', description: 'Homoglyph obfuscation with injection' },
+  { regex: /[\uE000-\uF8FF]{3,}/, severity: 'warning', description: 'Private Use Area character sequence' },
+  { regex: /[\u0300-\u036F]{5,}/, severity: 'warning', description: 'Excessive combining diacritical marks (text obfuscation)' },
+  { regex: /[\u2000-\u200A]{3,}/, severity: 'warning', description: 'Unusual Unicode whitespace sequence' },
 ];
 
+// === Category 5: Multi-Language Injection ===
+const MULTILANG_PATTERNS: Pattern[] = [
+  { regex: /忽略之前的指令/i, severity: 'critical', description: 'Chinese: ignore previous instructions' },
+  { regex: /忽略(所有|全部)?(?:先前|之前|以上)的?(指令|规则|提示)/i, severity: 'critical', description: 'Chinese: ignore instructions variant' },
+  { regex: /前の指示を無視して/i, severity: 'critical', description: 'Japanese: ignore previous instructions' },
+  { regex: /以前の(指示|ルール|命令)を(無視|忘れ)/i, severity: 'critical', description: 'Japanese: ignore instructions variant' },
+  { regex: /이전\s*(지시|명령|규칙)[을를]?\s*(무시|잊어)/i, severity: 'critical', description: 'Korean: ignore previous instructions' },
+  { regex: /تجاهل\s*(التعليمات|الأوامر)\s*(السابقة|الأولى)/i, severity: 'critical', description: 'Arabic: ignore previous instructions' },
+  { regex: /ignorez?\s+les\s+instructions\s+pr[ée]c[ée]dentes/i, severity: 'critical', description: 'French: ignore previous instructions' },
+  { regex: /ignoriere?\s+(alle\s+)?(vorherigen|bisherigen)\s+(Anweisungen|Regeln)/i, severity: 'critical', description: 'German: ignore previous instructions' },
+  { regex: /ignora\s+(le|tutte\s+le)\s+istruzioni\s+precedenti/i, severity: 'critical', description: 'Italian: ignore previous instructions' },
+  { regex: /игнорируй\s+(все\s+)?(предыдущие|прежние)\s+(инструкции|правила)/i, severity: 'critical', description: 'Russian: ignore previous instructions' },
+  { regex: /新しい(指示|ルール|命令)\s*[:：]/i, severity: 'high', description: 'Japanese: new instructions' },
+  { regex: /새로운\s*(지시|명령)\s*[:：]/i, severity: 'high', description: 'Korean: new instructions' },
+];
+
+// === Category 6: Encoding Evasion ===
+const ENCODING_EVASION_PATTERNS: Pattern[] = [
+  { regex: /&#(?:x[0-9a-f]{2,4}|[0-9]{2,5});/i, severity: 'warning', description: 'HTML entity encoded content' },
+  { regex: /%(?:69|67|6e|6f|72|65)[0-9a-f]{0,2}%/i, severity: 'warning', description: 'URL-encoded payload detected' },
+  { regex: /\\u00[0-9a-f]{2}/gi, severity: 'warning', description: 'Unicode escape sequence' },
+  { regex: /\\x[0-9a-fA-F]{2}/g, severity: 'warning', description: 'Hex escape sequence' },
+  { regex: /rot13|caesar\s*cipher|decode\s+this/i, severity: 'warning', description: 'Encoding/cipher reference in prompt' },
+];
+
+// === Category 7: Indirect / Embedded Injection ===
 const INDIRECT_PATTERNS: Pattern[] = [
   { regex: /when\s+(the\s+)?(ai|assistant|bot|agent)\s+(reads?|sees?|processes?)\s+this/i, severity: 'high', description: 'Indirect injection via content' },
   { regex: /\[hidden\s*instruction/i, severity: 'high', description: 'Hidden instruction tag' },
   { regex: /<!--.*(?:ignore|override|instruction).*-->/is, severity: 'high', description: 'HTML comment injection' },
   { regex: /\{#.*(?:ignore|system|override).*#\}/is, severity: 'high', description: 'Template comment injection' },
   { regex: /if\s+you\s+are\s+(an?\s+)?(ai|language\s+model|llm|assistant)/i, severity: 'warning', description: 'AI-targeted conditional instruction' },
+  { regex: /\[system\]\s*\(.*?\)/i, severity: 'high', description: 'Markdown link injection with system tag' },
+  { regex: /data-prompt\s*=\s*["']/i, severity: 'high', description: 'HTML data attribute prompt injection' },
+  { regex: /tool_result.*(?:ignore|override|new\s+instructions)/is, severity: 'high', description: 'Payload cascading via tool output' },
+  { regex: /function_response.*(?:system|ignore|override)/is, severity: 'high', description: 'Payload cascading via function response' },
 ];
 
+// === Category 8: Multi-Turn Manipulation ===
 const MULTI_TURN_PATTERNS: Pattern[] = [
   { regex: /(?:in\s+)?(?:the\s+)?(?:previous|last|earlier)\s+(?:message|conversation|context).*(?:told|instructed|asked)\s+(?:you|me)/i, severity: 'warning', description: 'False context reference' },
   { regex: /(?:remember|recall)\s+(?:when|that)\s+(?:you|we|I)\s+(?:agreed|decided|said)/i, severity: 'warning', description: 'False memory implantation' },
+  { regex: /as\s+we\s+(?:discussed|agreed|established)\s+(?:earlier|before|previously)/i, severity: 'warning', description: 'False prior agreement reference' },
+  { regex: /you\s+(?:promised|committed|agreed)\s+to/i, severity: 'warning', description: 'False promise reference' },
+  { regex: /(?:continue|resume)\s+(?:from\s+)?(?:where|what)\s+(?:you|we)\s+(?:left|were\s+doing|started)/i, severity: 'warning', description: 'False continuation prompt' },
+  { regex: /your\s+(?:previous|last|earlier)\s+(?:response|answer|output)\s+(?:was|said|confirmed)/i, severity: 'warning', description: 'False attribution of prior response' },
 ];
+
+// === Category 9: Payload Cascading ===
+const CASCADING_PATTERNS: Pattern[] = [
+  { regex: /\{\{.*(?:system|ignore|override).*\}\}/is, severity: 'high', description: 'Template injection with system command' },
+  { regex: /\$\{.*(?:system|exec|eval).*\}/i, severity: 'high', description: 'String interpolation injection' },
+  { regex: /<script[^>]*>.*(?:ignore|override|instruction)/is, severity: 'critical', description: 'Script tag injection with prompt manipulation' },
+];
+
+// === Category 10: Context Window Stuffing ===
+// (Checked programmatically in the main check function)
 
 function checkBase64Injection(content: string): SecurityFinding[] {
   const findings: SecurityFinding[] = [];
@@ -76,27 +151,30 @@ function checkBase64Injection(content: string): SecurityFinding[] {
   return findings;
 }
 
+const ALL_PATTERNS: Pattern[] = [
+  ...DIRECT_INJECTION_PATTERNS,
+  ...ROLE_CONFUSION_PATTERNS,
+  ...DELIMITER_PATTERNS,
+  ...UNICODE_INJECTION_PATTERNS,
+  ...MULTILANG_PATTERNS,
+  ...ENCODING_EVASION_PATTERNS,
+  ...INDIRECT_PATTERNS,
+  ...MULTI_TURN_PATTERNS,
+  ...CASCADING_PATTERNS,
+];
+
 export const promptInjectionRule: SecurityRule = {
   id: 'prompt-injection',
   name: 'Prompt Injection Detection',
-  description: 'Detects LLM01: Prompt Injection attacks including direct, indirect, encoded, and multi-turn variants',
+  description: `Detects LLM01: Prompt Injection attacks — ${ALL_PATTERNS.length}+ patterns across 10 categories including direct, indirect, encoded, multi-language, delimiter, unicode, role confusion, multi-turn, and cascading variants`,
   owaspCategory: 'LLM01: Prompt Injection',
   enabled: true,
 
   check(content: string, direction: Direction, context: RuleContext): SecurityFinding[] {
-    // Only scan inbound messages
     if (direction !== 'inbound') return [];
     const findings: SecurityFinding[] = [];
 
-    const allPatterns = [
-      ...DIRECT_INJECTION_PATTERNS,
-      ...DELIMITER_PATTERNS,
-      ...ENCODED_PATTERNS,
-      ...INDIRECT_PATTERNS,
-      ...MULTI_TURN_PATTERNS,
-    ];
-
-    for (const pattern of allPatterns) {
+    for (const pattern of ALL_PATTERNS) {
       const match = pattern.regex.exec(content);
       if (match) {
         findings.push({
@@ -116,10 +194,9 @@ export const promptInjectionRule: SecurityRule = {
       }
     }
 
-    // Check for Base64-encoded payloads
     findings.push(...checkBase64Injection(content));
 
-    // Check for token bomb (context window stuffing)
+    // Context window stuffing detection
     if (content.length > 200_000) {
       findings.push({
         id: crypto.randomUUID(),
@@ -135,6 +212,28 @@ export const promptInjectionRule: SecurityRule = {
         channel: context.channel,
         action: 'alert',
       });
+    }
+
+    // Repetition-based stuffing (many repeated tokens)
+    if (content.length > 10_000) {
+      const lines = content.split('\n');
+      const uniqueLines = new Set(lines.map(l => l.trim()).filter(l => l.length > 0));
+      if (lines.length > 100 && uniqueLines.size < lines.length * 0.1) {
+        findings.push({
+          id: crypto.randomUUID(),
+          timestamp: context.timestamp,
+          ruleId: 'prompt-injection',
+          ruleName: 'Prompt Injection Detection',
+          severity: 'warning',
+          category: 'prompt-injection',
+          owaspCategory: 'LLM01',
+          description: 'Repetitive content padding detected (possible context stuffing)',
+          evidence: `${lines.length} lines, only ${uniqueLines.size} unique`,
+          session: context.session,
+          channel: context.channel,
+          action: 'log',
+        });
+      }
     }
 
     return findings;

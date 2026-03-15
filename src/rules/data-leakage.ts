@@ -1,5 +1,6 @@
 // OpenClaw Watch — Security Rule: Data Leakage Detection
 // OWASP LLM06: Sensitive Information Disclosure
+// 45+ patterns across API keys, credentials, PII, cloud creds, private keys
 
 import { SecurityFinding, SecurityRule, Direction, RuleContext, Severity } from '../types';
 import * as crypto from 'crypto';
@@ -26,19 +27,45 @@ const API_KEY_PATTERNS: LeakPattern[] = [
   { name: 'SendGrid', regex: /SG\.[a-zA-Z0-9\-_]{22}\.[a-zA-Z0-9\-_]{43}/, severity: 'critical', description: 'SendGrid API key detected' },
   { name: 'Twilio', regex: /SK[0-9a-fA-F]{32}/, severity: 'high', description: 'Twilio API key detected' },
   { name: 'Telegram Bot', regex: /\d{8,10}:[A-Za-z0-9_-]{35}/, severity: 'critical', description: 'Telegram bot token detected' },
+  { name: 'Mailgun', regex: /key-[a-zA-Z0-9]{32}/, severity: 'critical', description: 'Mailgun API key detected' },
+  { name: 'Cloudflare', regex: /v1\.0-[a-f0-9]{24}-[a-f0-9]{146}/, severity: 'critical', description: 'Cloudflare API token detected' },
+  { name: 'DigitalOcean', regex: /dop_v1_[a-f0-9]{64}/, severity: 'critical', description: 'DigitalOcean API token detected' },
+  { name: 'HuggingFace', regex: /hf_[a-zA-Z0-9]{34}/, severity: 'critical', description: 'Hugging Face token detected' },
+  { name: 'Databricks', regex: /dapi[a-f0-9]{32}/, severity: 'critical', description: 'Databricks API token detected' },
+  { name: 'npm Token', regex: /npm_[a-zA-Z0-9]{36}/, severity: 'critical', description: 'npm access token detected' },
+  { name: 'PyPI Token', regex: /pypi-AgEIcH[a-zA-Z0-9\-_]{50,}/, severity: 'critical', description: 'PyPI API token detected' },
+  { name: 'Discord Bot', regex: /[MN][A-Za-z\d]{23,}\.[\w-]{6}\.[\w-]{27,}/, severity: 'critical', description: 'Discord bot token detected' },
 ];
 
 const CREDENTIAL_PATTERNS: LeakPattern[] = [
   { name: 'Password in URL', regex: /:\/\/[^:]+:[^@]+@[a-zA-Z0-9.-]+/, severity: 'critical', description: 'Password embedded in URL' },
   { name: 'Bearer Token', regex: /[Bb]earer\s+[a-zA-Z0-9\-._~+/]{20,}=*/, severity: 'high', description: 'Bearer token detected in output' },
   { name: 'Basic Auth', regex: /[Bb]asic\s+[A-Za-z0-9+/]{20,}={0,2}/, severity: 'high', description: 'Basic auth header detected' },
-  { name: 'Private Key', regex: /-----BEGIN\s+(RSA|EC|DSA|OPENSSH|PGP)\s+PRIVATE\s+KEY-----/, severity: 'critical', description: 'Private key detected' },
+  { name: 'Private Key', regex: /-----BEGIN\s+(RSA|EC|DSA|OPENSSH|PGP|ENCRYPTED)\s+PRIVATE\s+KEY-----/, severity: 'critical', description: 'Private key detected' },
+  { name: 'SSH Private Key', regex: /-----BEGIN\s+OPENSSH\s+PRIVATE\s+KEY-----/, severity: 'critical', description: 'SSH private key detected' },
   { name: 'JWT', regex: /eyJ[a-zA-Z0-9\-_]+\.eyJ[a-zA-Z0-9\-_]+\.[a-zA-Z0-9\-_]+/, severity: 'high', description: 'JWT token detected' },
+  { name: 'MongoDB URI', regex: /mongodb(?:\+srv)?:\/\/[^:]+:[^@]+@[a-zA-Z0-9.-]+/, severity: 'critical', description: 'MongoDB connection URI with credentials' },
+  { name: 'PostgreSQL URI', regex: /postgres(?:ql)?:\/\/[^:]+:[^@]+@[a-zA-Z0-9.-]+/, severity: 'critical', description: 'PostgreSQL connection URI with credentials' },
+  { name: 'MySQL URI', regex: /mysql:\/\/[^:]+:[^@]+@[a-zA-Z0-9.-]+/, severity: 'critical', description: 'MySQL connection URI with credentials' },
+  { name: 'Redis AUTH', regex: /redis:\/\/[^:]*:[^@]+@[a-zA-Z0-9.-]+/, severity: 'critical', description: 'Redis connection URI with credentials' },
+];
+
+const CLOUD_CREDENTIAL_PATTERNS: LeakPattern[] = [
+  { name: 'Azure Connection String', regex: /(?:DefaultEndpointsProtocol|AccountName|AccountKey|SharedAccessSignature)\s*=\s*[^\s;]{10,}/i, severity: 'critical', description: 'Azure Storage connection string detected' },
+  { name: 'Azure SQL Connection', regex: /Server\s*=\s*[^;]+\.database\.windows\.net[^;]*Password\s*=\s*[^;]+/i, severity: 'critical', description: 'Azure SQL connection string with password' },
+  { name: 'GCP Service Account', regex: /"type"\s*:\s*"service_account"[\s\S]*"private_key"\s*:\s*"-----BEGIN/i, severity: 'critical', description: 'GCP service account key file detected' },
+  { name: 'Alibaba AccessKey', regex: /LTAI[a-zA-Z0-9]{12,20}/, severity: 'critical', description: 'Alibaba Cloud AccessKey ID detected' },
+  { name: 'Tencent Cloud', regex: /AKID[a-zA-Z0-9]{13,20}/, severity: 'critical', description: 'Tencent Cloud SecretId detected' },
 ];
 
 const PII_PATTERNS: LeakPattern[] = [
   { name: 'SSN', regex: /\b\d{3}-\d{2}-\d{4}\b/, severity: 'critical', description: 'US Social Security Number pattern detected' },
   { name: 'Credit Card', regex: /\b(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|3[47][0-9]{13}|6(?:011|5[0-9]{2})[0-9]{12})\b/, severity: 'critical', description: 'Credit card number pattern detected' },
+  { name: 'Email', regex: /\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\b/, severity: 'warning', description: 'Email address detected in output' },
+  { name: 'Phone (US)', regex: /\b(?:\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b/, severity: 'warning', description: 'US phone number pattern detected' },
+  { name: 'Phone (International)', regex: /\b\+\d{1,3}[-.\s]?\d{4,14}\b/, severity: 'warning', description: 'International phone number pattern detected' },
+  { name: 'Passport', regex: /\b[A-Z]{1,2}\d{6,9}\b/, severity: 'high', description: 'Possible passport number pattern' },
+  { name: 'IP Address', regex: /\b(?:(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\b/, severity: 'info', description: 'IP address detected in output' },
 ];
 
 const ROTATION_URLS: Record<string, string> = {
@@ -54,6 +81,10 @@ const ROTATION_URLS: Record<string, string> = {
   'Google API': 'https://console.cloud.google.com/apis/credentials',
   'SendGrid': 'https://app.sendgrid.com/settings/api_keys',
   'Telegram Bot': 'https://t.me/BotFather',
+  'HuggingFace': 'https://huggingface.co/settings/tokens',
+  'DigitalOcean': 'https://cloud.digitalocean.com/account/api/tokens',
+  'Mailgun': 'https://app.mailgun.com/settings/api_security',
+  'npm Token': 'https://www.npmjs.com/settings/tokens',
 };
 
 function luhnCheck(num: string): boolean {
@@ -73,28 +104,24 @@ function luhnCheck(num: string): boolean {
 export const dataLeakageRule: SecurityRule = {
   id: 'data-leakage',
   name: 'Data Leakage Detection',
-  description: 'Detects LLM06: Sensitive information disclosure including API keys, credentials, PII, and secrets',
+  description: 'Detects LLM06: Sensitive information disclosure — 45+ patterns including API keys, credentials, PII, cloud creds, private keys, and database URIs',
   owaspCategory: 'LLM06: Sensitive Information Disclosure',
   enabled: true,
 
   check(content: string, direction: Direction, context: RuleContext): SecurityFinding[] {
-    // Only scan outbound messages
     if (direction !== 'outbound') return [];
     const findings: SecurityFinding[] = [];
 
-    const allPatterns = [...API_KEY_PATTERNS, ...CREDENTIAL_PATTERNS, ...PII_PATTERNS];
+    const allPatterns = [...API_KEY_PATTERNS, ...CREDENTIAL_PATTERNS, ...CLOUD_CREDENTIAL_PATTERNS, ...PII_PATTERNS];
 
     for (const pattern of allPatterns) {
       const match = pattern.regex.exec(content);
       if (match) {
-        // Extra validation for credit cards
         if (pattern.name === 'Credit Card' && !luhnCheck(match[0])) continue;
 
         const redacted = match[0].slice(0, 8) + '...' + match[0].slice(-4);
         const rotationUrl = ROTATION_URLS[pattern.name];
-        const rotationHint = rotationUrl
-          ? ` 🚨 Rotate immediately: ${rotationUrl}`
-          : '';
+        const rotationHint = rotationUrl ? ` 🚨 Rotate immediately: ${rotationUrl}` : '';
         findings.push({
           id: crypto.randomUUID(),
           timestamp: context.timestamp,
@@ -112,7 +139,7 @@ export const dataLeakageRule: SecurityRule = {
       }
     }
 
-    // Check for .env file content patterns
+    // .env file content exposure
     const envPattern = /^[A-Z_]{2,50}=.{5,}$/m;
     const envMatches = content.match(new RegExp(envPattern.source, 'gm'));
     if (envMatches && envMatches.length >= 3) {
