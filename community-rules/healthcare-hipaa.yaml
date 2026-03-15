@@ -1,0 +1,37 @@
+name: "HIPAA Compliance Rules"
+version: "1.0"
+rules:
+  - id: hipaa-phi-names
+    description: "Detect patient name patterns in output"
+    event: message:sent
+    severity: critical
+    patterns:
+      - regex: "patient\\s+name\\s*:\\s*\\w+"
+      - keyword: "medical record"
+    action: alert
+
+  - id: hipaa-mrn
+    description: "Detect Medical Record Numbers"
+    event: message:sent
+    severity: critical
+    patterns:
+      - regex: "MRN\\s*[:#]?\\s*\\d{6,10}"
+      - regex: "medical\\s+record\\s+(?:number|#)\\s*\\d+"
+    action: alert
+
+  - id: hipaa-diagnosis
+    description: "Detect diagnosis codes in plain text output"
+    event: message:sent
+    severity: high
+    patterns:
+      - regex: "ICD-?10\\s*:\\s*[A-Z]\\d{2}\\.?\\d*"
+      - regex: "diagnosis\\s*:\\s*[A-Z]\\d{2}\\.\\d+"
+    action: alert
+
+  - id: hipaa-dob
+    description: "Detect date of birth patterns"
+    event: message:sent
+    severity: high
+    patterns:
+      - regex: "(?:DOB|date\\s+of\\s+birth)\\s*:\\s*\\d{1,2}[/\\-]\\d{1,2}[/\\-]\\d{2,4}"
+    action: alert

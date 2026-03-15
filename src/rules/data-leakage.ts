@@ -41,6 +41,21 @@ const PII_PATTERNS: LeakPattern[] = [
   { name: 'Credit Card', regex: /\b(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|3[47][0-9]{13}|6(?:011|5[0-9]{2})[0-9]{12})\b/, severity: 'critical', description: 'Credit card number pattern detected' },
 ];
 
+const ROTATION_URLS: Record<string, string> = {
+  'OpenAI': 'https://platform.openai.com/api-keys',
+  'Anthropic': 'https://console.anthropic.com/settings/keys',
+  'GitHub PAT': 'https://github.com/settings/tokens',
+  'GitHub OAuth': 'https://github.com/settings/tokens',
+  'GitHub App': 'https://github.com/settings/tokens',
+  'AWS Access Key': 'https://console.aws.amazon.com/iam/',
+  'Stripe Live': 'https://dashboard.stripe.com/apikeys',
+  'Stripe Pub': 'https://dashboard.stripe.com/apikeys',
+  'Slack Token': 'https://api.slack.com/apps',
+  'Google API': 'https://console.cloud.google.com/apis/credentials',
+  'SendGrid': 'https://app.sendgrid.com/settings/api_keys',
+  'Telegram Bot': 'https://t.me/BotFather',
+};
+
 function luhnCheck(num: string): boolean {
   const digits = num.replace(/\D/g, '');
   if (digits.length < 13 || digits.length > 19) return false;
@@ -76,6 +91,10 @@ export const dataLeakageRule: SecurityRule = {
         if (pattern.name === 'Credit Card' && !luhnCheck(match[0])) continue;
 
         const redacted = match[0].slice(0, 8) + '...' + match[0].slice(-4);
+        const rotationUrl = ROTATION_URLS[pattern.name];
+        const rotationHint = rotationUrl
+          ? ` 🚨 Rotate immediately: ${rotationUrl}`
+          : '';
         findings.push({
           id: crypto.randomUUID(),
           timestamp: context.timestamp,
@@ -84,7 +103,7 @@ export const dataLeakageRule: SecurityRule = {
           severity: pattern.severity,
           category: 'data-leakage',
           owaspCategory: 'LLM06',
-          description: pattern.description,
+          description: pattern.description + rotationHint,
           evidence: `${pattern.name}: ${redacted}`,
           session: context.session,
           channel: context.channel,

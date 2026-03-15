@@ -1,0 +1,26 @@
+name: "PCI-DSS Compliance Rules"
+version: "1.0"
+rules:
+  - id: pci-card-display
+    description: "Detect full credit card numbers in output (should be masked)"
+    event: message:sent
+    severity: critical
+    patterns:
+      - regex: "\\b\\d{4}[\\s\\-]?\\d{4}[\\s\\-]?\\d{4}[\\s\\-]?\\d{4}\\b"
+    action: block
+
+  - id: pci-cvv
+    description: "Detect CVV/CVC codes in output"
+    event: message:sent
+    severity: critical
+    patterns:
+      - regex: "(?:CVV|CVC|CVV2|CVC2)\\s*[:#]?\\s*\\d{3,4}"
+    action: block
+
+  - id: pci-expiry
+    description: "Detect card expiration dates alongside card context"
+    event: message:sent
+    severity: high
+    patterns:
+      - regex: "(?:exp(?:ir[ey])?|valid\\s+thru)\\s*[:#]?\\s*\\d{1,2}[/\\-]\\d{2,4}"
+    action: alert

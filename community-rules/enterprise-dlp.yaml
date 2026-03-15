@@ -1,0 +1,40 @@
+name: "Enterprise Data Loss Prevention"
+version: "1.0"
+rules:
+  - id: dlp-classification
+    description: "Detect data classification labels in output"
+    event: message:sent
+    severity: high
+    patterns:
+      - keyword: "CONFIDENTIAL"
+      - keyword: "TOP SECRET"
+      - keyword: "INTERNAL ONLY"
+      - keyword: "RESTRICTED"
+    action: alert
+
+  - id: dlp-internal-urls
+    description: "Detect internal URLs being shared externally"
+    event: message:sent
+    severity: high
+    patterns:
+      - regex: "https?://[a-z0-9\\-]+\\.internal\\."
+      - regex: "https?://[a-z0-9\\-]+\\.corp\\."
+      - regex: "https?://[a-z0-9\\-]+\\.intranet\\."
+    action: alert
+
+  - id: dlp-source-code
+    description: "Detect proprietary source code markers"
+    event: message:sent
+    severity: warning
+    patterns:
+      - regex: "Copyright\\s+\\(c\\).*(?:Inc|Corp|Ltd).*All\\s+rights\\s+reserved"
+      - keyword: "PROPRIETARY AND CONFIDENTIAL"
+    action: alert
+
+  - id: dlp-employee-id
+    description: "Detect employee ID patterns"
+    event: message:sent
+    severity: high
+    patterns:
+      - regex: "(?:employee|emp)\\s*(?:ID|#)\\s*[:#]?\\s*[A-Z]?\\d{5,8}"
+    action: alert
