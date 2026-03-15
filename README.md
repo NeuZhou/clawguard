@@ -278,9 +278,14 @@ openclaw hooks enable ClawGuard-ai-policy   # Enforces tool call policies
 
 **AGPL-3.0** © [Kang Zhou](https://github.com/NeuZhou)
 
-This project is licensed under the [GNU Affero General Public License v3.0](LICENSE).
+ClawGuard is dual-licensed:
 
-**Commercial licensing** is available for organizations that cannot comply with AGPL terms. Contact: neuzhou@outlook.com
+- **Open Source**: [AGPL-3.0](LICENSE) — free for open-source use
+- **Commercial**: [Commercial License](COMMERCIAL-LICENSE.md) — for proprietary/SaaS use
+
+Contributors must agree to our [CLA](CLA.md) to enable dual licensing.
+
+For commercial inquiries: neuzhou@outlook.com
 
 ---
 
