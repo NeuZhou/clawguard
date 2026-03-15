@@ -151,6 +151,8 @@ export interface RuleContext {
   recentMessages: WatchMessage[];
   recentFindings: SecurityFinding[];
   sessionInfo?: SessionInfo;
+  /** When true, scanning static files (skip runtime-only checks like tool call tracking) */
+  staticScan?: boolean;
 }
 
 export interface CustomRuleDefinition {

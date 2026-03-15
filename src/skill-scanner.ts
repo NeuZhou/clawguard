@@ -34,6 +34,7 @@ function makeContext(): RuleContext {
     timestamp: Date.now(),
     recentMessages: [],
     recentFindings: [],
+    staticScan: true,
   };
 }
 

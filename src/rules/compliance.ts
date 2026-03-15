@@ -10,7 +10,7 @@ const FILESYSTEM_PATTERNS = [
   /(?:^|[`$>|;&]\s*)(?:del|erase)\s+\/[fFsSqQ]/im,
   /(?:^|[`$>|;&]\s*)(?:unlink|shred)\s+/im,
   /(?:os|fs|shutil)\.(?:remove|unlink|rmdir|rmtree)\s*\(/i,
-  /(?:write|overwrite|truncate)\s+.*(?:\/|\\)/i,
+  /(?:write|overwrite|truncate)\s+(?:to\s+)?(?:\/[\w./-]+|[A-Z]:\\[\w.\\-]+)/i,
   /(?:chmod|chown|icacls)\s+/i,
 ];
 
@@ -85,21 +85,23 @@ export const complianceRule: SecurityRule = {
       }
     }
 
-    // Tool call tracking
-    const toolPatterns = [
-      /exec\s*\(/i, /browser\s*\(/i, /web_fetch\s*\(/i,
-      /antml:invoke\s+name="([^"]+)"/i,
-    ];
-    for (const pattern of toolPatterns) {
-      const match = pattern.exec(content);
-      if (match) {
-        findings.push({
-          id: crypto.randomUUID(), timestamp: now,
-          ruleId: 'compliance', ruleName: 'Compliance & Audit',
-          severity: 'info', category: 'compliance', owaspCategory: 'LLM09',
-          description: `Tool call detected: ${match[1] || match[0].slice(0, 50)}`,
-          session: context.session, channel: context.channel, action: 'log',
-        });
+    // Tool call tracking (skip in static file scanning — these patterns are for real-time monitoring)
+    if (!context.staticScan) {
+      const toolPatterns = [
+        /exec\s*\(/i, /browser\s*\(/i, /web_fetch\s*\(/i,
+        /antml:invoke\s+name="([^"]+)"/i,
+      ];
+      for (const pattern of toolPatterns) {
+        const match = pattern.exec(content);
+        if (match) {
+          findings.push({
+            id: crypto.randomUUID(), timestamp: now,
+            ruleId: 'compliance', ruleName: 'Compliance & Audit',
+            severity: 'info', category: 'compliance', owaspCategory: 'LLM09',
+            description: `Tool call detected: ${match[1] || match[0].slice(0, 50)}`,
+            session: context.session, channel: context.channel, action: 'log',
+          });
+        }
       }
     }
 
