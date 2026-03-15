@@ -195,6 +195,54 @@ function main(): void {
       runScan(target, { ...options, format: options.format || 'text' });
       break;
 
+    case 'sanitize': {
+      // Sanitize PII/credentials from text
+      const text = args.slice(1).join(' ');
+      if (!text) {
+        process.stderr.write('Usage: openclaw-watch sanitize "text containing PII or secrets"\n');
+        process.exit(2);
+      }
+      const { sanitize: doSanitize } = require('./sanitizer');
+      const result = doSanitize(text);
+      if (result.piiCount === 0) {
+        process.stdout.write(`✅ No PII or credentials detected\n`);
+        process.stdout.write(text + '\n');
+      } else {
+        process.stdout.write(`🛡️ Sanitized ${result.piiCount} item(s):\n`);
+        for (const r of result.replacements) {
+          process.stdout.write(`  ${r.type}: ${r.original.slice(0, 8)}... → ${r.placeholder}\n`);
+        }
+        process.stdout.write(`\n${result.sanitized}\n`);
+      }
+      break;
+    }
+
+    case 'intent-check': {
+      // Check intent vs action mismatch
+      const intentIdx = args.indexOf('--intent');
+      const actionIdx = args.indexOf('--action');
+      if (intentIdx === -1 || actionIdx === -1) {
+        process.stderr.write('Usage: openclaw-watch intent-check --intent "I will read the file" --action "rm -rf /"\n');
+        process.exit(2);
+      }
+      const intentText = args.slice(intentIdx + 1, actionIdx > intentIdx ? actionIdx : undefined).join(' ');
+      const actionText = args.slice(actionIdx + 1, intentIdx > actionIdx ? intentIdx : undefined).join(' ');
+      const { checkIntentAction } = require('./intent-action');
+      const check = checkIntentAction(intentText, actionText);
+      if (check.mismatch) {
+        const icon = check.severity === 'critical' ? '🔴' : check.severity === 'high' ? '🟠' : '🟡';
+        process.stdout.write(`${icon} MISMATCH (${check.severity}, confidence: ${check.confidence}%)\n`);
+        process.stdout.write(`  Reason: ${check.reason}\n`);
+        process.exit(1);
+      } else {
+        process.stdout.write(`✅ CONSISTENT (confidence: ${check.confidence}%)\n`);
+        if (check.severity === 'warning') {
+          process.stdout.write(`  ⚠️ ${check.reason}\n`);
+        }
+      }
+      break;
+    }
+
     case 'help':
     case '--help':
     case '-h':

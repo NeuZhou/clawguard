@@ -1,14 +1,27 @@
 {
   "name": "openclaw-watch",
-  "version": "5.1.0",
+  "version": "6.0.0",
   "description": "AI Agent Security & Observability Platform - 285+ threat patterns, OWASP Agentic AI mapping, SARIF output, zero native dependencies",
   "author": "Kang Zhou <neuzhou@outlook.com>",
   "license": "MIT",
   "keywords": [
-    "openclaw", "security", "observability", "monitoring", "dashboard",
-    "owasp", "llm-security", "prompt-injection", "mcp-security",
-    "agent-security", "supply-chain", "sarif", "identity-protection",
-    "ai-safety", "agentic-ai", "data-leakage", "skill-scanner"
+    "openclaw",
+    "security",
+    "observability",
+    "monitoring",
+    "dashboard",
+    "owasp",
+    "llm-security",
+    "prompt-injection",
+    "mcp-security",
+    "agent-security",
+    "supply-chain",
+    "sarif",
+    "identity-protection",
+    "ai-safety",
+    "agentic-ai",
+    "data-leakage",
+    "skill-scanner"
   ],
   "homepage": "https://github.com/NeuZhou/openclaw-watch",
   "repository": {

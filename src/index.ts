@@ -30,3 +30,11 @@ export { evaluateToolCall, evaluateToolCallBatch } from './policy-engine';
 
 /** Persistent storage for messages, findings, and config */
 export { store } from './store';
+
+/** PII Sanitizer — local PII/credential removal before LLM calls */
+export { sanitize, restore, containsPII } from './sanitizer';
+export type { SanitizeResult, Replacement } from './sanitizer';
+
+/** Intent-Action Mismatch Detection — catches agents that say one thing but do another */
+export { checkIntentAction, checkIntentActionBatch } from './intent-action';
+export type { IntentActionCheck } from './intent-action';
