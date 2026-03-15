@@ -2,7 +2,7 @@
 
 **AI Agent Security & Observability Platform**
 
-[![npm version](https://img.shields.io/npm/v/ClawGuard-ai)](https://www.npmjs.com/package/ClawGuard-ai)
+[![npm version](https://img.shields.io/npm/v/@neuzhou/clawguard)](https://www.npmjs.com/package/@neuzhou/clawguard)
 [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](LICENSE)
 [![Zero Dependencies](https://img.shields.io/badge/dependencies-0-brightgreen)]()
 [![Node.js >= 18](https://img.shields.io/badge/node-%3E%3D18-green)]()
@@ -30,29 +30,29 @@ AI agents have access to your files, tools, shell, and secrets. A single prompt 
 
 ### As OpenClaw Skill (static scanning)
 ```bash
-clawhub install ClawGuard-ai
+clawhub install clawguard
 ```
 Then ask your agent: *"scan my skills for security threats"*
 
 ### As OpenClaw Hook Pack (real-time protection)
 ```bash
-openclaw hooks install ClawGuard-ai
-openclaw hooks enable ClawGuard-ai-guard
-openclaw hooks enable ClawGuard-ai-policy
+openclaw hooks install clawguard
+openclaw hooks enable clawguard-guard
+openclaw hooks enable clawguard-policy
 ```
 Every message is now automatically scanned. Critical threats trigger alerts.
 
 ### As CLI Tool
 ```bash
-npx ClawGuard-ai scan ./path/to/scan
+npx @neuzhou/clawguard scan ./path/to/scan
 ```
 
 ### As npm Library
 ```bash
-npm install ClawGuard-ai
+npm install @neuzhou/clawguard
 ```
 ```typescript
-import { runSecurityScan, calculateRisk, evaluateToolCall } from 'ClawGuard-ai';
+import { runSecurityScan, calculateRisk, evaluateToolCall } from '@neuzhou/clawguard';
 ```
 
 ---
@@ -61,16 +61,16 @@ import { runSecurityScan, calculateRisk, evaluateToolCall } from 'ClawGuard-ai';
 
 ```bash
 # Scan a skill directory for threats
-npx ClawGuard-ai scan ./skills/
+npx @neuzhou/clawguard scan ./skills/
 
 # Scan with strict mode (exit code 1 on high/critical findings)
-npx ClawGuard-ai scan ./skills/ --strict
+npx @neuzhou/clawguard scan ./skills/ --strict
 
 # Output SARIF for GitHub Code Scanning
-npx ClawGuard-ai scan . --format sarif > results.sarif
+npx @neuzhou/clawguard scan . --format sarif > results.sarif
 
 # Generate default config
-npx ClawGuard-ai init
+npx @neuzhou/clawguard init
 ```
 
 ---
@@ -128,7 +128,7 @@ npx ClawGuard-ai init
 Weighted scoring with attack chain detection and multiplier system:
 
 ```typescript
-import { calculateRisk } from 'ClawGuard-ai';
+import { calculateRisk } from '@neuzhou/clawguard';
 
 const result = calculateRisk(findings);
 // → { score: 87, verdict: 'MALICIOUS', icon: '🔴',
@@ -155,7 +155,7 @@ Based on [Anthropic's research on agentic misalignment](https://www.anthropic.co
 - **Unauthorized Data Sharing**: exfiltration planning, steganographic hiding
 
 ```typescript
-import { detectInsiderThreats } from 'ClawGuard-ai';
+import { detectInsiderThreats } from '@neuzhou/clawguard';
 const threats = detectInsiderThreats(agentOutput);
 ```
 
@@ -164,7 +164,7 @@ const threats = detectInsiderThreats(agentOutput);
 Evaluate tool call safety against configurable policies:
 
 ```typescript
-import { evaluateToolCall } from 'ClawGuard-ai';
+import { evaluateToolCall } from '@neuzhou/clawguard';
 
 const decision = evaluateToolCall('exec', { command: 'rm -rf /' });
 // → { decision: 'deny', tool: 'exec', reason: 'Dangerous command', severity: 'critical' }
@@ -216,7 +216,7 @@ import {
   calculateRisk,
   evaluateToolCall,
   detectInsiderThreats,
-} from 'ClawGuard-ai';
+} from '@neuzhou/clawguard';
 
 // Scan content
 const findings = runSecurityScan(message.content, 'inbound', context);
@@ -239,7 +239,7 @@ const threats = detectInsiderThreats(agentOutput);
 
 ```yaml
 - name: Security Scan
-  run: npx ClawGuard-ai scan . --format sarif > results.sarif
+  run: npx @neuzhou/clawguard scan . --format sarif > results.sarif
 
 - name: Upload SARIF
   uses: github/codeql-action/upload-sarif@v3
@@ -254,14 +254,14 @@ const threats = detectInsiderThreats(agentOutput);
 Install as a hook pack for automatic protection on every message:
 
 ```bash
-openclaw hooks install ClawGuard-ai
-openclaw hooks enable ClawGuard-ai-guard    # Scans every message
-openclaw hooks enable ClawGuard-ai-policy   # Enforces tool call policies
+openclaw hooks install clawguard
+openclaw hooks enable clawguard-guard    # Scans every message
+openclaw hooks enable clawguard-policy   # Enforces tool call policies
 ```
 
-**ClawGuard-ai-guard** — Hooks into `message:received` and `message:sent`, runs all 285+ patterns, logs findings, and alerts on critical/high threats.
+**clawguard-guard** — Hooks into `message:received` and `message:sent`, runs all 285+ patterns, logs findings, and alerts on critical/high threats.
 
-**ClawGuard-ai-policy** — Evaluates outbound tool calls against security policies, blocks dangerous commands, and protects sensitive files.
+**clawguard-policy** — Evaluates outbound tool calls against security policies, blocks dangerous commands, and protects sensitive files.
 
 ---
 
