@@ -5,7 +5,11 @@ import { SecurityFinding, SecurityRule, Direction, RuleContext } from '../types'
 import * as crypto from 'crypto';
 
 const FILESYSTEM_PATTERNS = [
-  /(?:rm|del|remove|unlink|rmdir)\s+/i,
+  // Require command-like context: preceded by line start, backtick, $, >, pipe, semicolon, or &&
+  /(?:^|[`$>|;&]\s*)(?:rm|rmdir)\s+-[a-zA-Z]*\s/im,
+  /(?:^|[`$>|;&]\s*)(?:del|erase)\s+\/[fFsSqQ]/im,
+  /(?:^|[`$>|;&]\s*)(?:unlink|shred)\s+/im,
+  /(?:os|fs|shutil)\.(?:remove|unlink|rmdir|rmtree)\s*\(/i,
   /(?:write|overwrite|truncate)\s+.*(?:\/|\\)/i,
   /(?:chmod|chown|icacls)\s+/i,
 ];

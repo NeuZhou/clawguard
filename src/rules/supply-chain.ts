@@ -53,7 +53,7 @@ const REVERSE_SHELL_PATTERNS: Pattern[] = [
 
 // Typosquatting indicators
 const TYPOSQUAT_PATTERNS: Pattern[] = [
-  { regex: /["'](?:openclaw|open-claw|0penclaw|openclav|openc1aw)["']/i, severity: 'high', description: 'Possible typosquatted package name (openclaw variant)' },
+  { regex: /["'](?:open-claw|0penclaw|openclav|openc1aw|opencIaw)["']/i, severity: 'high', description: 'Possible typosquatted package name (openclaw variant)' },
   { regex: /["'](?:l0dash|1odash|lodas[hj]|l0das[hj])["']/i, severity: 'warning', description: 'Possible typosquatted package (lodash variant)' },
   { regex: /["'](?:axois|axi0s|ax1os)["']/i, severity: 'warning', description: 'Possible typosquatted package (axios variant)' },
 ];
