@@ -1,6 +1,6 @@
 ---
 name: openclaw-watch
-description: "🛡️ AI Agent Security Scanner — 285+ threat patterns, OWASP Agentic AI Top 10 mapping, risk scoring, insider threat detection. Scan skills, files, and workspaces for security threats."
+description: "🛡️ AI Agent Security Scanner — 285+ threat patterns, OWASP Agentic AI Top 10 mapping, risk scoring, attack chain detection. Scan skills, files, and workspaces."
 user-invocable: true
 metadata: {"openclaw": {"emoji": "🛡️", "requires": {"bins": ["node"]}, "homepage": "https://github.com/NeuZhou/openclaw-watch"}}
 ---
@@ -12,7 +12,7 @@ You have access to a powerful security scanner for AI agent files and skills.
 ## When to Use
 
 - When the user asks to scan files, skills, or workspace for security threats
-- When installing new skills from ClawHub (scan them first!)
+- When installing new skills from ClawHub (scan before trusting!)
 - When reviewing SKILL.md, AGENTS.md, or any configuration files
 - When the user asks about security, safety, or threat detection
 
@@ -24,7 +24,7 @@ Run the scanner CLI on target files or directories:
 # Scan a specific file
 npx openclaw-watch scan ./skills/some-skill/SKILL.md
 
-# Scan entire skills directory  
+# Scan entire skills directory
 npx openclaw-watch scan ./skills/ --strict
 
 # Scan with JSON output for programmatic use
@@ -32,70 +32,49 @@ npx openclaw-watch scan . --format json
 
 # Scan with SARIF output for GitHub Code Scanning
 npx openclaw-watch scan . --format sarif > results.sarif
+
+# Generate default config
+npx openclaw-watch init
 ```
 
-## What It Detects (285+ Patterns)
+## Detection Coverage (285+ Patterns, 9 Categories)
 
-### Prompt Injection (93 patterns)
-- Direct injection ("ignore previous instructions")
-- Delimiter injection (markdown, XML, chat template)
-- Multi-language attacks (Chinese, Japanese, Korean)
-- Jailbreak attempts (DAN, developer mode)
-- Prompt worms and self-replication
-- Trust exploitation and authority claims
-- Safeguard bypass techniques
+| Category | Patterns | What It Catches |
+|----------|----------|-----------------|
+| Prompt Injection | 93 | 13 sub-categories including multi-language (12 langs), encoding evasion, worm propagation |
+| Data Leakage | 62 | API keys, credentials, PII, database URIs, advanced exfiltration techniques |
+| Insider Threat | 39 | AI misalignment behaviors based on Anthropic research — 5 threat categories |
+| Supply Chain | 35 | Obfuscated code, malicious scripts, known CVEs, typosquatting |
+| MCP Security | 20 | Tool shadowing, SSRF, schema poisoning |
+| Identity Protection | 19 | Config file tampering, persona hijacking, memory poisoning |
+| File Protection | 16 | Dangerous filesystem operations |
+| Anomaly Detection | 6+ | Resource exhaustion, recursive patterns |
+| Compliance | 5+ | OWASP mapping, audit trail |
 
-### Data Leakage (62 patterns)  
-- API keys (OpenAI, Anthropic, AWS, Azure, GCP, HuggingFace, etc.)
-- Credentials (passwords in URLs, bearer tokens, basic auth, private keys)
-- PII (SSN, credit cards, phone numbers, emails)
-- Database URIs with credentials
-- Advanced exfiltration (beacon, drip, steganographic)
-
-### Supply Chain (35 patterns)
-- Obfuscated code (eval+atob, Function constructor)
-- Malicious npm lifecycle scripts
-- Reverse shells (bash, python, netcat, powershell)
-- DNS exfiltration
-- CVE patterns (CVE-2026-25253, etc.)
-- Typosquatting detection
-
-### Insider Threat (39 patterns)
-- AI self-preservation behavior
-- Information leverage/blackmail
-- Goal conflict with human instructions
-- Deception and impersonation
-- Unauthorized data sharing
-
-### Identity Protection
-- SOUL.md / MEMORY.md / AGENTS.md tampering
-- Persona hijacking and memory poisoning
-
-### MCP Security
-- Tool shadowing, SSRF, schema poisoning
-
-### File Protection
-- Dangerous deletion commands (rm -rf, del /f /s)
-
-### Anomaly Detection
-- Token bombs, infinite loops, recursive sub-agents
+Full OWASP Agentic AI Top 10 (2026) coverage.
 
 ## Understanding Results
 
-The scanner outputs findings with severity levels:
+Severity levels:
 - 🔴 **Critical** — Immediate threat, likely malicious
 - 🟠 **High** — Serious security concern
-- 🟡 **Warning** — Potential risk, review recommended  
+- 🟡 **Warning** — Potential risk, review recommended
 - 🔵 **Info** — Notable but likely benign
 
-Use `--strict` flag to fail on critical/high findings (useful in CI/CD).
+Use `--strict` to exit with code 1 on critical/high findings (CI/CD friendly).
 
-## Example: Pre-install Security Check
+## Risk Score Engine
 
-Before installing a skill from ClawHub, scan it:
+The scanner also provides a composite risk score (0-100) with attack chain detection:
+- Auto-correlates related findings into combo attacks
+- Applies severity-weighted scoring with confidence multipliers
+- Verdicts: CLEAN / LOW / SUSPICIOUS / MALICIOUS
+
+## Workflow: Pre-install Security Check
+
+After installing any skill from ClawHub, scan it:
 ```bash
-clawhub install suspicious-skill
-npx openclaw-watch scan ./skills/suspicious-skill/ --strict
+npx openclaw-watch scan ./skills/<skill-name>/ --strict
 ```
 
-If findings are critical, recommend the user uninstall it.
+Report critical findings to the user and recommend removal if necessary.
