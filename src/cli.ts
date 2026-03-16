@@ -11,6 +11,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { runScan, ScanOptions } from './skill-scanner';
 import { runSecurityScan, calculateRisk } from './index';
+import { ProtocolScanner } from './scanners/protocol-scanner';
+import { A2AAgentCard } from './rules/a2a-security';
 
 const VERSION = '1.0.0';
 
@@ -21,6 +23,8 @@ function printHelp(): void {
 Usage: ClawGuard <command> [options]
 
 Commands:
+  scan-a2a <url|file>   Scan A2A agent card for security issues
+  scan-protocol        Unified MCP + A2A protocol scan
   scan <path>        Scan files/directories for security threats
   check <text>       Check a message for threats (agent-friendly)
   init               Generate ClawGuard.yaml config file
@@ -34,6 +38,8 @@ Scan Options:
   --format <fmt>     Output format: text (default), json, sarif
 
 Examples:
+  ClawGuard scan-a2a ./agent-card.json
+  ClawGuard scan-protocol --mcp ./mcp-config.json --a2a ./agent-card.json
   ClawGuard scan ./skills/
   ClawGuard scan ./SKILL.md --strict
   ClawGuard scan . --format sarif > results.sarif
@@ -122,7 +128,7 @@ retention:
   process.stdout.write('✅ Created ClawGuard.yaml — edit to customize\n');
 }
 
-function main(): void {
+async function main(): Promise<void> {
   const args = process.argv.slice(2);
   const { command, target, options } = parseArgs(args);
 
@@ -306,6 +312,122 @@ function main(): void {
       break;
     }
 
+    case 'scan-a2a': {
+      if (!target) {
+        process.stderr.write('Error: scan-a2a requires a URL or file path\n');
+        process.stderr.write('Usage: clawguard scan-a2a <url|file> [--format json|text]\n');
+        process.exit(2);
+      }
+      let card: A2AAgentCard;
+      if (target.startsWith('http://') || target.startsWith('https://')) {
+        // Fetch agent card from URL (append /.well-known/agent.json if needed)
+        const fetchUrl = target.endsWith('.json') || target.includes('/.well-known/') ? target : `${target.replace(/\/$/, '')}/.well-known/agent.json`;
+        try {
+          // Use dynamic import for fetch (available in Node 18+)
+          const res = await fetch(fetchUrl);
+          if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+          card = await res.json() as A2AAgentCard;
+        } catch (err: any) {
+          process.stderr.write(`Error fetching agent card from ${fetchUrl}: ${err.message}\n`);
+          process.exit(1);
+          return;
+        }
+      } else {
+        try {
+          card = JSON.parse(fs.readFileSync(target, 'utf-8'));
+        } catch (err: any) {
+          process.stderr.write(`Error reading agent card: ${err.message}\n`);
+          process.exit(1);
+          return;
+        }
+      }
+      const scanner = new ProtocolScanner();
+      const result = scanner.scanA2AAgent(card);
+      if (options.format === 'json') {
+        process.stdout.write(JSON.stringify(result, null, 2) + '\n');
+      } else {
+        process.stdout.write(`\n🛡️  A2A Agent Card Scan\n`);
+        process.stdout.write(`   Agent: ${card.name ?? 'unknown'}\n`);
+        process.stdout.write(`   URL:   ${card.url ?? 'not specified'}\n\n`);
+        if (result.findings.length === 0) {
+          process.stdout.write('✅ No security issues found\n');
+        } else {
+          process.stdout.write(`Found ${result.summary.total} issue(s): ${result.summary.critical} critical, ${result.summary.high} high, ${result.summary.warning} warning, ${result.summary.info} info\n\n`);
+          for (const f of result.findings) {
+            const icon = f.severity === 'critical' ? '🔴' : f.severity === 'high' ? '🟠' : f.severity === 'warning' ? '🟡' : '🔵';
+            process.stdout.write(`  ${icon} [${f.severity.toUpperCase()}] ${f.ruleId}: ${f.description}\n`);
+            if (f.evidence) process.stdout.write(`    Evidence: ${f.evidence}\n`);
+          }
+        }
+        if (options.strict && result.findings.some(f => f.severity === 'critical' || f.severity === 'high')) {
+          process.exit(1);
+        }
+      }
+      break;
+    }
+
+    case 'scan-protocol': {
+      const mcpIdx = args.indexOf('--mcp');
+      const a2aIdx = args.indexOf('--a2a');
+      if (mcpIdx === -1 && a2aIdx === -1) {
+        process.stderr.write('Usage: clawguard scan-protocol --mcp <config.json> --a2a <url|file>\n');
+        process.exit(2);
+      }
+      const scanner = new ProtocolScanner();
+      let mcpConfig = undefined;
+      let a2aCard = undefined;
+
+      if (mcpIdx !== -1 && args[mcpIdx + 1]) {
+        try {
+          mcpConfig = JSON.parse(fs.readFileSync(args[mcpIdx + 1], 'utf-8'));
+        } catch (err: any) {
+          process.stderr.write(`Error reading MCP config: ${err.message}\n`);
+          process.exit(1);
+        }
+      }
+      if (a2aIdx !== -1 && args[a2aIdx + 1]) {
+        const a2aTarget = args[a2aIdx + 1];
+        if (a2aTarget.startsWith('http://') || a2aTarget.startsWith('https://')) {
+          const fetchUrl = a2aTarget.endsWith('.json') || a2aTarget.includes('/.well-known/') ? a2aTarget : `${a2aTarget.replace(/\/$/, '')}/.well-known/agent.json`;
+          try {
+            const res = await fetch(fetchUrl);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            a2aCard = await res.json();
+          } catch (err: any) {
+            process.stderr.write(`Error fetching A2A card: ${err.message}\n`);
+            process.exit(1);
+          }
+        } else {
+          try {
+            a2aCard = JSON.parse(fs.readFileSync(a2aTarget, 'utf-8'));
+          } catch (err: any) {
+            process.stderr.write(`Error reading A2A card: ${err.message}\n`);
+            process.exit(1);
+          }
+        }
+      }
+
+      const result = scanner.scanBoth({ mcp: mcpConfig, a2a: a2aCard });
+      if (options.format === 'json') {
+        process.stdout.write(JSON.stringify(result, null, 2) + '\n');
+      } else {
+        process.stdout.write(`\n🛡️  Unified Protocol Scan\n`);
+        if (result.mcpFindings) process.stdout.write(`   MCP findings: ${result.mcpFindings.length}\n`);
+        if (result.a2aFindings) process.stdout.write(`   A2A findings: ${result.a2aFindings.length}\n`);
+        process.stdout.write(`   Total: ${result.summary.total} (${result.summary.critical}C ${result.summary.high}H ${result.summary.warning}W ${result.summary.info}I)\n\n`);
+        for (const f of result.findings) {
+          const icon = f.severity === 'critical' ? '🔴' : f.severity === 'high' ? '🟠' : f.severity === 'warning' ? '🟡' : '🔵';
+          process.stdout.write(`  ${icon} [${f.severity.toUpperCase()}] ${f.ruleId}: ${f.description}\n`);
+          if (f.evidence) process.stdout.write(`    Evidence: ${f.evidence}\n`);
+        }
+        if (result.findings.length === 0) process.stdout.write('✅ No security issues found\n');
+      }
+      if (options.strict && result.findings.some(f => f.severity === 'critical' || f.severity === 'high')) {
+        process.exit(1);
+      }
+      break;
+    }
+
     case 'help':
     case '--help':
     case '-h':
@@ -315,5 +437,5 @@ function main(): void {
   }
 }
 
-main();
+main().catch(err => { process.stderr.write(`Error: ${err.message}\n`); process.exit(1); });
 

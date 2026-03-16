@@ -15,6 +15,10 @@ export {
   identityProtectionRule,
   mcpSecurityRule,
   supplyChainRule,
+  a2aSecurityRule,
+  a2aRules,
+  checkA2ACard,
+  scanA2ATaskMessage,
   detectInsiderThreats,
   INSIDER_THREAT_PATTERNS,
 } from './rules';
@@ -76,3 +80,10 @@ export type { CostCall, BudgetInfo, CostReport } from './cost-tracker';
 /** Dashboard Generator — generate HTML security dashboards */
 export { generateDashboard, loadDashboardData, writeDashboard } from './dashboard';
 export type { DashboardData } from './dashboard';
+
+/** A2A types re-export */
+export type { A2AAgentCard, A2ATaskMessage, A2ASkill, A2AAuthentication, A2ACapabilities } from './rules/a2a-security';
+
+/** Unified Protocol Scanner - MCP + A2A combined scanning */
+export { ProtocolScanner } from './scanners/protocol-scanner';
+export type { MCPServerConfig, ProtocolScanResult } from './scanners/protocol-scanner';
