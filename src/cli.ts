@@ -180,10 +180,27 @@ function main(): void {
       process.stdout.write('   See: https://github.com/NeuZhou/ClawGuard#hooks\n');
       break;
 
-    case 'dashboard':
-      process.stdout.write('🖥️  Dashboard available at http://localhost:19790\n');
-      process.stdout.write('   Start with: ClawGuard start\n');
+    case 'dashboard': {
+      const dataIdx = args.indexOf('--data');
+      const outIdx = args.indexOf('--output');
+      if (dataIdx !== -1 && args[dataIdx + 1]) {
+        const { loadDashboardData, writeDashboard } = require('./dashboard');
+        const dataFile = args[dataIdx + 1];
+        const outFile = outIdx !== -1 && args[outIdx + 1] ? args[outIdx + 1] : 'dashboard.html';
+        try {
+          const data = loadDashboardData(dataFile);
+          writeDashboard(data, outFile);
+          process.stdout.write(`🖥️  Dashboard generated: ${outFile}\n`);
+        } catch (err: any) {
+          process.stderr.write(`Error: ${err.message}\n`);
+          process.exit(1);
+        }
+      } else {
+        process.stdout.write('🖥️  Dashboard available at http://localhost:19790\n');
+        process.stdout.write('   Generate static: ClawGuard dashboard --data audit.json --output dashboard.html\n');
+      }
       break;
+    }
 
     case 'audit':
       if (!target) {

@@ -55,3 +55,15 @@ export type {
 /** Audit Logger — tamper-resistant hash-chained audit logging */
 export { AuditLogger } from './audit-logger';
 export type { AuditFilter } from './audit-logger';
+
+/** Anomaly Detector — detect unusual agent behavior patterns */
+export { AnomalyDetector } from './anomaly-detector';
+export type { ToolCall, AnomalyResult, AnomalyReason } from './anomaly-detector';
+
+/** Cost Tracker — track API costs per agent/session with budgets */
+export { CostTracker } from './cost-tracker';
+export type { CostCall, BudgetInfo, CostReport } from './cost-tracker';
+
+/** Dashboard Generator — generate HTML security dashboards */
+export { generateDashboard, loadDashboardData, writeDashboard } from './dashboard';
+export type { DashboardData } from './dashboard';

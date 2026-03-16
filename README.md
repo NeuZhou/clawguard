@@ -7,9 +7,9 @@
 [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](LICENSE)
 [![Zero Dependencies](https://img.shields.io/badge/dependencies-0-brightgreen)]()
 [![Node.js >= 18](https://img.shields.io/badge/node-%3E%3D18-green)]()
-[![Tests](https://img.shields.io/badge/tests-287%20passed-brightgreen)]()
+[![Tests](https://img.shields.io/badge/tests-375%20passed-brightgreen)]()
 
-> **350+ security patterns** across 11 rule categories. Risk Score Engine with attack chain detection. Insider Threat Detection. Policy Engine for tool call governance. CVSS-like severity scoring. Remediation suggestions. Zero native dependencies. SARIF + JSON output. Built for OpenClaw, works with any AI agent framework.
+> **350+ security patterns** across 11 rule categories. Risk Score Engine with attack chain detection. Insider Threat Detection. Policy Engine for tool call governance. **Runtime Protection**: Anomaly Detection, Cost Tracking with budgets, and Security Dashboard. CVSS-like severity scoring. Remediation suggestions. Zero native dependencies. SARIF + JSON output. Built for OpenClaw, works with any AI agent framework.
 
 ---
 
@@ -89,6 +89,12 @@ npx @neuzhou/clawguard init
 │  │ Score 0-100  │ │ allow/deny  │ │ AI Misalign.   │ │
 │  │ Chain Detect │ │ exec/file/  │ │ 5 categories   │ │
 │  │ Multipliers  │ │ browser/msg │ │ 39 patterns    │ │
+│  └──────────────┘ └─────────────┘ └────────────────┘ │
+│  ┌──────────────┐ ┌─────────────┐ ┌────────────────┐ │
+│  │  Anomaly     │ │Cost Tracker │ │  MCP           │ │
+│  │  Detector    │ │ Budgets     │ │  Interceptor   │ │
+│  │  ML Patterns │ │ 30+ Models  │ │  PII Filter    │ │
+│  │  Burst/Seq   │ │ Reports     │ │  Rate Limits   │ │
 │  └──────────────┘ └─────────────┘ └────────────────┘ │
 ├──────────────────────────────────────────────────────┤
 │              Security Engine — 350+ Patterns          │
@@ -264,6 +270,82 @@ openclaw hooks enable clawguard-policy   # Enforces tool call policies
 **clawguard-guard** — Hooks into `message:received` and `message:sent`, runs all 285+ patterns, logs findings, and alerts on critical/high threats.
 
 **clawguard-policy** — Evaluates outbound tool calls against security policies, blocks dangerous commands, and protects sensitive files.
+
+---
+
+## 🔮 Runtime Protection
+
+### Anomaly Detector
+
+Detect unusual agent behavior patterns — unknown tools, unusual sequences, frequency spikes, burst activity, and time anomalies:
+
+```typescript
+import { AnomalyDetector } from '@neuzhou/clawguard';
+
+const detector = new AnomalyDetector({ windowMs: 60_000, anomalyThreshold: 30 });
+
+// Train on normal behavior traces
+detector.train(normalTraces);
+
+// Detect anomalies in real-time
+const result = detector.detect({ tool: 'exec', timestamp: Date.now() });
+if (result.anomalous) {
+  console.log(`⚠️ Anomaly score: ${result.score}`, result.reasons);
+}
+```
+
+**Detection capabilities:**
+- **Unknown tools** — tools never seen during training (0.9 confidence)
+- **Unusual sequences** — tool call orderings that never appeared in training data
+- **Frequency spikes** — >3x expected call rate for a tool
+- **Burst detection** — 15+ calls in 5 seconds
+- **Time anomalies** — calls at unusual hours (2-5 AM)
+
+### Cost Tracker
+
+Track API costs per agent/session with budgets and reporting:
+
+```typescript
+import { CostTracker } from '@neuzhou/clawguard';
+
+const tracker = new CostTracker();
+
+// Set budget limits
+tracker.setBudget('agent-1', 5.00); // $5 USD limit
+
+// Track calls
+tracker.trackCall({ model: 'gpt-4o', tokens: 1000, agentId: 'agent-1' });
+
+// Check budget
+if (tracker.isOverBudget('agent-1')) { /* halt agent */ }
+
+// Generate report
+const report = tracker.getReport();
+// → { totalSpent, byAgent, byModel, byHour, topExpensive, overBudgetAgents }
+```
+
+Supports 30+ models including OpenAI, Anthropic, Google, Meta, DeepSeek, Mistral, and GitHub Copilot (free tier).
+
+### Security Dashboard
+
+Generate a self-contained HTML security dashboard:
+
+```bash
+npx @neuzhou/clawguard dashboard --data audit.json --output dashboard.html
+```
+
+```typescript
+import { generateDashboard, writeDashboard } from '@neuzhou/clawguard';
+
+writeDashboard({
+  findings: [...],
+  costs: [...],
+  anomalies: [...],
+  auditEvents: [...],
+}, 'dashboard.html');
+```
+
+Shows: blocked calls, anomaly scores, cost breakdown by model/agent, policy violations, and finding categories — all in a dark-themed, responsive HTML page.
 
 ---
 
