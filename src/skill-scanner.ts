@@ -116,6 +116,42 @@ export function scan(targetPath: string, options: Partial<ScanOptions> = {}): Sc
   };
 }
 
+/** Map severity to CVSS-like score */
+function severityCvss(severity: string): string {
+  switch (severity) {
+    case 'critical': return '9.0-10.0';
+    case 'high': return '7.0-8.9';
+    case 'warning': return '4.0-6.9';
+    case 'info': return '0.1-3.9';
+    default: return '0.0';
+  }
+}
+
+/** Remediation suggestions by rule/description */
+function getRemediation(ruleId: string, description: string): string {
+  const remediations: Record<string, string> = {
+    'prompt-injection': 'Sanitize user inputs; use input validation; implement prompt firewalls',
+    'data-leakage': 'Remove or redact PII/credentials; use environment variables for secrets',
+    'mcp-security': 'Enable sandboxing; restrict tool permissions; validate MCP server origins',
+    'supply-chain': 'Pin dependencies; audit npm scripts; avoid eval(); verify package names',
+    'memory-poisoning': 'Validate memory file contents; strip HTML comments; reject encoded payloads',
+    'api-key-exposure': 'Move secrets to environment variables or a vault; add to .gitignore',
+    'permission-escalation': 'Use least-privilege principle; avoid sudo in scripts; restrict agent file access',
+    'anomaly-detection': 'Review unusual patterns; set rate limits; monitor for behavioral anomalies',
+    'compliance': 'Review compliance requirements; ensure data handling meets policy',
+    'file-protection': 'Restrict file access paths; use allowlists for file operations',
+    'identity-protection': 'Protect identity information; use access controls',
+  };
+
+  if (description.includes('SSRF')) return 'Block private IP ranges; validate URLs; use allowlists for outbound requests';
+  if (description.includes('reverse shell')) return 'Block outbound connections to unknown IPs; disable shell access';
+  if (description.includes('eval')) return 'Replace eval() with safe alternatives; use AST-based code analysis';
+  if (description.includes('API key') || description.includes('token')) return 'Rotate the exposed key immediately; use env vars or secret managers';
+  if (description.includes('shadow')) return 'Verify MCP tool names; use tool name allowlists';
+
+  return remediations[ruleId] || 'Review and remediate the finding based on security best practices';
+}
+
 /** Format scan results as human-readable text */
 export function formatText(result: ScanResult): string {
   const lines: string[] = [];
@@ -162,19 +198,30 @@ export function formatText(result: ScanResult): string {
 
   for (const f of result.findings) {
     const icon = icons[f.severity] || '⚪';
-    lines.push(`${icon} [${f.severity.toUpperCase()}] ${f.ruleId}`);
+    const cvss = severityCvss(f.severity);
+    lines.push(`${icon} [${f.severity.toUpperCase()}] ${f.ruleId} (CVSS: ${cvss})`);
     lines.push(`   📄 ${f.file}${f.line ? `:${f.line}` : ''}`);
     lines.push(`   📝 ${f.description}`);
     if (f.evidence) lines.push(`   🔎 ${f.evidence.slice(0, 100)}`);
+    const remediation = getRemediation(f.ruleId, f.description);
+    if (remediation) lines.push(`   💡 ${remediation}`);
     lines.push('');
   }
 
   return lines.join('\n');
 }
 
-/** Format scan results as JSON */
+/** Format scan results as JSON with severity scores and remediation */
 export function formatJson(result: ScanResult): string {
-  return JSON.stringify(result, null, 2);
+  const enriched = {
+    ...result,
+    findings: result.findings.map(f => ({
+      ...f,
+      cvssRange: severityCvss(f.severity),
+      remediation: getRemediation(f.ruleId, f.description),
+    })),
+  };
+  return JSON.stringify(enriched, null, 2);
 }
 
 /** Format scan results as SARIF 2.1.0 for GitHub Code Scanning */

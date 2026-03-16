@@ -1,4 +1,4 @@
-// ClawGuard — SARIF 2.1.0 Exporter
+// ClawGuard - SARIF 2.1.0 Exporter
 // For GitHub Code Scanning / Security tab integration
 
 import { SecurityFinding } from '../types';
@@ -23,6 +23,7 @@ interface SarifResult {
       region?: { startLine: number; startColumn?: number };
     };
   }[];
+  fixes?: { description: { text: string } }[];
   properties?: Record<string, unknown>;
 }
 
@@ -51,6 +52,30 @@ function severityToLevel(severity: string): 'error' | 'warning' | 'note' {
   }
 }
 
+function getCvssRange(severity: string): string {
+  switch (severity) {
+    case 'critical': return '9.0-10.0';
+    case 'high': return '7.0-8.9';
+    case 'warning': return '4.0-6.9';
+    default: return '0.1-3.9';
+  }
+}
+
+function getRemediationForSarif(ruleId: string, description: string): string {
+  if (description.includes('SSRF')) return 'Block private IP ranges; validate URLs; use allowlists for outbound requests';
+  if (description.includes('API key') || description.includes('token')) return 'Rotate the exposed key immediately; use env vars or secret managers';
+  const defaults: Record<string, string> = {
+    'prompt-injection': 'Sanitize user inputs; use input validation; implement prompt firewalls',
+    'mcp-security': 'Enable sandboxing; restrict tool permissions; validate MCP server origins',
+    'supply-chain': 'Pin dependencies; audit npm scripts; avoid eval(); verify package names',
+    'memory-poisoning': 'Validate memory file contents; strip HTML comments; reject encoded payloads',
+    'api-key-exposure': 'Move secrets to environment variables or a vault; add to .gitignore',
+    'permission-escalation': 'Use least-privilege principle; avoid sudo in scripts; restrict agent file access',
+    'data-leakage': 'Remove or redact PII/credentials; use environment variables for secrets',
+  };
+  return defaults[ruleId] || 'Review and remediate the finding based on security best practices';
+}
+
 export interface ScanFinding extends SecurityFinding {
   file?: string;
   line?: number;
@@ -69,17 +94,21 @@ export function toSarif(findings: ScanFinding[], version: string = '2.0.0'): Sar
   const results: SarifResult[] = findings.map(f => ({
     ruleId: f.ruleId,
     level: severityToLevel(f.severity),
-    message: { text: `${f.description}${f.evidence ? ` — Evidence: ${f.evidence}` : ''}` },
+    message: { text: `${f.description}${f.evidence ? ` - Evidence: ${f.evidence}` : ''}` },
     locations: [{
       physicalLocation: {
         artifactLocation: { uri: f.file || 'unknown' },
         ...(f.line ? { region: { startLine: f.line } } : {}),
       },
     }],
+    fixes: [{
+      description: { text: getRemediationForSarif(f.ruleId, f.description) },
+    }],
     properties: {
       severity: f.severity,
       category: f.category,
       owaspCategory: f.owaspCategory,
+      cvssRange: getCvssRange(f.severity),
     },
   }));
 
