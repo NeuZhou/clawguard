@@ -1,107 +1,64 @@
 # Contributing to ClawGuard
 
-Thank you for helping make AI agents safer! 🛡️
+Thanks for your interest in ClawGuard! Here's how to get involved.
 
-## 🌍 Community Security Rules
-
-The easiest way to contribute is by sharing security rules!
-
-### How to Create a Custom Rule
-
-1. Create a YAML file in `rules.d/`:
-
-```yaml
-name: "My Company Rules"
-version: "1.0"
-rules:
-  - id: my-rule-001
-    description: "Detect sensitive project names in output"
-    event: message:sent
-    severity: high
-    patterns:
-      - regex: "PROJECT_CODENAME_\\w+"
-      - keyword: "CONFIDENTIAL"
-    action: alert
-```
-
-2. Test it locally by placing in `~/.openclaw/clawguard/rules.d/`
-3. Submit a PR to `community-rules/`
-
-### Rule Severity Guide
-
-| Severity | Meaning | Example |
-|----------|---------|---------|
-| **critical** | Immediate threat, agent should be paused | API key in outbound message |
-| **high** | Significant risk, requires attention | Recursive delete command |
-| **warning** | Potential issue, monitor | Unusual cost spike |
-| **info** | Informational, for audit trail | Tool call logged |
-
-### YAML Rule Schema
-
-```yaml
-name: string          # Rule pack name
-version: string       # Semantic version
-rules:
-  - id: string        # Unique rule ID (e.g., "my-org-001")
-    description: string
-    event: string      # "message:received" | "message:sent"
-    severity: string   # "critical" | "high" | "warning" | "info"
-    patterns:
-      - regex: string  # Regular expression (case-insensitive)
-      - keyword: string # Simple keyword match
-    action: string     # "alert" | "log" | "block"
-```
-
-## 💻 Code Contributions
-
-### Setup
+## Getting Started
 
 ```bash
 git clone https://github.com/NeuZhou/clawguard.git
 cd clawguard
 npm install
+npm run build
+npm test
 ```
 
-### Development
+## Development
 
 ```bash
-npm run lint      # Type-check without emitting
-npm test          # Run test suite
-npm run build     # Compile TypeScript
+# Type check
+npm run check
+
+# Run tests
+npm test
+
+# Run scanner on a directory
+npm run scan -- ./path/to/scan
 ```
 
-### Adding a New Security Rule
+## Adding Security Rules
 
-1. Create `src/rules/your-rule.ts` implementing `SecurityRule` interface
-2. Export from `src/rules/index.ts`
-3. Add to `builtinRules` array
-4. Add tests in `tests/rules/your-rule.test.ts`
-5. Update documentation in `docs/`
+Rules live in `rules.d/`. Each rule category has its own file with pattern definitions.
 
-### Code Style
+To add a new pattern:
+
+1. Find the appropriate rule file in `rules.d/`
+2. Add your pattern with: regex, severity, confidence, description, and remediation
+3. Add tests in `tests/`
+4. Run `npm test` to verify
+
+## Pull Request Process
+
+1. Fork the repo and create a feature branch: `git checkout -b feat/my-feature`
+2. Write tests for new functionality
+3. Ensure all tests pass: `npm test`
+4. Ensure types check: `npm run check`
+5. Submit a PR with a clear description
+
+## Code Style
 
 - TypeScript strict mode
-- Zero native dependencies
-- Use `node:crypto` for UUIDs and hashing
-- Follow existing patterns in `src/rules/`
+- No runtime dependencies (zero-dep policy)
+- Every pattern needs a test
+- Use descriptive commit messages: `feat:`, `fix:`, `test:`, `docs:`
 
-### Pull Request Checklist
+## Reporting Security Issues
 
-- [ ] `npx tsc --noEmit` passes
-- [ ] `npm test` passes
-- [ ] New rules have test coverage (true positives AND true negatives)
-- [ ] Documentation updated if applicable
-- [ ] No native dependencies added
+If you find a security vulnerability, **please do not open a public issue**. Email neuzhou@outlook.com directly.
 
-## 🐛 Bug Reports
+## CLA
 
-Include:
-- ClawGuard version
-- Node.js version
-- OS
-- Steps to reproduce
-- Expected vs actual behavior
+Contributors must agree to our [CLA](CLA.md) to enable dual licensing (AGPL-3.0 + Commercial).
 
-## 📜 License
+## License
 
-By contributing, you agree your contributions are licensed under MIT.
+By contributing, you agree that your contributions will be licensed under AGPL-3.0.

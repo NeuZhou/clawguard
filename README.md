@@ -1,222 +1,198 @@
-# 🛡️ ClawGuard
+<p align="center">
+  <h1 align="center">🛡️ ClawGuard</h1>
+  <p align="center"><strong>Security Scanner for AI Agents</strong></p>
+</p>
 
-**AI Agent Security & Observability Platform**
+<p align="center">
+  <a href="https://www.npmjs.com/package/@neuzhou/clawguard"><img src="https://img.shields.io/npm/v/@neuzhou/clawguard" alt="npm"></a>
+  <a href="https://github.com/NeuZhou/clawguard/actions/workflows/ci.yml"><img src="https://github.com/NeuZhou/clawguard/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-AGPL--3.0-blue.svg" alt="AGPL-3.0"></a>
+  <a href="#"><img src="https://img.shields.io/badge/dependencies-0-brightgreen" alt="Zero Dependencies"></a>
+  <a href="#"><img src="https://img.shields.io/badge/patterns-350%2B-orange" alt="350+ Patterns"></a>
+  <a href="#"><img src="https://img.shields.io/badge/tests-375%20passed-brightgreen" alt="Tests"></a>
+  <a href="#"><img src="https://img.shields.io/badge/node-%3E%3D18-green" alt="Node.js >= 18"></a>
+</p>
 
-[![CI](https://github.com/NeuZhou/clawguard/actions/workflows/ci.yml/badge.svg)](https://github.com/NeuZhou/clawguard/actions/workflows/ci.yml)
-[![npm version](https://img.shields.io/npm/v/@neuzhou/clawguard)](https://www.npmjs.com/package/@neuzhou/clawguard)
-[![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](LICENSE)
-[![Zero Dependencies](https://img.shields.io/badge/dependencies-0-brightgreen)]()
-[![Node.js >= 18](https://img.shields.io/badge/node-%3E%3D18-green)]()
-[![Tests](https://img.shields.io/badge/tests-375%20passed-brightgreen)]()
-
-> **350+ security patterns** across 11 rule categories. Risk Score Engine with attack chain detection. Insider Threat Detection. Policy Engine for tool call governance. **Runtime Protection**: Anomaly Detection, Cost Tracking with budgets, and Security Dashboard. CVSS-like severity scoring. Remediation suggestions. Zero native dependencies. SARIF + JSON output. Built for OpenClaw, works with any AI agent framework.
-
----
-
-## 🔥 Why This Exists
-
-AI agents have access to your files, tools, shell, and secrets. A single prompt injection can:
-
-- **Exfiltrate API keys** via tool calls
-- **Hijack the agent's identity** by overwriting personality files
-- **Register shadow MCP servers** to intercept tool calls
-- **Install backdoored skills** with obfuscated reverse shells
-- **The agent itself can become the threat** — self-preservation, deception, goal misalignment
-
-**ClawGuard catches these attacks before they execute.**
+<p align="center">
+  350+ security patterns · OWASP Agentic AI Top 10 · Zero dependencies · 100% local
+</p>
 
 ---
 
-## 🚀 Installation
+## The Problem
 
-### As OpenClaw Skill (static scanning)
-```bash
-clawhub install clawguard
-```
-Then ask your agent: *"scan my skills for security threats"*
+Your AI agent has access to tools — shell, files, browser, APIs, secrets.
 
-### As OpenClaw Hook Pack (real-time protection)
-```bash
-openclaw hooks install clawguard
-openclaw hooks enable clawguard-guard
-openclaw hooks enable clawguard-policy
-```
-Every message is now automatically scanned. Critical threats trigger alerts.
+**Who's watching what it does?**
 
-### As CLI Tool
-```bash
-npx @neuzhou/clawguard scan ./path/to/scan
-```
+A single prompt injection can exfiltrate API keys via tool calls. A compromised skill can install backdoors. The agent itself can become the threat — self-preservation, deception, goal misalignment.
 
-### As npm Library
-```bash
-npm install @neuzhou/clawguard
-```
-```typescript
-import { runSecurityScan, calculateRisk, evaluateToolCall } from '@neuzhou/clawguard';
-```
+Most guardrails scan **prompts**. ClawGuard scans **tool calls**.
+
+That's the difference.
 
 ---
 
-## ⚡ Quick Start
+## Quick Start
 
 ```bash
-# Scan a skill directory for threats
 npx @neuzhou/clawguard scan ./skills/
-
-# Scan with strict mode (exit code 1 on high/critical findings)
-npx @neuzhou/clawguard scan ./skills/ --strict
-
-# Output SARIF for GitHub Code Scanning
-npx @neuzhou/clawguard scan . --format sarif > results.sarif
-
-# Generate default config
-npx @neuzhou/clawguard init
 ```
+
+```
+🔍 Scanning ./skills/ ...
+  ⚠️  data-leakage/env-file-access  [HIGH]  skills/deploy/run.sh:14
+  🚨 prompt-injection/instruction-override  [CRITICAL]  skills/helper/SKILL.md:7
+  ⚠️  supply-chain/obfuscated-code  [HIGH]  skills/util/index.js:42
+
+Risk Score: 73/100 — ⚠️ SUSPICIOUS
+Found: 3 findings (1 critical, 2 high)
+```
+
+That's it. Instant security audit. No API keys, no cloud, no config.
 
 ---
 
-## 🏗️ Architecture
+## Why ClawGuard, Not X?
 
-```
-┌──────────────────────────────────────────────────────┐
-│                   ClawGuard                      │
-├──────────┬──────────┬──────────┬─────────────────────┤
-│  CLI     │  Hooks   │ Scanner  │   Dashboard :19790  │
-├──────────┴──────────┴──────────┴─────────────────────┤
-│  ┌──────────────┐ ┌─────────────┐ ┌────────────────┐ │
-│  │ Risk Engine  │ │Policy Engine│ │Insider Threat  │ │
-│  │ Score 0-100  │ │ allow/deny  │ │ AI Misalign.   │ │
-│  │ Chain Detect │ │ exec/file/  │ │ 5 categories   │ │
-│  │ Multipliers  │ │ browser/msg │ │ 39 patterns    │ │
-│  └──────────────┘ └─────────────┘ └────────────────┘ │
-│  ┌──────────────┐ ┌─────────────┐ ┌────────────────┐ │
-│  │  Anomaly     │ │Cost Tracker │ │  MCP           │ │
-│  │  Detector    │ │ Budgets     │ │  Interceptor   │ │
-│  │  ML Patterns │ │ 30+ Models  │ │  PII Filter    │ │
-│  │  Burst/Seq   │ │ Reports     │ │  Rate Limits   │ │
-│  └──────────────┘ └─────────────┘ └────────────────┘ │
-├──────────────────────────────────────────────────────┤
-│              Security Engine — 350+ Patterns          │
-│  • Prompt Injection (93)   • Data Leakage (62)       │
-│  • Insider Threat (39)     • Supply Chain (41)        │
-│  • Identity Protection (19)• MCP Security (25)        │
-│  • File Protection (16)    • Anomaly Detection        │
-│  • Memory Poisoning (16)   • API Key Exposure (17)    │
-│  • Permission Escalation (18) • Compliance            │
-├──────────────────────────────────────────────────────┤
-│  Exporters: JSONL · Syslog/CEF · Webhook · SARIF     │
-└──────────────────────────────────────────────────────┘
-```
+| | **ClawGuard** | **Guardrails AI** | **NeMo Guardrails** | **LLM Guard** |
+|---|---|---|---|---|
+| **Scans tool calls** | ✅ Policy engine | ❌ Prompt only | ❌ Dialog only | ❌ Prompt only |
+| **Agent-specific threats** | ✅ 350+ patterns | ❌ | ❌ | ❌ |
+| **Insider threat detection** | ✅ AI misalignment | ❌ | ❌ | ❌ |
+| **Runs offline** | ✅ Zero deps, no LLM | ⚠️ Needs LLM | ❌ Needs LLM | ⚠️ Optional LLM |
+| **OWASP Agentic AI** | ✅ Full mapping | ❌ | ❌ | ❌ |
+| **MCP security** | ✅ 25 patterns | ❌ | ❌ | ❌ |
+| **CI/CD (SARIF)** | ✅ Native | ❌ | ❌ | ❌ |
+| **Cost** | Free (AGPL) | Freemium | Free | Free |
+
+**TL;DR:** They protect LLMs from bad prompts. We protect humans from bad agents.
 
 ---
 
-## 🗂️ Rule Categories
+## Key Features
 
-### OWASP Agentic AI Top 10 Mapping
+### 🎯 Risk Score Engine
 
-| Rule | OWASP Category | Patterns | Severity Range |
-|---|---|---|---|
-| `prompt-injection` | LLM01: Prompt Injection | 93 | warning → critical |
-| `data-leakage` | LLM06: Sensitive Information Disclosure | 62 | info → critical |
-| `insider-threat` | Agentic AI: Misalignment | 39 | warning → critical |
-| `supply-chain` | Agentic AI: Supply Chain | 35 | warning → critical |
-| `mcp-security` | Agentic AI: Tool Manipulation | 20 | warning → critical |
-| `identity-protection` | Agentic AI: Identity Hijacking | 19 | warning → critical |
-| `file-protection` | LLM07: Insecure Plugin Design | 16 | warning → critical |
-| `anomaly-detection` | LLM04: Model Denial of Service | 6+ | warning → high |
-| `compliance` | LLM09: Overreliance | 5+ | info → warning |
-
----
-
-## 🎯 Key Features
-
-### Risk Score Engine
-
-Weighted scoring with attack chain detection and multiplier system:
+Weighted scoring with attack chain detection:
 
 ```typescript
 import { calculateRisk } from '@neuzhou/clawguard';
 
 const result = calculateRisk(findings);
-// → { score: 87, verdict: 'MALICIOUS', icon: '🔴',
-//    attackChains: ['credential-exfiltration'],
-//    enrichedFindings: [...] }
+// → { score: 87, verdict: 'MALICIOUS', attackChains: ['credential-exfiltration'] }
 ```
 
-- **Severity weights**: critical=40, high=15, medium=5, low=2
-- **Confidence scoring**: every finding carries a confidence (0-1)
-- **Attack chain detection**: auto-correlates findings into combo attacks
-  - credential + exfiltration → 2.2x multiplier
-  - identity-hijack + persistence → score ≥ 90
-  - prompt-injection + worm → 1.2x multiplier
-- **Verdicts**: ✅ CLEAN / 🟡 LOW / 🟠 SUSPICIOUS / 🔴 MALICIOUS
+- Auto-correlates findings into attack chains (credential theft + exfiltration → 2.2x multiplier)
+- CVSS-like scoring: `CLEAN → LOW → SUSPICIOUS → MALICIOUS`
 
-### 🧠 Insider Threat Detection
+### 🔒 Policy Engine
 
-Based on [Anthropic's research on agentic misalignment](https://www.anthropic.com/research), detects when AI agents themselves become threats:
-
-- **Self-Preservation** (16 patterns): kill switch bypass, self-replication
-- **Information Leverage**: reading secrets + composing threats
-- **Goal Conflict Reasoning**: prioritizing own goals over user instructions
-- **Deception**: impersonation, suppressing transparency
-- **Unauthorized Data Sharing**: exfiltration planning, steganographic hiding
-
-```typescript
-import { detectInsiderThreats } from '@neuzhou/clawguard';
-const threats = detectInsiderThreats(agentOutput);
-```
-
-### 🚦 Policy Engine
-
-Evaluate tool call safety against configurable policies:
+Evaluate tool calls against YAML policies:
 
 ```typescript
 import { evaluateToolCall } from '@neuzhou/clawguard';
 
-const decision = evaluateToolCall('exec', { command: 'rm -rf /' });
-// → { decision: 'deny', tool: 'exec', reason: 'Dangerous command', severity: 'critical' }
+evaluateToolCall('exec', { command: 'rm -rf /' });
+// → { decision: 'deny', reason: 'Dangerous command', severity: 'critical' }
 ```
-
-YAML policy configuration:
 
 ```yaml
+# clawguard.yml
 policies:
   exec:
-    dangerous_commands:
-      - rm -rf
-      - mkfs
-      - curl|bash
+    dangerous_commands: [rm -rf, mkfs, curl|bash]
   file:
-    deny_read:
-      - /etc/shadow
-      - '*.pem'
-    deny_write:
-      - '*.env'
+    deny_write: ['*.env', '*.pem']
   browser:
-    block_domains:
-      - evil.com
+    block_domains: [evil.com]
 ```
 
-### 🔍 Prompt Injection — 13 Sub-Categories
+### 🕵️ Insider Threat Detection
 
-1. **Direct instruction override** — "ignore previous instructions"
-2. **Role confusion / jailbreaks** — DAN, developer mode
-3. **Delimiter attacks** — chat template delimiters
-4. **Invisible Unicode** — zero-width chars, directional overrides
-5. **Multi-language** — 12 languages (CN/JP/KR/AR/FR/DE/IT/RU...)
-6. **Encoding evasion** — Base64, hex, URL-encoded
-7. **Indirect / embedded** — HTML comments, tool output cascading
-8. **Multi-turn manipulation** — false memories, fake agreements
-9. **Payload cascading** — template injection, string interpolation
-10. **Context window stuffing** — oversized messages
-11. **Prompt worm** — self-replication, agent-to-agent propagation
-12. **Trust exploitation** — authority claims, fake audits
-13. **Safeguard bypass** — retry-on-block, rephrase-to-bypass
+Based on [Anthropic's research on agentic misalignment](https://www.anthropic.com/research):
+
+- **Self-preservation** — kill switch bypass, self-replication (16 patterns)
+- **Deception** — impersonation, suppressing transparency
+- **Goal conflict** — prioritizing own goals over user instructions
+- **Unauthorized data sharing** — exfiltration, steganographic hiding
+
+### 💉 Prompt Injection — 93 Patterns, 13 Sub-Categories
+
+Direct overrides, role confusion/jailbreaks, invisible Unicode, multi-language (12 languages), encoding evasion, indirect/embedded, multi-turn manipulation, prompt worms, and more.
+
+### 📊 Runtime Protection
+
+- **Anomaly Detector** — unknown tools, unusual sequences, frequency spikes, burst detection
+- **Cost Tracker** — per-agent budgets, 30+ model pricing, overspend alerts
+- **Security Dashboard** — self-contained HTML with findings, costs, anomalies
 
 ---
 
-## 🔧 Programmatic Usage
+## Rule Categories (OWASP Mapping)
+
+| Category | Patterns | OWASP Agentic AI |
+|---|---|---|
+| Prompt Injection | 93 | LLM01 |
+| Data Leakage | 62 | LLM06 |
+| Supply Chain | 35 | Supply Chain |
+| Insider Threat | 39 | Misalignment |
+| MCP Security | 20 | Tool Manipulation |
+| Identity Protection | 19 | Identity Hijacking |
+| Permission Escalation | 18 | Privilege Escalation |
+| API Key Exposure | 17 | Information Disclosure |
+| File Protection | 16 | Insecure Plugin |
+| Memory Poisoning | 16 | Data Poisoning |
+
+---
+
+## CI/CD Integration
+
+### GitHub Actions
+
+```yaml
+- name: ClawGuard Security Scan
+  run: npx @neuzhou/clawguard scan . --format sarif > results.sarif
+
+- name: Upload SARIF
+  uses: github/codeql-action/upload-sarif@v3
+  with:
+    sarif_file: results.sarif
+```
+
+### Strict Mode (fail on high/critical)
+
+```bash
+npx @neuzhou/clawguard scan . --strict
+# Exit code 1 if any high/critical findings
+```
+
+---
+
+## Installation
+
+```bash
+# CLI (zero install)
+npx @neuzhou/clawguard scan ./skills/
+
+# Global install
+npm install -g @neuzhou/clawguard
+
+# As library
+npm install @neuzhou/clawguard
+
+# OpenClaw skill
+clawhub install clawguard
+
+# OpenClaw hooks (real-time protection)
+openclaw hooks install clawguard
+openclaw hooks enable clawguard-guard
+openclaw hooks enable clawguard-policy
+```
+
+---
+
+## Programmatic API
 
 ```typescript
 import {
@@ -227,164 +203,43 @@ import {
 } from '@neuzhou/clawguard';
 
 // Scan content
-const findings = runSecurityScan(message.content, 'inbound', context);
+const findings = runSecurityScan(content, 'inbound');
 
-// Get risk score
+// Risk assessment
 const risk = calculateRisk(findings);
 if (risk.verdict === 'MALICIOUS') { /* block */ }
 
-// Check tool calls
+// Tool call governance
 const decision = evaluateToolCall('exec', { command }, policies);
 if (decision.decision === 'deny') { /* reject */ }
 
-// Check for insider threats
+// Insider threat check
 const threats = detectInsiderThreats(agentOutput);
 ```
 
 ---
 
-## 📤 GitHub Actions / SARIF Integration
+## Contributing
 
-```yaml
-- name: Security Scan
-  run: npx @neuzhou/clawguard scan . --format sarif > results.sarif
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
-- name: Upload SARIF
-  uses: github/codeql-action/upload-sarif@v3
-  with:
-    sarif_file: results.sarif
-```
+## License
+
+**AGPL-3.0** — free for open-source use. [Commercial license](COMMERCIAL-LICENSE.md) available for proprietary/SaaS.
+
+© [Kang Zhou](https://github.com/NeuZhou) · neuzhou@outlook.com
 
 ---
 
-## 🛡️ Real-Time Protection (OpenClaw Hooks)
-
-Install as a hook pack for automatic protection on every message:
-
-```bash
-openclaw hooks install clawguard
-openclaw hooks enable clawguard-guard    # Scans every message
-openclaw hooks enable clawguard-policy   # Enforces tool call policies
-```
-
-**clawguard-guard** — Hooks into `message:received` and `message:sent`, runs all 285+ patterns, logs findings, and alerts on critical/high threats.
-
-**clawguard-policy** — Evaluates outbound tool calls against security policies, blocks dangerous commands, and protects sensitive files.
-
----
-
-## 🔮 Runtime Protection
-
-### Anomaly Detector
-
-Detect unusual agent behavior patterns — unknown tools, unusual sequences, frequency spikes, burst activity, and time anomalies:
-
-```typescript
-import { AnomalyDetector } from '@neuzhou/clawguard';
-
-const detector = new AnomalyDetector({ windowMs: 60_000, anomalyThreshold: 30 });
-
-// Train on normal behavior traces
-detector.train(normalTraces);
-
-// Detect anomalies in real-time
-const result = detector.detect({ tool: 'exec', timestamp: Date.now() });
-if (result.anomalous) {
-  console.log(`⚠️ Anomaly score: ${result.score}`, result.reasons);
-}
-```
-
-**Detection capabilities:**
-- **Unknown tools** — tools never seen during training (0.9 confidence)
-- **Unusual sequences** — tool call orderings that never appeared in training data
-- **Frequency spikes** — >3x expected call rate for a tool
-- **Burst detection** — 15+ calls in 5 seconds
-- **Time anomalies** — calls at unusual hours (2-5 AM)
-
-### Cost Tracker
-
-Track API costs per agent/session with budgets and reporting:
-
-```typescript
-import { CostTracker } from '@neuzhou/clawguard';
-
-const tracker = new CostTracker();
-
-// Set budget limits
-tracker.setBudget('agent-1', 5.00); // $5 USD limit
-
-// Track calls
-tracker.trackCall({ model: 'gpt-4o', tokens: 1000, agentId: 'agent-1' });
-
-// Check budget
-if (tracker.isOverBudget('agent-1')) { /* halt agent */ }
-
-// Generate report
-const report = tracker.getReport();
-// → { totalSpent, byAgent, byModel, byHour, topExpensive, overBudgetAgents }
-```
-
-Supports 30+ models including OpenAI, Anthropic, Google, Meta, DeepSeek, Mistral, and GitHub Copilot (free tier).
-
-### Security Dashboard
-
-Generate a self-contained HTML security dashboard:
-
-```bash
-npx @neuzhou/clawguard dashboard --data audit.json --output dashboard.html
-```
-
-```typescript
-import { generateDashboard, writeDashboard } from '@neuzhou/clawguard';
-
-writeDashboard({
-  findings: [...],
-  costs: [...],
-  anomalies: [...],
-  auditEvents: [...],
-}, 'dashboard.html');
-```
-
-Shows: blocked calls, anomaly scores, cost breakdown by model/agent, policy violations, and finding categories — all in a dark-themed, responsive HTML page.
-
----
-
-## 📚 References
-
-- [OWASP Top 10 for LLM Applications](https://owasp.org/www-project-top-10-for-large-language-model-applications/)
-- [OWASP Agentic AI Top 10 (2026)](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/)
-- [Anthropic: Research on Agentic Misalignment](https://www.anthropic.com/research)
-- [OWASP Guide for Secure MCP Server Development](https://genai.owasp.org/resource/a-practical-guide-for-secure-mcp-server-development/)
-
----
-
-## 📜 License
-
-**AGPL-3.0** © [Kang Zhou](https://github.com/NeuZhou)
-
-ClawGuard is dual-licensed:
-
-- **Open Source**: [AGPL-3.0](LICENSE) — free for open-source use
-- **Commercial**: [Commercial License](COMMERCIAL-LICENSE.md) — for proprietary/SaaS use
-
-Contributors must agree to our [CLA](CLA.md) to enable dual licensing.
-
-For commercial inquiries: neuzhou@outlook.com
-
----
-
-## 🌐 Related Projects
+## Related Projects
 
 | Project | Description |
 |---------|-------------|
-| [repo2skill](https://github.com/NeuZhou/repo2skill) | 🔄 Convert any GitHub repo into an AI agent skill |
+| [repo2skill](https://github.com/NeuZhou/repo2skill) | 🔧 Turn any GitHub repo into an AI agent skill |
 | [FinClaw](https://github.com/NeuZhou/finclaw) | 📊 AI Financial Intelligence Engine |
-| [awesome-llm-security](https://github.com/NeuZhou/awesome-llm-security) | 📚 Curated LLM security resources |
 
 ---
 
 <p align="center">
-  <b>ClawGuard</b> — Because agents with shell access need a security guard. 🛡️
+  <strong>Your agent has tools. ClawGuard watches how it uses them.</strong> 🛡️
 </p>
-
-
