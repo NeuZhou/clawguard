@@ -26,7 +26,16 @@ export { runSecurityScan, getSecurityScore, getRuleStatuses, loadCustomRules } f
 export { calculateRisk, getVerdict, enrichFinding } from './risk-engine';
 
 /** Policy engine for tool call evaluation */
-export { evaluateToolCall, evaluateToolCallBatch } from './policy-engine';
+export { evaluateToolCall, evaluateToolCallBatch, PolicyEngine } from './policy-engine';
+export type { YAMLPolicy, PolicyRule, ArgumentRule, RateLimitRule, TimeRestriction, ConditionalRule } from './policy-engine';
+
+/** Threat Intelligence - known bad patterns database */
+export { ThreatIntel } from './threat-intel';
+export type { ThreatResult, ThreatStats } from './threat-intel';
+
+/** Compliance Reporter - generate compliance reports */
+export { ComplianceReporter } from './compliance-reporter';
+export type { ComplianceReport, ComplianceControl, ComplianceData, ComplianceStandard, ControlStatus } from './compliance-reporter';
 
 /** Persistent storage for messages, findings, and config */
 export { store } from './store';

