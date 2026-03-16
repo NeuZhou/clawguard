@@ -7,9 +7,9 @@
 [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](LICENSE)
 [![Zero Dependencies](https://img.shields.io/badge/dependencies-0-brightgreen)]()
 [![Node.js >= 18](https://img.shields.io/badge/node-%3E%3D18-green)]()
-[![Tests](https://img.shields.io/badge/tests-205%20passed-brightgreen)]()
+[![Tests](https://img.shields.io/badge/tests-287%20passed-brightgreen)]()
 
-> **285+ security patterns** across 9 rule categories. Risk Score Engine with attack chain detection. Insider Threat Detection. Policy Engine for tool call governance. Zero native dependencies. SARIF output. Built for OpenClaw, works with any AI agent framework.
+> **350+ security patterns** across 11 rule categories. Risk Score Engine with attack chain detection. Insider Threat Detection. Policy Engine for tool call governance. CVSS-like severity scoring. Remediation suggestions. Zero native dependencies. SARIF + JSON output. Built for OpenClaw, works with any AI agent framework.
 
 ---
 
@@ -91,12 +91,13 @@ npx @neuzhou/clawguard init
 │  │ Multipliers  │ │ browser/msg │ │ 39 patterns    │ │
 │  └──────────────┘ └─────────────┘ └────────────────┘ │
 ├──────────────────────────────────────────────────────┤
-│              Security Engine — 285+ Patterns          │
+│              Security Engine — 350+ Patterns          │
 │  • Prompt Injection (93)   • Data Leakage (62)       │
-│  • Insider Threat (39)     • Supply Chain (35)        │
-│  • Identity Protection (19)• MCP Security (20)        │
+│  • Insider Threat (39)     • Supply Chain (41)        │
+│  • Identity Protection (19)• MCP Security (25)        │
 │  • File Protection (16)    • Anomaly Detection        │
-│  • Compliance                                         │
+│  • Memory Poisoning (16)   • API Key Exposure (17)    │
+│  • Permission Escalation (18) • Compliance            │
 ├──────────────────────────────────────────────────────┤
 │  Exporters: JSONL · Syslog/CEF · Webhook · SARIF     │
 └──────────────────────────────────────────────────────┘

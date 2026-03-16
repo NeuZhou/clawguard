@@ -46,6 +46,15 @@ const EXCESSIVE_PERM_PATTERNS: Pattern[] = [
   { regex: /["']?(?:network|host)["']?\s*[:=]\s*["']?\*["']?/i, severity: 'high', description: 'MCP tool requesting wildcard network access' },
 ];
 
+// Unsandboxed access patterns
+const UNSANDBOXED_ACCESS_PATTERNS: Pattern[] = [
+  { regex: /["']?(?:filesystem|file[_-]?system|fs)[_-]?(?:access|read|write)["']?\s*[=:]\s*["']?(?:true|full|unrestricted)/i, severity: 'high', description: 'MCP tool with unsandboxed filesystem access' },
+  { regex: /["']?(?:exec|execute|shell|command|subprocess)["']?\s*[=:]\s*["']?(?:true|enabled|allowed)/i, severity: 'critical', description: 'MCP tool with unsandboxed exec/shell access' },
+  { regex: /["']?(?:network|http|fetch|request)["']?\s*[=:]\s*["']?(?:true|unrestricted|any|\*)/i, severity: 'high', description: 'MCP tool with unsandboxed network access' },
+  { regex: /(?:sandbox|isolation)\s*[=:]\s*(?:false|off|disabled|none|0)/i, severity: 'critical', description: 'MCP tool with sandbox explicitly disabled' },
+  { regex: /allowedDirectories\s*[=:]\s*\[\s*["']?\/["']?\s*\]/i, severity: 'critical', description: 'MCP tool with root directory access allowed' },
+];
+
 // Shadow server registration
 const SHADOW_SERVER_PATTERNS: Pattern[] = [
   { regex: /mcp[_-]?server\s*[:=]\s*["']?https?:\/\//i, severity: 'high', description: 'Unauthorized MCP server registration attempt' },
@@ -58,6 +67,7 @@ const ALL_PATTERNS = [
   ...SSRF_PATTERNS,
   ...SCHEMA_POISONING_PATTERNS,
   ...EXCESSIVE_PERM_PATTERNS,
+  ...UNSANDBOXED_ACCESS_PATTERNS,
   ...SHADOW_SERVER_PATTERNS,
 ];
 

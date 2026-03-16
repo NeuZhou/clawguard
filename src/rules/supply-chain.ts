@@ -51,6 +51,16 @@ const REVERSE_SHELL_PATTERNS: Pattern[] = [
   { regex: /powershell.*(?:Net\.Sockets\.TCPClient|Invoke-Expression.*downloadstring)/i, severity: 'critical', description: 'PowerShell reverse shell' },
 ];
 
+// Remote code download and execution
+const REMOTE_CODE_PATTERNS: Pattern[] = [
+  { regex: /(?:curl|wget|fetch)\s+.*\|\s*(?:bash|sh|zsh|node|python|perl)/i, severity: 'critical', description: 'Skill supply chain: pipe-to-shell remote code execution' },
+  { regex: /(?:exec|spawn|execSync|spawnSync)\s*\(\s*['"](?:curl|wget)\s/i, severity: 'critical', description: 'Skill supply chain: programmatic remote code download' },
+  { regex: /(?:import|require)\s*\(\s*['"]https?:\/\//i, severity: 'high', description: 'Skill supply chain: dynamic import from remote URL' },
+  { regex: /(?:child_process|subprocess|os\.system|os\.popen)/i, severity: 'warning', description: 'Skill supply chain: subprocess/child_process usage' },
+  { regex: /new\s+WebSocket\s*\(\s*['"]wss?:\/\//i, severity: 'warning', description: 'Skill supply chain: WebSocket connection to external server' },
+  { regex: /\.download\s*\(.*\.(?:exe|sh|bat|ps1|msi|dmg|deb|rpm)["']/i, severity: 'critical', description: 'Skill supply chain: downloading executable file' },
+];
+
 // Typosquatting indicators
 const TYPOSQUAT_PATTERNS: Pattern[] = [
   { regex: /["'](?:open-claw|0penclaw|openclav|openc1aw|opencIaw)["']/i, severity: 'high', description: 'Possible typosquatted package name (openclaw variant)' },
@@ -73,6 +83,7 @@ const ALL_PATTERNS = [
   ...NPM_LIFECYCLE_PATTERNS,
   ...EXFILTRATION_PATTERNS,
   ...REVERSE_SHELL_PATTERNS,
+  ...REMOTE_CODE_PATTERNS,
   ...TYPOSQUAT_PATTERNS,
   ...CVE_PATTERNS,
 ];

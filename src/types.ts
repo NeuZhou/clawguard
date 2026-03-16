@@ -124,7 +124,7 @@ export const DEFAULT_CONFIG: WatchConfig = {
     cooldownMs: 300_000,
   },
   security: {
-    enabledRules: ['prompt-injection', 'data-leakage', 'anomaly-detection', 'compliance', 'file-protection', 'identity-protection', 'mcp-security', 'supply-chain'],
+    enabledRules: ['prompt-injection', 'data-leakage', 'anomaly-detection', 'compliance', 'file-protection', 'identity-protection', 'mcp-security', 'supply-chain', 'memory-poisoning', 'api-key-exposure', 'permission-escalation'],
     customRulesDir: '~/.openclaw/ClawGuard/rules.d',
   },
   exporters: {
