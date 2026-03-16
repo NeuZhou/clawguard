@@ -290,11 +290,13 @@ For commercial inquiries: neuzhou@outlook.com
 
 ---
 
-## 👀 See Also
+## 🌐 Related Projects
 
-- [repo2skill](https://github.com/NeuZhou/repo2skill) — Convert GitHub repos into OpenClaw skills
-- [FinClaw](https://github.com/NeuZhou/finclaw) — AI Financial Intelligence Engine
-- [awesome-llm-security](https://github.com/NeuZhou/awesome-llm-security) — Curated LLM security resources
+| Project | Description |
+|---------|-------------|
+| [repo2skill](https://github.com/NeuZhou/repo2skill) | 🔄 Convert any GitHub repo into an AI agent skill |
+| [FinClaw](https://github.com/NeuZhou/finclaw) | 📊 AI Financial Intelligence Engine |
+| [awesome-llm-security](https://github.com/NeuZhou/awesome-llm-security) | 📚 Curated LLM security resources |
 
 ---
 
