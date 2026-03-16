@@ -39,4 +39,19 @@ export type { SanitizeResult, Replacement } from './sanitizer';
 export { checkIntentAction, checkIntentActionBatch } from './intent-action';
 export type { IntentActionCheck } from './intent-action';
 
+/** Runtime MCP Interceptor — intercept, filter, and audit MCP tool calls */
+export { MCPInterceptor } from './interceptor';
+export type {
+  InterceptMode,
+  InterceptorConfig,
+  RateLimitConfig,
+  MCPClient,
+  ProtectedMCPClient,
+  InterceptorStats,
+  MCPToolCall,
+  MCPToolResult,
+} from './interceptor';
 
+/** Audit Logger — tamper-resistant hash-chained audit logging */
+export { AuditLogger } from './audit-logger';
+export type { AuditFilter } from './audit-logger';
