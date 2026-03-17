@@ -81,10 +81,48 @@ function scanContent(content: string, filePath: string): ScanFinding[] {
   return findings;
 }
 
-function collectFiles(targetPath: string): string[] {
+/**
+ * Load .clawguardignore patterns (glob-like, one per line).
+ * Supports simple patterns: exact paths, directory names, and * wildcards.
+ */
+function loadIgnorePatterns(baseDir: string): ((filePath: string) => boolean) {
+  // Search upwards for .clawguardignore (like .gitignore)
+  let searchDir = path.resolve(baseDir);
+  let ignoreFile = '';
+  for (let i = 0; i < 10; i++) {
+    const candidate = path.join(searchDir, '.clawguardignore');
+    if (fs.existsSync(candidate)) { ignoreFile = candidate; break; }
+    const parent = path.dirname(searchDir);
+    if (parent === searchDir) break;
+    searchDir = parent;
+  }
+  if (!ignoreFile) return () => false;
+  const ignoreBase = path.dirname(ignoreFile);
+  const lines = fs.readFileSync(ignoreFile, 'utf-8')
+    .split('\n')
+    .map(l => l.trim())
+    .filter(l => l && !l.startsWith('#'));
+  if (lines.length === 0) return () => false;
+  return (filePath: string) => {
+    const rel = path.relative(ignoreBase, filePath).replace(/\\/g, '/');
+    return lines.some(pattern => {
+      if (pattern.includes('*')) {
+        const regex = new RegExp('^' + pattern.replace(/\./g, '\\.').replace(/\*/g, '.*') + '$');
+        return regex.test(rel);
+      }
+      return rel === pattern || rel.startsWith(pattern + '/') || rel.includes('/' + pattern + '/') || rel.includes('/' + pattern);
+    });
+  };
+}
+
+function collectFiles(targetPath: string, isIgnored?: (f: string) => boolean): string[] {
   const stat = fs.statSync(targetPath);
   if (stat.isFile()) {
     return [targetPath];
+  }
+
+  if (!isIgnored) {
+    isIgnored = loadIgnorePatterns(targetPath);
   }
 
   const files: string[] = [];
@@ -92,8 +130,9 @@ function collectFiles(targetPath: string): string[] {
   for (const entry of entries) {
     const fullPath = path.join(targetPath, entry.name);
     if (entry.name.startsWith('.') || entry.name === 'node_modules' || entry.name === 'dist') continue;
+    if (isIgnored(fullPath)) continue;
     if (entry.isDirectory()) {
-      files.push(...collectFiles(fullPath));
+      files.push(...collectFiles(fullPath, isIgnored));
     } else if (entry.isFile()) {
       const ext = path.extname(entry.name).toLowerCase();
       if (SCANNABLE_EXTENSIONS.has(ext) || entry.name.startsWith('.env')) {

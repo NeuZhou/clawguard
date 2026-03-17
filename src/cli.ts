@@ -36,6 +36,7 @@ Commands:
   scan-protocol        Unified MCP + A2A protocol scan
   generate <desc>    AI-generate security rules from description/CVE/file
   red-team <path>    AI red team — auto-attack a skill and measure coverage
+  watch <path>      Watch files for changes and auto-scan (debounced)
   scan <path>        Scan files/directories for security threats
   check <text>       Check a message for threats (agent-friendly)
   init               Generate ClawGuard.yaml config file
@@ -700,6 +701,65 @@ async function main(): Promise<void> {
       const outFile = outIdx !== -1 && args[outIdx + 1] ? args[outIdx + 1] : 'clawguard-badge.svg';
       fs.writeFileSync(outFile, svg);
       process.stdout.write(`🔒 Badge generated: ${outFile} (Grade: ${result.scorecard.grade}, Score: ${result.scorecard.score}/100)\n`);
+      break;
+    }
+
+    case 'watch': {
+      if (!target) {
+        process.stderr.write('Usage: clawguard watch <path> [--strict] [--format json|text]\n');
+        process.exit(2);
+      }
+      const watchPath = path.resolve(target);
+      if (!fs.existsSync(watchPath)) {
+        process.stderr.write(`Error: path not found: ${watchPath}\n`);
+        process.exit(1);
+      }
+      if (options.rules) {
+        loadCustomRules(options.rules);
+      }
+      process.stdout.write(`🛡️  ClawGuard watching: ${watchPath}\n`);
+      process.stdout.write('   Press Ctrl+C to stop.\n\n');
+
+      // Initial scan
+      runScan(target, { ...options, strict: false, format: options.format || 'text' });
+
+      // Debounce map: file -> timeout
+      const pending = new Map<string, ReturnType<typeof setTimeout>>();
+      const DEBOUNCE_MS = 500;
+      const SCANNABLE = new Set(['.md', '.txt', '.ts', '.js', '.mjs', '.cjs', '.json', '.yaml', '.yml', '.py', '.sh', '.bash', '.zsh', '.ps1', '.toml', '.cfg', '.ini', '.env']);
+
+      const watchHandler = (eventType: string, filename: string | null) => {
+        if (!filename) return;
+        const ext = path.extname(filename).toLowerCase();
+        if (!SCANNABLE.has(ext)) return;
+
+        const fullPath = path.join(watchPath, filename);
+        if (pending.has(fullPath)) clearTimeout(pending.get(fullPath)!);
+        pending.set(fullPath, setTimeout(() => {
+          pending.delete(fullPath);
+          if (!fs.existsSync(fullPath)) return;
+          process.stdout.write(`\n🔄 Change detected: ${filename}\n`);
+          runScan(fullPath, { ...options, strict: false, format: options.format || 'text' });
+        }, DEBOUNCE_MS));
+      };
+
+      try {
+        fs.watch(watchPath, { recursive: true }, watchHandler);
+      } catch {
+        // Fallback for platforms without recursive watch
+        const walkDirs = (dir: string) => {
+          fs.watch(dir, watchHandler);
+          for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+            if (entry.isDirectory() && entry.name !== 'node_modules' && entry.name !== '.git') {
+              walkDirs(path.join(dir, entry.name));
+            }
+          }
+        };
+        walkDirs(watchPath);
+      }
+
+      // Keep process alive
+      setInterval(() => {}, 1 << 30);
       break;
     }
 

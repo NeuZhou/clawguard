@@ -1,0 +1,63 @@
+{
+  "name": "clawguard-vscode",
+  "displayName": "ClawGuard",
+  "description": "AI Agent Security Scanner — red wavy underlines for security threats in your code",
+  "version": "0.1.0",
+  "publisher": "neuzhou",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": ["Linters"],
+  "activationEvents": [
+    "onLanguage:markdown",
+    "onLanguage:typescript",
+    "onLanguage:javascript",
+    "onLanguage:json",
+    "onLanguage:yaml",
+    "onLanguage:python",
+    "onLanguage:shellscript"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "clawguard.scanFile",
+        "title": "ClawGuard: Scan Current File"
+      },
+      {
+        "command": "clawguard.scanWorkspace",
+        "title": "ClawGuard: Scan Workspace"
+      }
+    ],
+    "configuration": {
+      "title": "ClawGuard",
+      "properties": {
+        "clawguard.enable": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable ClawGuard security scanning"
+        },
+        "clawguard.scanOnSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Scan files automatically on save"
+        },
+        "clawguard.severityThreshold": {
+          "type": "string",
+          "default": "warning",
+          "enum": ["info", "warning", "high", "critical"],
+          "description": "Minimum severity to show diagnostics"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "@types/node": "^20.11.0",
+    "typescript": "^5.4.0"
+  }
+}

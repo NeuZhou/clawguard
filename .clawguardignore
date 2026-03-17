@@ -1,0 +1,15 @@
+# ClawGuard self-scan: ignore rule definition files (they contain attack patterns by design)
+src/rules/*
+src/ai-generate/red-team.ts
+src/ai-generate/prompt-templates.ts
+src/mcp-security/mcp-rules.ts
+src/policy-engine.ts
+src/threat-intel.ts
+src/intent-action.ts
+src/scanners/protocol-scanner.ts
+src/plugin-system/yara-adapter.ts
+# CLI contains example commands with attack strings in help text
+src/cli.ts
+tests/*
+examples/*
+community-rules/*
