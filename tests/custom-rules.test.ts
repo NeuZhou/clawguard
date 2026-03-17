@@ -6,6 +6,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import { loadCustomRules, runSecurityScan } from '../src/security-engine';
+import { loadCustomRulesFromFile, getCustomRuleCount } from '../src/security-engine';
 import { store } from '../src/store';
 import { RuleContext } from '../src/types';
 
@@ -165,6 +166,115 @@ rules:
     // No crash, no custom rules
     const findings = runSecurityScan('safe content', 'inbound', makeCtx());
     assert.ok(!findings.some(f => f.category === 'custom'));
+  });
+
+  it('loads JSON file with regex pattern', () => {
+    store.init();
+    const dir = makeTmpDir();
+    fs.writeFileSync(path.join(dir, 'rules.json'), JSON.stringify({
+      name: 'json-test',
+      version: '1.0',
+      rules: [{
+        id: 'json-regex-test',
+        description: 'JSON regex rule',
+        severity: 'high',
+        patterns: [{ regex: 'json_secret_[0-9]+' }],
+        action: 'alert',
+      }],
+    }));
+    loadCustomRules(dir);
+    const findings = runSecurityScan('found json_secret_123 here', 'inbound', makeCtx());
+    assert.ok(findings.some(f => f.ruleId === 'json-regex-test'));
+  });
+
+  it('loads JSON file with shorthand pattern field', () => {
+    store.init();
+    const dir = makeTmpDir();
+    fs.writeFileSync(path.join(dir, 'rules.json'), JSON.stringify({
+      name: 'shorthand-test',
+      version: '1.0',
+      rules: [{
+        id: 'shorthand-rule',
+        message: 'Shorthand pattern rule',
+        severity: 'warning',
+        pattern: 'shorthand_keyword',
+        action: 'log',
+      }],
+    }));
+    loadCustomRules(dir);
+    const findings = runSecurityScan('has shorthand_keyword', 'inbound', makeCtx());
+    assert.ok(findings.some(f => f.ruleId === 'shorthand-rule'));
+  });
+
+  it('loads JSON file with custom category', () => {
+    store.init();
+    const dir = makeTmpDir();
+    fs.writeFileSync(path.join(dir, 'rules.json'), JSON.stringify({
+      name: 'cat-test',
+      version: '1.0',
+      rules: [{
+        id: 'cat-json-rule',
+        description: 'Category JSON test',
+        severity: 'high',
+        category: 'api-security',
+        patterns: [{ keyword: 'catjsonword' }],
+        action: 'alert',
+      }],
+    }));
+    loadCustomRules(dir);
+    const findings = runSecurityScan('catjsonword here', 'inbound', makeCtx());
+    const f = findings.find(f => f.ruleId === 'cat-json-rule');
+    assert.ok(f);
+    assert.strictEqual(f!.category, 'api-security');
+  });
+
+  it('skips invalid JSON files', () => {
+    store.init();
+    const dir = makeTmpDir();
+    fs.writeFileSync(path.join(dir, 'bad.json'), '{not valid json!!!}');
+    loadCustomRules(dir); // should not throw
+    assert.ok(true);
+  });
+
+  it('loadCustomRulesFromFile loads a single file', () => {
+    store.init();
+    const dir = makeTmpDir();
+    const filePath = path.join(dir, 'single.json');
+    fs.writeFileSync(filePath, JSON.stringify({
+      name: 'single-test',
+      version: '1.0',
+      rules: [{
+        id: 'single-rule',
+        description: 'Single file rule',
+        severity: 'warning',
+        patterns: [{ keyword: 'singleword' }],
+        action: 'alert',
+      }],
+    }));
+    loadCustomRules('/nonexistent'); // reset
+    loadCustomRulesFromFile(filePath);
+    assert.strictEqual(getCustomRuleCount(), 1);
+    const findings = runSecurityScan('singleword here', 'inbound', makeCtx());
+    assert.ok(findings.some(f => f.ruleId === 'single-rule'));
+  });
+
+  it('loadCustomRules accepts a file path directly', () => {
+    store.init();
+    const dir = makeTmpDir();
+    const filePath = path.join(dir, 'direct.yaml');
+    fs.writeFileSync(filePath, `name: direct
+version: "1.0"
+rules:
+  - id: direct-rule
+    description: "Direct file load"
+    severity: warning
+    patterns:
+      - keyword: directword
+    action: alert
+`);
+    loadCustomRules(filePath);
+    const findings = runSecurityScan('directword here', 'inbound', makeCtx());
+    assert.ok(findings.some(f => f.ruleId === 'direct-rule'));
   });
 });
 

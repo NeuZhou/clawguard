@@ -24,7 +24,7 @@ export {
 } from './rules';
 
 /** Security scanning engine - OWASP LLM Top 10 aligned */
-export { runSecurityScan, getSecurityScore, getRuleStatuses, loadCustomRules } from './security-engine';
+export { runSecurityScan, getSecurityScore, getRuleStatuses, loadCustomRules, loadCustomRulesFromFile, getCustomRuleCount } from './security-engine';
 
 /** Risk scoring with attack chain detection */
 export { calculateRisk, getVerdict, enrichFinding } from './risk-engine';

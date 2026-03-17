@@ -9,10 +9,12 @@ import { SecurityFinding, RuleContext } from './types';
 import { builtinRules } from './rules';
 import { ScanFinding, toSarif } from './exporters/sarif';
 import { calculateRisk } from './risk-engine';
+import { loadCustomRules as loadCustomRulesFromDir, runSecurityScan as runEngineSecurityScan } from './security-engine';
 
 export interface ScanOptions {
   strict: boolean;
   format: 'text' | 'json' | 'sarif';
+  rules?: string;
 }
 
 export interface ScanResult {
@@ -90,6 +92,10 @@ export function scan(targetPath: string, options: Partial<ScanOptions> = {}): Sc
   const resolved = path.resolve(targetPath);
   if (!fs.existsSync(resolved)) {
     throw new Error(`Path not found: ${resolved}`);
+  }
+
+  if (options.rules) {
+    loadCustomRulesFromDir(options.rules);
   }
 
   const files = collectFiles(resolved);

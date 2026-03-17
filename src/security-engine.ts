@@ -10,28 +10,76 @@ import * as crypto from 'crypto';
 
 let customRulesLoaded: { id: string; check: SecurityRule['check'] }[] = [];
 
-/** Load custom YAML rule files from a directory */
+/** Load custom YAML/JSON rule files from a directory */
 export function loadCustomRules(dir: string): void {
   customRulesLoaded = [];
   const resolvedDir = dir.replace(/^~/, process.env.HOME || process.env.USERPROFILE || '');
   if (!fs.existsSync(resolvedDir)) return;
 
-  const files = fs.readdirSync(resolvedDir).filter(f => f.endsWith('.yaml') || f.endsWith('.yml'));
-  for (const file of files) {
-    try {
-      const raw = fs.readFileSync(path.join(resolvedDir, file), 'utf-8');
-      // Simple YAML parser for our schema (no external dep)
-      const def = parseSimpleYaml(raw);
-      if (def && def.rules) {
-        for (const rule of def.rules) {
-          customRulesLoaded.push({
-            id: rule.id,
-            check: createCustomRuleCheck(rule),
-          });
-        }
-      }
-    } catch { /* skip invalid rule files */ }
+  const stat = fs.statSync(resolvedDir);
+  if (stat.isFile()) {
+    loadCustomRulesFromFile(resolvedDir);
+    return;
   }
+
+  const files = fs.readdirSync(resolvedDir).filter(f =>
+    f.endsWith('.yaml') || f.endsWith('.yml') || f.endsWith('.json')
+  );
+  for (const file of files) {
+    loadCustomRulesFromFile(path.join(resolvedDir, file));
+  }
+}
+
+/** Load custom rules from a single file (JSON or YAML) */
+export function loadCustomRulesFromFile(filePath: string): void {
+  try {
+    const raw = fs.readFileSync(filePath, 'utf-8');
+    let def: CustomRuleDefinition | null = null;
+
+    if (filePath.endsWith('.json')) {
+      def = parseJsonRules(raw);
+    } else {
+      def = parseSimpleYaml(raw);
+    }
+
+    if (def && def.rules) {
+      for (const rule of def.rules) {
+        customRulesLoaded.push({
+          id: rule.id,
+          check: createCustomRuleCheck(rule),
+        });
+      }
+    }
+  } catch { /* skip invalid rule files */ }
+}
+
+/** Parse JSON custom rules */
+function parseJsonRules(raw: string): CustomRuleDefinition | null {
+  try {
+    const parsed = JSON.parse(raw);
+    if (!parsed.rules || !Array.isArray(parsed.rules)) return null;
+    return {
+      name: parsed.name || '',
+      version: parsed.version || '',
+      rules: parsed.rules.map((r: any) => ({
+        id: r.id,
+        description: r.description || r.message || '',
+        event: r.event || 'message:received',
+        severity: r.severity || 'warning',
+        patterns: r.patterns || (r.pattern ? [{ regex: r.pattern }] : undefined),
+        conditions: r.conditions,
+        action: r.action || 'alert',
+        category: r.category,
+      })),
+    };
+  } catch {
+    return null;
+  }
+}
+
+/** Get the number of loaded custom rules (for testing) */
+export function getCustomRuleCount(): number {
+  return customRulesLoaded.length;
 }
 
 function parseSimpleYaml(raw: string): CustomRuleDefinition | null {
@@ -122,7 +170,7 @@ function parseSimpleYaml(raw: string): CustomRuleDefinition | null {
   }
 }
 
-function createCustomRuleCheck(rule: { id: string; description: string; severity: Severity; patterns?: { regex?: string; keyword?: string }[]; action: string }): SecurityRule['check'] {
+function createCustomRuleCheck(rule: { id: string; description: string; severity: Severity; patterns?: { regex?: string; keyword?: string }[]; action: string; category?: string }): SecurityRule['check'] {
   return (content: string, _direction: Direction, context: RuleContext): SecurityFinding[] => {
     const findings: SecurityFinding[] = [];
     if (!rule.patterns) return findings;
@@ -142,7 +190,7 @@ function createCustomRuleCheck(rule: { id: string; description: string; severity
           ruleId: rule.id,
           ruleName: rule.description,
           severity: rule.severity,
-          category: 'custom',
+          category: rule.category || 'custom',
           owaspCategory: 'Custom',
           description: rule.description,
           session: context.session,

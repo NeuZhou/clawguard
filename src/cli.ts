@@ -11,6 +11,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { runScan, ScanOptions } from './skill-scanner';
 import { runSecurityScan, calculateRisk } from './index';
+import { loadCustomRules } from './security-engine';
 import { ProtocolScanner } from './scanners/protocol-scanner';
 import { A2AAgentCard } from './rules/a2a-security';
 
@@ -36,6 +37,7 @@ Commands:
 Scan Options:
   --strict           Exit code 1 on any finding >= high severity
   --format <fmt>     Output format: text (default), json, sarif
+  --rules <path>     Load custom rules from a JSON/YAML file or directory
 
 Examples:
   ClawGuard scan-a2a ./agent-card.json
@@ -59,6 +61,8 @@ function parseArgs(args: string[]): { command: string; target?: string; options:
       options.strict = true;
     } else if (arg === '--format' && args[i + 1]) {
       options.format = args[++i] as ScanOptions['format'];
+    } else if (arg === '--rules' && args[i + 1]) {
+      options.rules = args[++i];
     } else if (!arg.startsWith('-')) {
       target = arg;
     }
@@ -136,8 +140,11 @@ async function main(): Promise<void> {
     case 'scan':
       if (!target) {
         process.stderr.write('Error: scan requires a path argument\n');
-        process.stderr.write('Usage: ClawGuard scan <path> [--strict] [--format json|sarif|text]\n');
+        process.stderr.write('Usage: ClawGuard scan <path> [--strict] [--format json|sarif|text] [--rules <path>]\n');
         process.exit(2);
+      }
+      if (options.rules) {
+        loadCustomRules(options.rules);
       }
       runScan(target, options);
       break;

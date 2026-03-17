@@ -169,6 +169,7 @@ export interface CustomRuleEntry {
   patterns?: { regex?: string; keyword?: string }[];
   conditions?: { metric: string; operator: string; value: number }[];
   action: AlertAction;
+  category?: string;
 }
 
 export interface AlertState {
