@@ -9,7 +9,7 @@ import { SecurityFinding, RuleContext } from './types';
 import { builtinRules } from './rules';
 import { ScanFinding, toSarif } from './exporters/sarif';
 import { calculateRisk } from './risk-engine';
-import { loadCustomRules as loadCustomRulesFromDir, runSecurityScan as runEngineSecurityScan } from './security-engine';
+import { loadCustomRules as loadCustomRulesFromDir, runSecurityScan as runEngineSecurityScan, getCustomRulesLoaded } from './security-engine';
 
 export interface ScanOptions {
   strict: boolean;
@@ -59,6 +59,23 @@ function scanContent(content: string, filePath: string): ScanFinding[] {
         findings.push({ ...f, file: filePath, line });
       }
     } catch { /* skip rule errors */ }
+  }
+
+  // Apply custom rules loaded via --rules
+  for (const custom of getCustomRulesLoaded()) {
+    try {
+      const ruleFindings = custom.check(content, 'inbound', ctx);
+      for (const f of ruleFindings) {
+        let line = 1;
+        if (f.evidence) {
+          const idx = content.indexOf(f.evidence.slice(0, 30));
+          if (idx >= 0) {
+            line = content.slice(0, idx).split('\n').length;
+          }
+        }
+        findings.push({ ...f, file: filePath, line });
+      }
+    } catch { /* skip custom rule errors */ }
   }
 
   return findings;

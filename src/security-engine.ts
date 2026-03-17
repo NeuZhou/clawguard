@@ -56,7 +56,11 @@ export function loadCustomRulesFromFile(filePath: string): void {
 /** Parse JSON custom rules */
 function parseJsonRules(raw: string): CustomRuleDefinition | null {
   try {
-    const parsed = JSON.parse(raw);
+    let parsed = JSON.parse(raw);
+    // Support bare array format: [{ id, pattern, ... }]
+    if (Array.isArray(parsed)) {
+      parsed = { rules: parsed };
+    }
     if (!parsed.rules || !Array.isArray(parsed.rules)) return null;
     return {
       name: parsed.name || '',
@@ -80,6 +84,11 @@ function parseJsonRules(raw: string): CustomRuleDefinition | null {
 /** Get the number of loaded custom rules (for testing) */
 export function getCustomRuleCount(): number {
   return customRulesLoaded.length;
+}
+
+/** Get loaded custom rules for use in file scanning */
+export function getCustomRulesLoaded(): { id: string; check: SecurityRule['check'] }[] {
+  return customRulesLoaded;
 }
 
 function parseSimpleYaml(raw: string): CustomRuleDefinition | null {
