@@ -148,7 +148,42 @@ Direct overrides, role confusion/jailbreaks, invisible Unicode, multi-language (
 
 ## CI/CD Integration
 
-### GitHub Actions
+### GitHub Action (Recommended)
+
+Use ClawGuard as a GitHub Action for automated security scanning:
+
+```yaml
+name: Security Scan
+on: [push, pull_request]
+
+jobs:
+  clawguard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run ClawGuard
+        uses: NeuZhou/clawguard@main
+        with:
+          path: '.'
+          format: 'sarif'
+          severity-threshold: 'high'
+          # rules: './my-rules.json'  # optional custom rules
+```
+
+**Inputs:**
+| Input | Default | Description |
+|-------|---------|-------------|
+| `path` | `.` | Path to scan |
+| `format` | `sarif` | Output format: `text`, `json`, `sarif` |
+| `severity-threshold` | `high` | Fail on findings >= this severity |
+| `rules` | | Path to custom rules file (JSON/YAML) |
+
+**Outputs:** `findings-count`, `critical-count`, `high-count`, `sarif-file`
+
+Results appear in **GitHub Step Summary** and (with SARIF) in the **Security tab**.
+
+### Manual GitHub Actions
 
 ```yaml
 - name: ClawGuard Security Scan
@@ -165,6 +200,31 @@ Direct overrides, role confusion/jailbreaks, invisible Unicode, multi-language (
 ```bash
 npx @neuzhou/clawguard scan . --strict
 # Exit code 1 if any high/critical findings
+```
+
+### Custom Security Rules
+
+Define custom rules in JSON or YAML:
+
+```json
+{
+  "name": "My Custom Rules",
+  "version": "1.0",
+  "rules": [
+    {
+      "id": "no-internal-urls",
+      "description": "Detect internal URLs in public code",
+      "severity": "high",
+      "category": "data-leakage",
+      "patterns": [{ "regex": "https?://internal\\." }],
+      "action": "alert"
+    }
+  ]
+}
+```
+
+```bash
+clawguard scan ./src --rules ./my-rules.json
 ```
 
 ---
