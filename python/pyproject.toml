@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.backends._legacy:_Backend"
+
+[project]
+name = "clawguard"
+version = "1.0.3"
+description = "AI Agent Immune System — Security scanner, PII sanitizer, OWASP LLM Top 10. Python bindings for ClawGuard."
+readme = "README.md"
+license = {text = "AGPL-3.0-only"}
+requires-python = ">=3.8"
+authors = [
+    {name = "Kang Zhou", email = "neuzhou@outlook.com"},
+]
+keywords = ["ai-agent", "security", "scanner", "pii", "owasp", "guardrails"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: GNU Affero General Public License v3",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Security",
+    "Topic :: Software Development :: Libraries",
+]
+
+[project.scripts]
+clawguard = "clawguard:main"
+
+[project.urls]
+Homepage = "https://github.com/NeuZhou/clawguard"
+Documentation = "https://github.com/NeuZhou/clawguard#readme"
+Repository = "https://github.com/NeuZhou/clawguard"
+Issues = "https://github.com/NeuZhou/clawguard/issues"
