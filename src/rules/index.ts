@@ -9,6 +9,11 @@ import { fileProtectionRule } from './file-protection';
 import { identityProtectionRule } from './identity-protection';
 import { mcpSecurityRule } from './mcp-security';
 import { supplyChainRule } from './supply-chain';
+import { privilegeEscalationRule } from './privilege-escalation';
+import { rugPullRule } from './rug-pull';
+import { resourceAbuseRule } from './resource-abuse';
+import { crossAgentContaminationRule } from './cross-agent-contamination';
+import { complianceFrameworksRule } from './compliance-frameworks';
 
 export const builtinRules: SecurityRule[] = [
   promptInjectionRule,
@@ -19,6 +24,11 @@ export const builtinRules: SecurityRule[] = [
   identityProtectionRule,
   mcpSecurityRule,
   supplyChainRule,
+  privilegeEscalationRule,
+  rugPullRule,
+  resourceAbuseRule,
+  crossAgentContaminationRule,
+  complianceFrameworksRule,
 ];
 
 export function getRuleById(id: string): SecurityRule | undefined {
@@ -34,9 +44,12 @@ export {
   identityProtectionRule,
   mcpSecurityRule,
   supplyChainRule,
+  privilegeEscalationRule,
+  rugPullRule,
+  resourceAbuseRule,
+  crossAgentContaminationRule,
+  complianceFrameworksRule,
 };
 
 // Re-export insider threat as standalone module (not a SecurityRule, uses different API)
 export { detectInsiderThreats, INSIDER_THREAT_PATTERNS } from './insider-threat';
-
-

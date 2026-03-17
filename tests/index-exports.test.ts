@@ -39,9 +39,9 @@ describe('Package Exports', () => {
     assert.ok(mod.store);
   });
 
-  it('builtinRules contains all 8 scan rule categories', async () => {
+  it('builtinRules contains all 13 scan rule categories', async () => {
     const { builtinRules } = await import('../src/index');
-    assert.ok(builtinRules.length >= 8, `Expected ≥8 rules, got ${builtinRules.length}`);
+    assert.ok(builtinRules.length >= 13, `Expected ≥13 rules, got ${builtinRules.length}`);
 
     const ruleIds = builtinRules.map((r: any) => r.id);
     const expected = [
@@ -53,6 +53,11 @@ describe('Package Exports', () => {
       'identity-protection',
       'mcp-security',
       'supply-chain',
+      'privilege-escalation',
+      'rug-pull',
+      'resource-abuse',
+      'cross-agent-contamination',
+      'compliance-frameworks',
     ];
     for (const id of expected) {
       assert.ok(ruleIds.includes(id), `Missing rule: ${id}`);

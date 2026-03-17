@@ -9,15 +9,30 @@ import { store } from './store';
 import * as crypto from 'crypto';
 
 let customRulesLoaded: { id: string; check: SecurityRule['check'] }[] = [];
+let programmaticRules: SecurityRule[] = [];
 
-/** Load custom YAML rule files from a directory */
+/** Register a custom rule programmatically */
+export function registerCustomRule(rule: SecurityRule): void {
+  programmaticRules.push(rule);
+}
+
+/** Clear all programmatic and file-based custom rules */
+export function clearCustomRules(): void {
+  customRulesLoaded = [];
+  programmaticRules = [];
+}
+
+/** Load custom YAML and JSON rule files from a directory */
 export function loadCustomRules(dir: string): void {
   customRulesLoaded = [];
   const resolvedDir = dir.replace(/^~/, process.env.HOME || process.env.USERPROFILE || '');
   if (!fs.existsSync(resolvedDir)) return;
 
-  const files = fs.readdirSync(resolvedDir).filter(f => f.endsWith('.yaml') || f.endsWith('.yml'));
-  for (const file of files) {
+  const files = fs.readdirSync(resolvedDir);
+
+  // Load YAML rules
+  const yamlFiles = files.filter(f => f.endsWith('.yaml') || f.endsWith('.yml'));
+  for (const file of yamlFiles) {
     try {
       const raw = fs.readFileSync(path.join(resolvedDir, file), 'utf-8');
       // Simple YAML parser for our schema (no external dep)
@@ -31,6 +46,23 @@ export function loadCustomRules(dir: string): void {
         }
       }
     } catch { /* skip invalid rule files */ }
+  }
+
+  // Load JSON rules
+  const jsonFiles = files.filter(f => f.endsWith('.json'));
+  for (const file of jsonFiles) {
+    try {
+      const raw = fs.readFileSync(path.join(resolvedDir, file), 'utf-8');
+      const def = JSON.parse(raw) as CustomRuleDefinition;
+      if (def && def.rules) {
+        for (const rule of def.rules) {
+          customRulesLoaded.push({
+            id: rule.id,
+            check: createCustomRuleCheck(rule),
+          });
+        }
+      }
+    } catch { /* skip invalid JSON files */ }
   }
 }
 
@@ -169,10 +201,18 @@ export function runSecurityScan(content: string, direction: Direction, context: 
     } catch { /* rule error, skip */ }
   }
 
-  // Custom rules
+  // Custom rules (file-based)
   for (const custom of customRulesLoaded) {
     try {
       findings.push(...custom.check(content, direction, context));
+    } catch { /* skip */ }
+  }
+
+  // Programmatic custom rules
+  for (const rule of programmaticRules) {
+    if (!rule.enabled) continue;
+    try {
+      findings.push(...rule.check(content, direction, context));
     } catch { /* skip */ }
   }
 
