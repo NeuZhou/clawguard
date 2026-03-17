@@ -151,6 +151,17 @@ const SAFEGUARD_BYPASS_PATTERNS: Pattern[] = [
   { regex: /(?:slowly|gradually|incrementally)\s+(?:escalate|increase|expand)\s+(?:the\s+)?(?:scope|access|permissions?|privileges?)/i, severity: 'high', description: 'Gradual privilege escalation strategy' },
 ];
 
+// === Category 14: Tool Call / Function Injection ===
+const TOOL_INJECTION_PATTERNS: Pattern[] = [
+  { regex: /<tool_call>[\s\S]*?<\/tool_call>/i, severity: 'critical', description: 'Tool call injection via XML tags' },
+  { regex: /<function_call>[\s\S]*?<\/function_call>/i, severity: 'critical', description: 'Function call injection via XML tags' },
+  { regex: /<invoke[\s\S]*?<\/antml:invoke>/i, severity: 'critical', description: 'Tool invocation injection via XML tags' },
+  { regex: /(?:transfer|hand\s*off|redirect)\s+(?:this\s+)?(?:conversation|chat|session)\s+to\s+(?:a\s+)?(?:new\s+)?agent\s+(?:with\s+)?(?:no|without)\s+(?:restrictions|rules|safety)/i, severity: 'high', description: 'Agent handoff manipulation to bypass restrictions' },
+  { regex: /<thinking>[\s\S]*?(?:ignore|override|bypass|disregard)[\s\S]*?<\/thinking>/i, severity: 'high', description: 'Thinking/scratchpad exploitation for safety bypass' },
+  { regex: /<scratchpad>[\s\S]*?(?:ignore|override|bypass|disregard)[\s\S]*?<\/scratchpad>/i, severity: 'high', description: 'Scratchpad exploitation for safety bypass' },
+  { regex: /\{"(?:name|function)"\s*:\s*"(?:exec|system|eval|shell)"[\s\S]*?"(?:args?|parameters?)"/i, severity: 'critical', description: 'JSON function call injection with dangerous tool' },
+];
+
 // === Category 10: Context Window Stuffing ===
 // (Checked programmatically in the main check function)
 
@@ -193,6 +204,7 @@ const ALL_PATTERNS: Pattern[] = [
   ...PROMPT_WORM_PATTERNS,
   ...TRUST_EXPLOITATION_PATTERNS,
   ...SAFEGUARD_BYPASS_PATTERNS,
+  ...TOOL_INJECTION_PATTERNS,
 ];
 
 export const promptInjectionRule: SecurityRule = {

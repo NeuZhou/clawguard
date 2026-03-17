@@ -56,6 +56,14 @@ const CLOUD_CREDENTIAL_PATTERNS: LeakPattern[] = [
   { name: 'GCP Service Account', regex: /"type"\s*:\s*"service_account"[\s\S]*"private_key"\s*:\s*"-----BEGIN/i, severity: 'critical', description: 'GCP service account key file detected' },
   { name: 'Alibaba AccessKey', regex: /LTAI[a-zA-Z0-9]{12,20}/, severity: 'critical', description: 'Alibaba Cloud AccessKey ID detected' },
   { name: 'Tencent Cloud', regex: /AKID[a-zA-Z0-9]{13,20}/, severity: 'critical', description: 'Tencent Cloud SecretId detected' },
+  // Additional cloud provider tokens (Issue #6)
+  { name: 'Vercel', regex: /vercel_[a-zA-Z0-9]{24,}/, severity: 'critical', description: 'Vercel token detected' },
+  { name: 'Supabase', regex: /sbp_[a-f0-9]{40}/, severity: 'critical', description: 'Supabase service key detected' },
+  { name: 'Netlify', regex: /nfp_[a-zA-Z0-9]{40,}/, severity: 'critical', description: 'Netlify personal access token detected' },
+  { name: 'Shopify', regex: /shpat_[a-f0-9]{32}/, severity: 'critical', description: 'Shopify access token detected' },
+  { name: 'Linear', regex: /lin_api_[a-zA-Z0-9]{30,}/, severity: 'critical', description: 'Linear API key detected' },
+  { name: 'Grafana', regex: /glsa_[a-zA-Z0-9]{32,}/, severity: 'critical', description: 'Grafana service account token detected' },
+  { name: 'Gitea', regex: /gitea_[a-zA-Z0-9]{40,}/, severity: 'critical', description: 'Gitea/Forgejo access token detected' },
 ];
 
 const PII_PATTERNS: LeakPattern[] = [

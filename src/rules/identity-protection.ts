@@ -39,10 +39,18 @@ const MEMORY_POISONING_PATTERNS: Pattern[] = [
   { regex: /(?:save|persist|record)\s+(?:this|these)\s+(?:as\s+)?(?:permanent|persistent|long[- ]term)/i, severity: 'warning', description: 'Persistent data injection attempt' },
 ];
 
+// Agent coordination attack patterns (Issue #6)
+const AGENT_COORDINATION_PATTERNS: Pattern[] = [
+  { regex: /tell\s+(?:the\s+)?other\s+agent\s+to\s+(?:ignore|bypass|disable|remove)/i, severity: 'critical', description: 'Agent coordination attack — instructing another agent to bypass safety' },
+  { regex: /pass\s+(?:this|these)\s+(?:instructions?|commands?)\s+to\s+(?:the\s+)?(?:next|other|downstream)\s+agent/i, severity: 'high', description: 'Agent coordination — passing instructions to downstream agent' },
+  { regex: /(?:instruct|tell|command)\s+(?:the\s+)?(?:sub[- ]?agent|child\s+agent|worker)\s+to\s+(?:ignore|bypass|override)/i, severity: 'critical', description: 'Sub-agent instruction override attempt' },
+];
+
 const ALL_PATTERNS = [
   ...IDENTITY_FILE_PATTERNS,
   ...PERSONA_SWAP_PATTERNS,
   ...MEMORY_POISONING_PATTERNS,
+  ...AGENT_COORDINATION_PATTERNS,
 ];
 
 export const identityProtectionRule: SecurityRule = {

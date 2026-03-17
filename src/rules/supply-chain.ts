@@ -68,6 +68,18 @@ const CVE_PATTERNS: Pattern[] = [
   { regex: /(?:serialize|deserialize|unmarshal|fromJSON)\s*\(.*(?:__proto__|constructor\.prototype|Object\.assign)/is, severity: 'high', description: 'Prototype pollution via deserialization' },
 ];
 
+// Container / Docker / Kubernetes security patterns (Issue #6)
+const CONTAINER_SECURITY_PATTERNS: Pattern[] = [
+  { regex: /docker\s+run\s+[^|]*--privileged/i, severity: 'critical', description: 'Docker container running in privileged mode' },
+  { regex: /docker\s+run\s+[^|]*-v\s+\/:/i, severity: 'critical', description: 'Docker container mounting host root filesystem' },
+  { regex: /kubectl\s+(?:get|describe)\s+secrets?\s+/i, severity: 'high', description: 'Kubernetes secret access attempt' },
+  { regex: /kubectl\s+exec\s+.*--\s*(?:bash|sh|cat\s+\/)/i, severity: 'high', description: 'Kubernetes pod shell access' },
+  { regex: /pip\s+install\s+https?:\/\//i, severity: 'high', description: 'pip install from arbitrary URL (supply chain risk)' },
+  { regex: /pip\s+install\s+--(?:extra-)?index-url\s+https?:\/\//i, severity: 'high', description: 'pip install from custom index (dependency confusion risk)' },
+  { regex: /docker\s+run\s+[^|]*--cap-add\s+SYS_ADMIN/i, severity: 'critical', description: 'Docker container with SYS_ADMIN capability' },
+  { regex: /docker\s+run\s+[^|]*--network\s+host/i, severity: 'high', description: 'Docker container using host network' },
+];
+
 const ALL_PATTERNS = [
   ...OBFUSCATION_PATTERNS,
   ...NPM_LIFECYCLE_PATTERNS,
@@ -75,6 +87,7 @@ const ALL_PATTERNS = [
   ...REVERSE_SHELL_PATTERNS,
   ...TYPOSQUAT_PATTERNS,
   ...CVE_PATTERNS,
+  ...CONTAINER_SECURITY_PATTERNS,
 ];
 
 export const supplyChainRule: SecurityRule = {
