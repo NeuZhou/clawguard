@@ -14,6 +14,7 @@ import { runSecurityScan, calculateRisk } from './index';
 import { loadCustomRules } from './security-engine';
 import { ProtocolScanner } from './scanners/protocol-scanner';
 import { A2AAgentCard } from './rules/a2a-security';
+import { loadPlugin, loadPlugins, loadConfig, discoverPlugins, getBuiltinPlugin, generatePluginTemplate } from './plugin-system';
 
 const VERSION = '1.0.0';
 
@@ -29,15 +30,19 @@ Commands:
   scan <path>        Scan files/directories for security threats
   check <text>       Check a message for threats (agent-friendly)
   init               Generate ClawGuard.yaml config file
+  init-plugin [name] Generate a plugin template directory
   start              Start real-time monitoring hooks
   dashboard          Open the security dashboard
   audit <path>       Audit session log files
+  list-plugins       List installed ClawGuard plugins
   version            Show version
 
 Scan Options:
   --strict           Exit code 1 on any finding >= high severity
   --format <fmt>     Output format: text (default), json, sarif
   --rules <path>     Load custom rules from a JSON/YAML file or directory
+  --plugins <names>  Comma-separated plugin names to load
+  --disable-builtin <ids>  Comma-separated builtin rule IDs to disable
 
 Examples:
   ClawGuard scan-a2a ./agent-card.json
@@ -50,10 +55,10 @@ Examples:
   process.stdout.write(help + '\n');
 }
 
-function parseArgs(args: string[]): { command: string; target?: string; options: Partial<ScanOptions> } {
+function parseArgs(args: string[]): { command: string; target?: string; options: Partial<ScanOptions> & { plugins?: string; disableBuiltin?: string } } {
   const command = args[0] || 'help';
   let target: string | undefined;
-  const options: Partial<ScanOptions> = {};
+  const options: Partial<ScanOptions> & { plugins?: string; disableBuiltin?: string } = {};
 
   for (let i = 1; i < args.length; i++) {
     const arg = args[i];
@@ -63,6 +68,10 @@ function parseArgs(args: string[]): { command: string; target?: string; options:
       options.format = args[++i] as ScanOptions['format'];
     } else if (arg === '--rules' && args[i + 1]) {
       options.rules = args[++i];
+    } else if (arg === '--plugins' && args[i + 1]) {
+      options.plugins = args[++i];
+    } else if (arg === '--disable-builtin' && args[i + 1]) {
+      options.disableBuiltin = args[++i];
     } else if (!arg.startsWith('-')) {
       target = arg;
     }
@@ -180,6 +189,54 @@ async function main(): Promise<void> {
     case 'init':
       initConfig();
       break;
+
+    case 'init-plugin': {
+      const pluginName = target || 'clawguard-rules-my-rules';
+      const outDir = path.join(process.cwd(), pluginName);
+      generatePluginTemplate(outDir, pluginName);
+      process.stdout.write(`✅ Plugin template created at: ${outDir}\n`);
+      process.stdout.write(`   cd ${pluginName} && npm install\n`);
+      break;
+    }
+
+    case 'list-plugins': {
+      const config = loadConfig();
+      const discovered = discoverPlugins();
+      process.stdout.write('\n🔌 ClawGuard Plugins\n\n');
+
+      // Builtin
+      const builtin = getBuiltinPlugin();
+      process.stdout.write(`  📦 ${builtin.plugin.name} (${builtin.source}) — ${builtin.plugin.rules.length} rules\n`);
+
+      // From config
+      if (config?.plugins?.length) {
+        process.stdout.write('\n  From config:\n');
+        for (const name of config.plugins) {
+          try {
+            const p = loadPlugin(name);
+            process.stdout.write(`  ✅ ${p.plugin.name}@${p.plugin.version} (${p.source}) — ${p.plugin.rules.length} rules\n`);
+          } catch (err: any) {
+            process.stdout.write(`  ❌ ${name}: ${err.message}\n`);
+          }
+        }
+      }
+
+      // Auto-discovered
+      if (discovered.length > 0) {
+        process.stdout.write('\n  Auto-discovered:\n');
+        for (const name of discovered) {
+          try {
+            const p = loadPlugin(name);
+            process.stdout.write(`  📦 ${p.plugin.name}@${p.plugin.version} — ${p.plugin.rules.length} rules\n`);
+          } catch (err: any) {
+            process.stdout.write(`  ❌ ${name}: ${err.message}\n`);
+          }
+        }
+      }
+
+      process.stdout.write('\n');
+      break;
+    }
 
     case 'version':
     case '--version':

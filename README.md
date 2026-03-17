@@ -279,6 +279,102 @@ const threats = detectInsiderThreats(agentOutput);
 
 ---
 
+## 🔌 Plugin Ecosystem
+
+ClawGuard uses an **ESLint-style plugin system** — extend it with custom rules, or tap into thousands of existing security rules from Semgrep and YARA.
+
+### Compatible with Semgrep and YARA Rules
+
+> **3,000+ Semgrep rules** and the entire **YARA malware signature ecosystem** work out of the box. No conversion needed.
+
+```typescript
+import { parseSemgrepYaml, parseYaraContent, loadSemgrepRules, loadYaraRules } from '@neuzhou/clawguard';
+
+// Load Semgrep rules from YAML
+const semgrepRules = loadSemgrepRules('./semgrep-rules/');
+
+// Load YARA rules from .yar files
+const yaraRules = loadYaraRules('./yara-rules/');
+```
+
+### Configuration File
+
+Create `.clawguardrc.json` in your project root:
+
+```json
+{
+  "plugins": ["clawguard-rules-hipaa", "./my-local-rules"],
+  "rules": {
+    "prompt-injection": "error",
+    "data-leakage": "warn",
+    "example/sql-injection": "off"
+  },
+  "severity-threshold": "warning",
+  "disable-builtin": ["compliance"]
+}
+```
+
+Or `clawguard.config.js` for dynamic configuration.
+
+### CLI Plugin Commands
+
+```bash
+# List installed plugins
+clawguard list-plugins
+
+# Load specific plugins for a scan
+clawguard scan . --plugins clawguard-rules-hipaa,./local-rules
+
+# Disable builtin rules
+clawguard scan . --disable-builtin prompt-injection,compliance
+
+# Generate a plugin template (scaffolding)
+clawguard init-plugin my-rules
+```
+
+### Creating a Plugin (5 minutes)
+
+```bash
+clawguard init-plugin clawguard-rules-my-rules
+cd clawguard-rules-my-rules
+```
+
+Implement the `ClawGuardPlugin` interface:
+
+```typescript
+import type { ClawGuardPlugin } from '@neuzhou/clawguard';
+
+const plugin: ClawGuardPlugin = {
+  name: 'clawguard-rules-my-rules',
+  version: '0.1.0',
+  rules: [/* your SecurityRule instances */],
+  meta: { author: 'You', description: 'My custom rules' },
+};
+export default plugin;
+```
+
+Name your npm package `clawguard-rules-*` for auto-discovery.
+
+See [`examples/plugin-template/`](examples/plugin-template/) for a complete working example.
+
+### Loading Rules from Other Ecosystems
+
+**Semgrep YAML rules:**
+```typescript
+import { semgrepPlugin } from '@neuzhou/clawguard';
+const plugin = semgrepPlugin('owasp', ['./semgrep-rules/owasp/']);
+// plugin.rules → SecurityRule[] ready to use
+```
+
+**YARA rules:**
+```typescript
+import { yaraPlugin } from '@neuzhou/clawguard';
+const plugin = yaraPlugin('malware-sigs', ['./yara/malware.yar']);
+// Supports text strings, regex, hex patterns, conditions (any/all/N of them)
+```
+
+---
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.

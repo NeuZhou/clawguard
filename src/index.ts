@@ -81,6 +81,37 @@ export type { CostCall, BudgetInfo, CostReport } from './cost-tracker';
 export { generateDashboard, loadDashboardData, writeDashboard } from './dashboard';
 export type { DashboardData } from './dashboard';
 
+/** Plugin System — ESLint-style plugin ecosystem */
+export {
+  ClawGuardPlugin,
+  PluginMeta,
+  ClawGuardConfig,
+  RuleSeverityOverride,
+  ResolvedPlugin,
+  PluginLoadError,
+  definePlugin,
+  loadPlugin,
+  loadPlugins,
+  discoverPlugins,
+  loadConfig,
+  getBuiltinPlugin,
+  generatePluginTemplate,
+  // Semgrep adapter
+  loadSemgrepRules,
+  loadSemgrepRulesFromFile,
+  parseSemgrepYaml,
+  convertSemgrepRule,
+  semgrepPlugin,
+  // YARA adapter
+  loadYaraRules,
+  loadYaraRulesFromFile,
+  parseYaraContent,
+  parseYaraFile,
+  convertYaraRule,
+  yaraPlugin,
+} from './plugin-system';
+export type { SemgrepRule, SemgrepRuleFile, SemgrepPattern, YaraRule, YaraString } from './plugin-system';
+
 /** A2A types re-export */
 export type { A2AAgentCard, A2ATaskMessage, A2ASkill, A2AAuthentication, A2ACapabilities } from './rules/a2a-security';
 

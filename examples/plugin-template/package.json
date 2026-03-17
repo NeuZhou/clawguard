@@ -1,0 +1,20 @@
+{
+  "name": "clawguard-rules-example",
+  "version": "0.1.0",
+  "description": "Example ClawGuard security rules plugin — use as template for your own",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "echo 'Add your tests here'"
+  },
+  "keywords": ["clawguard", "clawguard-plugin", "security-rules", "ai-agent"],
+  "peerDependencies": {
+    "@neuzhou/clawguard": ">=1.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "@neuzhou/clawguard": "^1.0.0"
+  },
+  "license": "MIT"
+}
