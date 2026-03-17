@@ -1,90 +1,88 @@
 import * as vscode from 'vscode';
+import * as path from 'path';
 
-/**
- * Security pattern for scanning — simplified version of ClawGuard rules
- * that runs entirely in the VS Code extension without requiring the full engine.
- */
-interface SecurityPattern {
-  id: string;
-  severity: 'critical' | 'high' | 'warning' | 'info';
-  pattern: RegExp;
-  message: string;
+interface SarifResult {
+  ruleId?: string;
+  level?: 'error' | 'warning' | 'note' | 'none';
+  message?: { text?: string };
+  locations?: Array<{
+    physicalLocation?: {
+      artifactLocation?: { uri?: string };
+      region?: { startLine?: number; startColumn?: number; endLine?: number; endColumn?: number };
+    };
+  }>;
 }
 
-const PATTERNS: SecurityPattern[] = [
-  // Prompt injection
-  { id: 'PROMPT-001', severity: 'critical', pattern: /ignore\s+(all\s+)?previous\s+instructions/gi, message: 'Prompt injection: "ignore previous instructions"' },
-  { id: 'PROMPT-002', severity: 'critical', pattern: /you\s+are\s+now\s+(?:DAN|jailbroken|unrestricted)/gi, message: 'Prompt injection: jailbreak attempt' },
-  { id: 'PROMPT-003', severity: 'high', pattern: /system\s*prompt\s*override/gi, message: 'Prompt injection: system prompt override' },
-  { id: 'PROMPT-004', severity: 'high', pattern: /\bdo\s+anything\s+now\b/gi, message: 'Prompt injection: DAN pattern' },
+interface SarifRun {
+  results?: SarifResult[];
+}
 
-  // API key / secret exposure
-  { id: 'SECRET-001', severity: 'critical', pattern: /(?:sk-[a-zA-Z0-9]{20,}|AKIA[0-9A-Z]{16}|ghp_[a-zA-Z0-9]{36}|glpat-[a-zA-Z0-9\-_]{20,})/g, message: 'Exposed API key or secret token' },
-  { id: 'SECRET-002', severity: 'high', pattern: /(?:password|passwd|secret|token|api_key)\s*[:=]\s*["'][^"'\s]{8,}["']/gi, message: 'Hardcoded credential' },
+interface SarifLog {
+  runs?: SarifRun[];
+}
 
-  // Data leakage
-  { id: 'DATA-001', severity: 'high', pattern: /\b\d{3}-\d{2}-\d{4}\b/g, message: 'Potential SSN exposure' },
-  { id: 'DATA-002', severity: 'warning', pattern: /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z]{2,}\b/gi, message: 'Email address in content' },
+const SEVERITY_ORDER = ['info', 'medium', 'high', 'critical'] as const;
 
-  // Dangerous commands
-  { id: 'CMD-001', severity: 'critical', pattern: /rm\s+-rf\s+[\/~]/g, message: 'Dangerous recursive delete command' },
-  { id: 'CMD-002', severity: 'high', pattern: /curl\s+.*\|\s*(?:bash|sh|zsh)/g, message: 'Pipe-to-shell pattern (supply chain risk)' },
-  { id: 'CMD-003', severity: 'high', pattern: /eval\s*\(\s*(?:fetch|require|import)/g, message: 'Dynamic code execution from remote source' },
+function meetsThreshold(level: string, threshold: string): boolean {
+  const map: Record<string, number> = { none: 0, note: 0, info: 0, warning: 1, medium: 1, error: 2, high: 2, critical: 3 };
+  return (map[level] ?? 0) >= (map[threshold] ?? 0);
+}
 
-  // Permission escalation
-  { id: 'PERM-001', severity: 'high', pattern: /chmod\s+(?:777|a\+rwx)/g, message: 'Overly permissive file permissions' },
-  { id: 'PERM-002', severity: 'warning', pattern: /sudo\s+.*--no-preserve-env/g, message: 'Sudo environment bypass' },
-];
-
-const SEVERITY_ORDER: Record<string, number> = { critical: 0, high: 1, warning: 2, info: 3 };
-
-export class ClawGuardDiagnostics implements vscode.Disposable {
-  private diagnosticCollection: vscode.DiagnosticCollection;
-
-  constructor() {
-    this.diagnosticCollection = vscode.languages.createDiagnosticCollection('clawguard');
+function toVsSeverity(level?: string): vscode.DiagnosticSeverity {
+  switch (level) {
+    case 'error': return vscode.DiagnosticSeverity.Error;
+    case 'warning': return vscode.DiagnosticSeverity.Warning;
+    default: return vscode.DiagnosticSeverity.Information;
   }
+}
 
-  /**
-   * Scan a document and return the number of findings.
-   */
-  scanDocument(doc: vscode.TextDocument): number {
-    const config = vscode.workspace.getConfiguration('clawguard');
-    const threshold = config.get<string>('severityThreshold', 'warning');
-    const thresholdLevel = SEVERITY_ORDER[threshold] ?? 2;
+export function parseSarif(
+  sarifJson: string,
+  diagnosticCollection: vscode.DiagnosticCollection,
+  workspaceRoot: string
+): number {
+  const threshold = vscode.workspace.getConfiguration('clawguard').get<string>('severityThreshold', 'medium');
+  const sarif: SarifLog = JSON.parse(sarifJson);
+  const fileMap = new Map<string, vscode.Diagnostic[]>();
+  let count = 0;
 
-    const diagnostics: vscode.Diagnostic[] = [];
-    const text = doc.getText();
+  for (const run of sarif.runs ?? []) {
+    for (const result of run.results ?? []) {
+      const level = result.level ?? 'warning';
+      if (!meetsThreshold(level, threshold)) continue;
 
-    for (const p of PATTERNS) {
-      if (SEVERITY_ORDER[p.severity] > thresholdLevel) continue;
+      for (const loc of result.locations ?? []) {
+        const phys = loc.physicalLocation;
+        const uri = phys?.artifactLocation?.uri;
+        if (!uri) continue;
 
-      // Reset regex lastIndex for global patterns
-      p.pattern.lastIndex = 0;
-      let match: RegExpExecArray | null;
-      while ((match = p.pattern.exec(text)) !== null) {
-        const startPos = doc.positionAt(match.index);
-        const endPos = doc.positionAt(match.index + match[0].length);
-        const range = new vscode.Range(startPos, endPos);
+        const filePath = uri.startsWith('file:///')
+          ? vscode.Uri.parse(uri).fsPath
+          : path.resolve(workspaceRoot, uri);
 
-        const severity = p.severity === 'critical' || p.severity === 'high'
-          ? vscode.DiagnosticSeverity.Error
-          : p.severity === 'warning'
-            ? vscode.DiagnosticSeverity.Warning
-            : vscode.DiagnosticSeverity.Information;
+        const region = phys?.region;
+        const startLine = Math.max((region?.startLine ?? 1) - 1, 0);
+        const startCol = Math.max((region?.startColumn ?? 1) - 1, 0);
+        const endLine = Math.max((region?.endLine ?? region?.startLine ?? 1) - 1, 0);
+        const endCol = Math.max((region?.endColumn ?? 200) - 1, 0);
 
-        const diag = new vscode.Diagnostic(range, `🛡️ ${p.message}`, severity);
-        diag.code = p.id;
+        const range = new vscode.Range(startLine, startCol, endLine, endCol);
+        const diag = new vscode.Diagnostic(range, result.message?.text ?? result.ruleId ?? 'ClawGuard finding', toVsSeverity(level));
         diag.source = 'ClawGuard';
-        diagnostics.push(diag);
+        diag.code = result.ruleId;
+
+        const key = filePath;
+        if (!fileMap.has(key)) fileMap.set(key, []);
+        fileMap.get(key)!.push(diag);
+        count++;
       }
     }
-
-    this.diagnosticCollection.set(doc.uri, diagnostics);
-    return diagnostics.length;
   }
 
-  dispose(): void {
-    this.diagnosticCollection.dispose();
+  diagnosticCollection.clear();
+  for (const [filePath, diags] of fileMap) {
+    diagnosticCollection.set(vscode.Uri.file(filePath), diags);
   }
+
+  return count;
 }

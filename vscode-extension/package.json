@@ -1,63 +1,77 @@
 {
   "name": "clawguard-vscode",
-  "displayName": "ClawGuard",
-  "description": "AI Agent Security Scanner — red wavy underlines for security threats in your code",
+  "displayName": "ClawGuard - AI Agent Security Scanner",
+  "description": "Detect and block risky AI agent tool calls directly in VS Code",
   "version": "0.1.0",
   "publisher": "neuzhou",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kazhou2024/clawguard"
+  },
   "engines": {
     "vscode": "^1.85.0"
   },
-  "categories": ["Linters"],
+  "categories": [
+    "Linters",
+    "Other"
+  ],
   "activationEvents": [
-    "onLanguage:markdown",
-    "onLanguage:typescript",
-    "onLanguage:javascript",
-    "onLanguage:json",
-    "onLanguage:yaml",
-    "onLanguage:python",
-    "onLanguage:shellscript"
+    "onStartupFinished"
   ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
+        "command": "clawguard.scan",
+        "title": "ClawGuard: Scan Workspace"
+      },
+      {
         "command": "clawguard.scanFile",
         "title": "ClawGuard: Scan Current File"
       },
       {
-        "command": "clawguard.scanWorkspace",
-        "title": "ClawGuard: Scan Workspace"
+        "command": "clawguard.showReport",
+        "title": "ClawGuard: Show Report"
       }
     ],
     "configuration": {
       "title": "ClawGuard",
       "properties": {
-        "clawguard.enable": {
-          "type": "boolean",
-          "default": true,
-          "description": "Enable ClawGuard security scanning"
-        },
-        "clawguard.scanOnSave": {
-          "type": "boolean",
-          "default": true,
-          "description": "Scan files automatically on save"
-        },
         "clawguard.severityThreshold": {
           "type": "string",
-          "default": "warning",
-          "enum": ["info", "warning", "high", "critical"],
-          "description": "Minimum severity to show diagnostics"
+          "default": "medium",
+          "enum": [
+            "info",
+            "medium",
+            "high",
+            "critical"
+          ],
+          "description": "Minimum severity level to report"
+        },
+        "clawguard.customRulesPath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to custom rules file"
+        },
+        "clawguard.autoScanOnSave": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically scan file on save"
         }
       }
     }
   },
   "scripts": {
+    "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./"
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint src --ext ts"
   },
   "devDependencies": {
     "@types/vscode": "^1.85.0",
-    "@types/node": "^20.11.0",
-    "typescript": "^5.4.0"
+    "@types/node": "^20.0.0",
+    "typescript": "^5.3.0",
+    "@vscode/vsce": "^2.22.0"
   }
 }

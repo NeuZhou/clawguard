@@ -1,15 +1,26 @@
-# ClawGuard VS Code Extension
+# ClawGuard - AI Agent Security Scanner
 
-> 🛡️ AI Agent Security Scanner — see security threats as red wavy underlines in your editor.
+> Detect risky AI agent tool calls directly in VS Code with inline diagnostics.
 
 ## Features
 
-- **Real-time scanning** — detects prompt injection, exposed secrets, data leakage, and dangerous commands
-- **Red wavy underlines** — findings show as VS Code Diagnostics (errors/warnings)
-- **Scan on save** — automatically scans when you save a file
-- **Workspace scan** — scan all files in your workspace with one command
+- **Workspace Scan** — Scan all files for risky AI agent patterns
+- **File Scan** — Scan the active file on demand or automatically on save
+- **Inline Diagnostics** — Findings appear as squiggly underlines with severity-appropriate colors (red for critical/high, yellow for medium, blue for info)
+- **SARIF Report** — View raw SARIF output for CI/CD integration
+- **Status Bar** — See scan status and finding count at a glance
 
-## Installation (Development)
+## Screenshots
+
+> _Coming soon — the extension is in scaffold/preview stage._
+>
+> - **Inline diagnostics**: Red underlines on dangerous `exec()` calls with hover details
+> - **Status bar**: Shield icon showing "3 findings" after a scan
+> - **Report view**: Full SARIF JSON output in a new editor tab
+
+## Installation
+
+This extension is not yet published to the VS Code Marketplace. To use it locally:
 
 ```bash
 cd vscode-extension
@@ -17,36 +28,29 @@ npm install
 npm run compile
 ```
 
-Then press `F5` in VS Code to launch the Extension Development Host.
+Then press **F5** in VS Code to launch the Extension Development Host.
 
 ## Commands
 
 | Command | Description |
 |---------|-------------|
-| `ClawGuard: Scan Current File` | Scan the active file |
-| `ClawGuard: Scan Workspace` | Scan all supported files in workspace |
+| `ClawGuard: Scan Workspace` | Scan all workspace files |
+| `ClawGuard: Scan Current File` | Scan the active editor file |
+| `ClawGuard: Show Report` | Open last scan's SARIF output |
 
 ## Configuration
 
 | Setting | Default | Description |
 |---------|---------|-------------|
-| `clawguard.enable` | `true` | Enable/disable the extension |
-| `clawguard.scanOnSave` | `true` | Auto-scan on file save |
-| `clawguard.severityThreshold` | `warning` | Minimum severity to display |
+| `clawguard.severityThreshold` | `medium` | Minimum severity to report (`info`, `medium`, `high`, `critical`) |
+| `clawguard.customRulesPath` | `""` | Path to custom rules file |
+| `clawguard.autoScanOnSave` | `false` | Auto-scan current file on save |
 
-## Supported File Types
+## Requirements
 
-`.md`, `.ts`, `.js`, `.json`, `.yaml`, `.yml`, `.py`, `.sh`
+- Node.js 18+
+- `@neuzhou/clawguard` (installed globally or via npx)
 
-## What It Detects
+## License
 
-- **Prompt injection** — "ignore previous instructions", jailbreak patterns
-- **Exposed secrets** — API keys (OpenAI, AWS, GitHub), hardcoded credentials
-- **Data leakage** — SSNs, email addresses in content
-- **Dangerous commands** — `rm -rf /`, pipe-to-shell, dynamic eval
-- **Permission issues** — chmod 777, sudo bypasses
-
-## Architecture
-
-The extension embeds a lightweight pattern matcher (no external dependencies).
-For the full 285+ pattern engine, use the ClawGuard CLI: `clawguard scan <path>`.
+MIT
