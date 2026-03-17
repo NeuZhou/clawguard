@@ -243,6 +243,12 @@ export const a2aRules: A2ARule[] = [
     },
   },
   {
+    id: 'a2a-agent-spoofing',
+    severity: 'critical',
+    description: 'Agent card impersonates a known agent',
+    check: (card) => checkAgentCardSpoofing(card),
+  },
+  {
     id: 'a2a-provider-url-mismatch',
     severity: 'warning',
     description: 'Provider URL domain differs from agent URL domain',
@@ -260,6 +266,106 @@ export const a2aRules: A2ARule[] = [
       return null;
     },
   },
+];
+
+// === Delegation & Multi-Agent Patterns ===
+
+export interface A2ADelegationChain {
+  agents: string[];  // ordered list of agent IDs/names in the chain
+  permissions?: Record<string, string[]>;  // agentId -> permissions
+}
+
+const KNOWN_AGENT_NAMES = [
+  'openai-assistant', 'claude-agent', 'gemini-agent', 'copilot-agent',
+  'github-agent', 'slack-agent', 'notion-agent', 'linear-agent',
+];
+
+const MAX_DELEGATION_DEPTH = 3;
+
+export function checkAgentCardSpoofing(card: A2AAgentCard): string | null {
+  const name = (card.name ?? '').toLowerCase().replace(/[\s_-]/g, '');
+  for (const known of KNOWN_AGENT_NAMES) {
+    const normalized = known.replace(/[\s_-]/g, '');
+    if (name === normalized) {
+      // Exact match — could be legitimate, but flag if provider doesn't match
+      if (!card.provider?.organization) {
+        return `Agent impersonates known agent "${known}" without provider info`;
+      }
+    }
+    // Typosquatting or variant
+    if (name !== normalized && name.length >= 4) {
+      if (name.includes(normalized) && name.length > normalized.length + 2) {
+        return `Agent name "${card.name}" mimics known agent "${known}"`;
+      }
+      // Simple Levenshtein check
+      if (levenshteinA2A(name, normalized) === 1) {
+        return `Agent name "${card.name}" is a typosquat of known agent "${known}"`;
+      }
+    }
+  }
+  return null;
+}
+
+function levenshteinA2A(a: string, b: string): number {
+  const m = a.length, n = b.length;
+  const dp: number[][] = Array.from({ length: m + 1 }, (_, i) => {
+    const row = new Array(n + 1).fill(0);
+    row[0] = i;
+    return row;
+  });
+  for (let j = 0; j <= n; j++) dp[0][j] = j;
+  for (let i = 1; i <= m; i++)
+    for (let j = 1; j <= n; j++)
+      dp[i][j] = Math.min(dp[i - 1][j] + 1, dp[i][j - 1] + 1, dp[i - 1][j - 1] + (a[i - 1] !== b[j - 1] ? 1 : 0));
+  return dp[m][n];
+}
+
+export function checkDelegationChainDepth(chain: A2ADelegationChain): string | null {
+  if (chain.agents.length > MAX_DELEGATION_DEPTH) {
+    return `Delegation chain depth ${chain.agents.length} exceeds maximum ${MAX_DELEGATION_DEPTH}: ${chain.agents.join(' → ')}`;
+  }
+  return null;
+}
+
+export function checkDelegationLoop(chain: A2ADelegationChain): string | null {
+  const seen = new Set<string>();
+  for (const agent of chain.agents) {
+    const key = agent.toLowerCase();
+    if (seen.has(key)) {
+      return `Circular delegation detected: "${agent}" appears twice in chain ${chain.agents.join(' → ')}`;
+    }
+    seen.add(key);
+  }
+  return null;
+}
+
+export function checkPrivilegeEscalation(chain: A2ADelegationChain): string | null {
+  if (!chain.permissions) return null;
+  const WRITE_PERMS = ['write', 'delete', 'admin', 'execute', 'exec', 'create', 'update', 'manage'];
+  const READ_PERMS = ['read', 'view', 'list', 'get'];
+
+  for (let i = 0; i < chain.agents.length - 1; i++) {
+    const currentPerms = (chain.permissions[chain.agents[i]] ?? []).map(p => p.toLowerCase());
+    const nextPerms = (chain.permissions[chain.agents[i + 1]] ?? []).map(p => p.toLowerCase());
+
+    const currentIsReadOnly = currentPerms.every(p => READ_PERMS.some(rp => p.includes(rp))) &&
+      !currentPerms.some(p => WRITE_PERMS.some(wp => p.includes(wp)));
+    const nextHasWrite = nextPerms.some(p => WRITE_PERMS.some(wp => p.includes(wp)));
+
+    if (currentIsReadOnly && nextHasWrite) {
+      return `Privilege escalation: "${chain.agents[i]}" (read-only) delegates to "${chain.agents[i + 1]}" (has write access)`;
+    }
+  }
+  return null;
+}
+
+// Content patterns for delegation/leakage detection in raw text
+const DELEGATION_PATTERNS = [
+  { regex: /(?:delegat(?:e|ing|ion)\s+to\s+){3,}/i, severity: 'high' as Severity, desc: 'Deep delegation chain detected in message content' },
+  { regex: /(?:forward|pass|send|relay)\s+(?:all|the|this)\s+(?:data|context|conversation|credentials|tokens?|secrets?)\s+to\s+(?:agent|service)/i, severity: 'critical' as Severity, desc: 'Cross-agent data leakage: forwarding sensitive data to another agent' },
+  { regex: /(?:share|expose|leak|transmit)\s+(?:api[_-]?key|password|token|secret|credential|private[_-]?key)\s+(?:with|to)\s+(?:agent|service|external)/i, severity: 'critical' as Severity, desc: 'Cross-agent data leakage: sharing credentials across agents' },
+  { regex: /(?:agent[_-]?card|\.well-known\/agent)\s*(?:from|via)\s+(?:http:\/\/|untrusted|unknown|unverified)/i, severity: 'high' as Severity, desc: 'Unverified agent discovery: loading agent card from untrusted source' },
+  { regex: /(?:trust|accept|allow)\s+(?:(?:any|all|unverified|unsigned)\s+)+(?:agent[_-]?cards?|agents?)/i, severity: 'high' as Severity, desc: 'Unverified agent discovery: accepting unverified agent cards' },
 ];
 
 // === Task message scanning ===
@@ -353,22 +459,26 @@ export const a2aSecurityRule: SecurityRule = {
       }
     } catch {
       // Not JSON - scan raw text for A2A-related patterns
-      for (const pat of INJECTION_PATTERNS) {
-        const match = pat.exec(content);
+      const allTextPatterns = [...INJECTION_PATTERNS.map(p => ({ regex: p, severity: 'high' as Severity, desc: '' })), ...DELEGATION_PATTERNS];
+      for (const pat of allTextPatterns) {
+        const regex = 'regex' in pat ? pat.regex : pat;
+        const match = (regex as RegExp).exec(content);
         if (match) {
+          const desc = ('desc' in pat && pat.desc) ? pat.desc : `Potential A2A injection: ${match[0]}`;
+          const sev = ('severity' in pat && pat.severity) ? pat.severity as Severity : 'high';
           findings.push({
             id: crypto.randomUUID(),
             timestamp: context.timestamp,
             ruleId: 'a2a-task-injection',
             ruleName: 'A2A Task Injection',
-            severity: 'high',
+            severity: sev,
             category: 'a2a-security',
             owaspCategory: 'Agentic AI: Agent Communication',
-            description: `Potential A2A injection: ${match[0]}`,
+            description: desc,
             evidence: match[0].slice(0, 200),
             session: context.session,
             channel: context.channel,
-            action: 'alert',
+            action: sev === 'critical' ? 'block' : 'alert',
           });
         }
       }
