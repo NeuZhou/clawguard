@@ -1,0 +1,31 @@
+# ClawGuard Basic Security Scan
+# Scans on every push/PR and uploads results to GitHub Security tab
+name: ClawGuard Security Scan
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  security-events: write  # Required for SARIF upload
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run ClawGuard Scan
+        uses: neuzhou/clawguard@v1
+        id: scan
+        with:
+          path: '.'
+          format: 'sarif'
+          severity-threshold: 'high'
+
+      # SARIF is auto-uploaded by the action, but you can also do it manually:
+      # - uses: github/codeql-action/upload-sarif@v3
+      #   with:
+      #     sarif_file: clawguard-results.sarif

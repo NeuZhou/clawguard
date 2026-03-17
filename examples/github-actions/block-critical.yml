@@ -1,0 +1,43 @@
+# ClawGuard Gate - Block Critical/High Findings
+# Fails the build if critical or high severity findings exist
+name: ClawGuard Security Gate
+
+on:
+  push:
+    branches: [main, release/*]
+  pull_request:
+    branches: [main]
+
+permissions:
+  security-events: write
+  contents: read
+
+jobs:
+  security-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run ClawGuard (block on high+)
+        uses: neuzhou/clawguard@v1
+        with:
+          path: '.'
+          format: 'sarif'
+          severity-threshold: 'high'  # Fails on high or critical
+
+      # Optional: also block merges via branch protection rules
+      # Settings > Branches > Require status checks > "security-gate"
+
+  # Example: separate job with stricter rules for release branches
+  release-gate:
+    if: startsWith(github.ref, 'refs/heads/release/')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run ClawGuard (block on warning+)
+        uses: neuzhou/clawguard@v1
+        with:
+          path: '.'
+          format: 'sarif'
+          severity-threshold: 'warning'  # Stricter for releases
