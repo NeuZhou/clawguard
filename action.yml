@@ -1,0 +1,128 @@
+name: 'ClawGuard Security Scan'
+description: 'Scan code for AI agent security vulnerabilities — prompt injection, data leakage, PII, OWASP LLM Top 10'
+author: 'NeuZhou'
+
+branding:
+  icon: 'shield'
+  color: 'blue'
+
+inputs:
+  path:
+    description: 'Path to scan (file or directory)'
+    required: false
+    default: '.'
+  format:
+    description: 'Output format: text, json, sarif'
+    required: false
+    default: 'sarif'
+  strict:
+    description: 'Fail on high/critical findings (exit code 1)'
+    required: false
+    default: 'true'
+  node-version:
+    description: 'Node.js version to use'
+    required: false
+    default: '20'
+  upload-sarif:
+    description: 'Upload SARIF results to GitHub Security tab'
+    required: false
+    default: 'true'
+  custom-rules-dir:
+    description: 'Path to custom YAML/JSON rule directory'
+    required: false
+    default: ''
+  yara-rules-dir:
+    description: 'Path to YARA rule directory'
+    required: false
+    default: ''
+
+outputs:
+  findings-count:
+    description: 'Total number of security findings'
+    value: ${{ steps.scan.outputs.findings-count }}
+  critical-count:
+    description: 'Number of critical findings'
+    value: ${{ steps.scan.outputs.critical-count }}
+  high-count:
+    description: 'Number of high findings'
+    value: ${{ steps.scan.outputs.high-count }}
+  sarif-file:
+    description: 'Path to generated SARIF file'
+    value: ${{ steps.scan.outputs.sarif-file }}
+  risk-score:
+    description: 'Risk score (0-100)'
+    value: ${{ steps.scan.outputs.risk-score }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+
+    - name: Install ClawGuard
+      shell: bash
+      run: npm install -g @neuzhou/clawguard@latest
+
+    - name: Run Security Scan
+      id: scan
+      shell: bash
+      run: |
+        SCAN_ARGS="${{ inputs.path }}"
+        FORMAT="${{ inputs.format }}"
+
+        if [ "${{ inputs.strict }}" = "true" ]; then
+          SCAN_ARGS="$SCAN_ARGS --strict"
+        fi
+
+        SCAN_ARGS="$SCAN_ARGS --format $FORMAT"
+
+        SARIF_FILE=""
+        if [ "$FORMAT" = "sarif" ]; then
+          SARIF_FILE="${{ runner.temp }}/clawguard-results.sarif"
+          clawguard scan $SCAN_ARGS > "$SARIF_FILE" 2>&1 || true
+
+          # Parse SARIF for counts
+          if [ -f "$SARIF_FILE" ]; then
+            FINDINGS=$(cat "$SARIF_FILE" | node -e "
+              const fs = require('fs');
+              const sarif = JSON.parse(fs.readFileSync('/dev/stdin','utf8'));
+              const results = sarif.runs?.[0]?.results || [];
+              const critical = results.filter(r => r.properties?.severity === 'critical').length;
+              const high = results.filter(r => r.properties?.severity === 'high').length;
+              console.log(JSON.stringify({total: results.length, critical, high}));
+            " 2>/dev/null || echo '{"total":0,"critical":0,"high":0}')
+
+            echo "findings-count=$(echo $FINDINGS | node -e "console.log(JSON.parse(require('fs').readFileSync('/dev/stdin','utf8')).total)")" >> $GITHUB_OUTPUT
+            echo "critical-count=$(echo $FINDINGS | node -e "console.log(JSON.parse(require('fs').readFileSync('/dev/stdin','utf8')).critical)")" >> $GITHUB_OUTPUT
+            echo "high-count=$(echo $FINDINGS | node -e "console.log(JSON.parse(require('fs').readFileSync('/dev/stdin','utf8')).high)")" >> $GITHUB_OUTPUT
+            echo "sarif-file=$SARIF_FILE" >> $GITHUB_OUTPUT
+            echo "risk-score=0" >> $GITHUB_OUTPUT
+          fi
+        else
+          clawguard scan $SCAN_ARGS || true
+          echo "findings-count=0" >> $GITHUB_OUTPUT
+          echo "critical-count=0" >> $GITHUB_OUTPUT
+          echo "high-count=0" >> $GITHUB_OUTPUT
+          echo "sarif-file=" >> $GITHUB_OUTPUT
+          echo "risk-score=0" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Upload SARIF to GitHub Security
+      if: ${{ inputs.upload-sarif == 'true' && inputs.format == 'sarif' && steps.scan.outputs.sarif-file != '' }}
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: ${{ steps.scan.outputs.sarif-file }}
+        category: clawguard
+
+    - name: Check strict mode
+      if: ${{ inputs.strict == 'true' }}
+      shell: bash
+      run: |
+        CRITICAL=${{ steps.scan.outputs.critical-count }}
+        HIGH=${{ steps.scan.outputs.high-count }}
+        if [ "${CRITICAL:-0}" -gt 0 ] || [ "${HIGH:-0}" -gt 0 ]; then
+          echo "::error::ClawGuard found $CRITICAL critical and $HIGH high severity findings"
+          exit 1
+        fi
