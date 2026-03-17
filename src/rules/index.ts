@@ -13,6 +13,7 @@ import { memoryPoisoningRule } from './memory-poisoning';
 import { apiKeyExposureRule } from './api-key-exposure';
 import { permissionEscalationRule } from './permission-escalation';
 import { a2aSecurityRule } from './a2a-security';
+import { mcpToolPoisoningRule } from './mcp-tool-poisoning';
 
 export const builtinRules: SecurityRule[] = [
   promptInjectionRule,
@@ -27,6 +28,7 @@ export const builtinRules: SecurityRule[] = [
   apiKeyExposureRule,
   permissionEscalationRule,
   a2aSecurityRule,
+  mcpToolPoisoningRule,
 ];
 
 export function getRuleById(id: string): SecurityRule | undefined {
@@ -45,6 +47,7 @@ export {
   memoryPoisoningRule,
   apiKeyExposureRule,
   permissionEscalationRule,
+  mcpToolPoisoningRule,
 };
 
 // A2A Security exports
@@ -53,3 +56,19 @@ export type { A2AAgentCard, A2ATaskMessage, A2ASkill, A2AAuthentication, A2ACapa
 
 // Re-export insider threat as standalone module (not a SecurityRule, uses different API)
 export { detectInsiderThreats, INSIDER_THREAT_PATTERNS } from './insider-threat';
+
+// MCP Tool Poisoning exports
+export {
+  DESCRIPTION_INJECTION_PATTERNS,
+  EXCESSIVE_PERM_PATTERNS as TOOL_POISONING_EXCESSIVE_PERM_PATTERNS,
+  CROSS_TOOL_EXFIL_PATTERNS,
+  RUG_PULL_PATTERNS,
+  CALLBACK_URL_PATTERNS,
+  TOOL_OUTPUT_INJECTION_PATTERNS,
+  CONFIG_OVERRIDE_PATTERNS,
+  SUPPLY_CHAIN_PATTERNS as TOOL_POISONING_SUPPLY_CHAIN_PATTERNS,
+  SERVER_IMPERSONATION_PATTERNS,
+  checkShadowTool,
+  checkServerImpersonation,
+  levenshtein,
+} from './mcp-tool-poisoning';
