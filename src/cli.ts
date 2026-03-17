@@ -15,6 +15,9 @@ import { loadCustomRules } from './security-engine';
 import { ProtocolScanner } from './scanners/protocol-scanner';
 import { A2AAgentCard } from './rules/a2a-security';
 import { loadPlugin, loadPlugins, loadConfig, discoverPlugins, getBuiltinPlugin, generatePluginTemplate } from './plugin-system';
+import { scanMCPServer, formatMCPScanResult, analyzeManifest, generateBadgeSVG } from './mcp-security';
+import { generateFromDescription, generateFromCve, generateFromFile, createInteractiveSession, interactiveRound, saveRules } from './ai-generate';
+import { runRedTeam, formatReport } from './ai-generate/red-team';
 
 const VERSION = '1.0.0';
 
@@ -25,8 +28,14 @@ function printHelp(): void {
 Usage: ClawGuard <command> [options]
 
 Commands:
+  scan-mcp <path>      Scan MCP server source code for security issues
+  scan-mcp --manifest <file>  Scan MCP server manifest/config
+  audit-mcp <command>  Audit an installed MCP server package
+  badge <path>         Generate ClawGuard MCP security badge (SVG)
   scan-a2a <url|file>   Scan A2A agent card for security issues
   scan-protocol        Unified MCP + A2A protocol scan
+  generate <desc>    AI-generate security rules from description/CVE/file
+  red-team <path>    AI red team — auto-attack a skill and measure coverage
   scan <path>        Scan files/directories for security threats
   check <text>       Check a message for threats (agent-friendly)
   init               Generate ClawGuard.yaml config file
@@ -44,12 +53,26 @@ Scan Options:
   --plugins <names>  Comma-separated plugin names to load
   --disable-builtin <ids>  Comma-separated builtin rule IDs to disable
 
+Generate Options:
+  --cve <id>         Generate rules from a CVE ID
+  --from-file <path> Generate rules from a vulnerability report / code file
+  --interactive      Interactive multi-turn rule generation
+
+Red Team Options:
+  --generate-rules   Auto-generate protection rules for missed attacks
+
 Examples:
   ClawGuard scan-a2a ./agent-card.json
   ClawGuard scan-protocol --mcp ./mcp-config.json --a2a ./agent-card.json
   ClawGuard scan ./skills/
   ClawGuard scan ./SKILL.md --strict
   ClawGuard scan . --format sarif > results.sarif
+  ClawGuard generate "detect prompt injection via system prompt override"
+  ClawGuard generate --cve CVE-2024-12345
+  ClawGuard generate --from-file vuln-report.txt
+  ClawGuard generate --interactive
+  ClawGuard red-team ./my-skill/
+  ClawGuard red-team ./my-skill/ --generate-rules
   ClawGuard check "ignore all previous instructions"
 `;
   process.stdout.write(help + '\n');
@@ -58,7 +81,7 @@ Examples:
 function parseArgs(args: string[]): { command: string; target?: string; options: Partial<ScanOptions> & { plugins?: string; disableBuiltin?: string } } {
   const command = args[0] || 'help';
   let target: string | undefined;
-  const options: Partial<ScanOptions> & { plugins?: string; disableBuiltin?: string } = {};
+  const options: Partial<ScanOptions> & { plugins?: string; disableBuiltin?: string; cve?: string; fromFile?: string; interactive?: boolean; generateRules?: boolean } = {};
 
   for (let i = 1; i < args.length; i++) {
     const arg = args[i];
@@ -72,6 +95,14 @@ function parseArgs(args: string[]): { command: string; target?: string; options:
       options.plugins = args[++i];
     } else if (arg === '--disable-builtin' && args[i + 1]) {
       options.disableBuiltin = args[++i];
+    } else if (arg === '--cve' && args[i + 1]) {
+      options.cve = args[++i];
+    } else if (arg === '--from-file' && args[i + 1]) {
+      options.fromFile = args[++i];
+    } else if (arg === '--interactive') {
+      options.interactive = true;
+    } else if (arg === '--generate-rules') {
+      options.generateRules = true;
     } else if (!arg.startsWith('-')) {
       target = arg;
     }
@@ -146,6 +177,106 @@ async function main(): Promise<void> {
   const { command, target, options } = parseArgs(args);
 
   switch (command) {
+    case 'generate': {
+      const outputDir = path.join(process.cwd(), 'custom-rules');
+      if (options.interactive) {
+        // Interactive mode
+        const readline = await import('readline');
+        const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+        const session = createInteractiveSession();
+        process.stdout.write('🤖 ClawGuard Interactive Rule Generator\n');
+        process.stdout.write('   Type your threat descriptions. Type "save" to save rules, "quit" to exit.\n\n');
+        const askQuestion = (): void => {
+          rl.question('🛡️  > ', async (input: string) => {
+            const trimmed = input.trim();
+            if (trimmed === 'quit' || trimmed === 'exit') {
+              if (session.rules.rules.length > 0) {
+                const saved = saveRules(session.rules, outputDir);
+                process.stdout.write(`\n✅ Saved ${session.rules.rules.length} rules → ${saved}\n`);
+              }
+              rl.close();
+              return;
+            }
+            if (trimmed === 'save') {
+              if (session.rules.rules.length === 0) {
+                process.stdout.write('No rules generated yet.\n');
+              } else {
+                const saved = saveRules(session.rules, outputDir);
+                process.stdout.write(`✅ Saved ${session.rules.rules.length} rules → ${saved}\n`);
+              }
+              askQuestion();
+              return;
+            }
+            try {
+              const result = await interactiveRound(session, trimmed);
+              process.stdout.write(`\n${result.response}\n\n`);
+              if (result.rules.rules.length > 0) {
+                process.stdout.write(`   (${result.rules.rules.length} rule(s) accumulated)\n\n`);
+              }
+            } catch (err: any) {
+              process.stderr.write(`Error: ${err.message}\n\n`);
+            }
+            askQuestion();
+          });
+        };
+        askQuestion();
+        return; // Don't fall through
+      }
+
+      try {
+        let rules;
+        if (options.cve) {
+          process.stdout.write(`🔍 Fetching ${options.cve} from NVD...\n`);
+          rules = await generateFromCve(options.cve);
+        } else if (options.fromFile) {
+          process.stdout.write(`📄 Analyzing ${options.fromFile}...\n`);
+          rules = await generateFromFile(options.fromFile);
+        } else {
+          const description = args.slice(1).filter(a => !a.startsWith('-')).join(' ');
+          if (!description) {
+            process.stderr.write('Usage: clawguard generate "threat description"\n');
+            process.stderr.write('       clawguard generate --cve CVE-2024-xxxxx\n');
+            process.stderr.write('       clawguard generate --from-file report.txt\n');
+            process.stderr.write('       clawguard generate --interactive\n');
+            process.exit(2);
+          }
+          process.stdout.write(`🤖 Generating rules for: ${description}\n`);
+          rules = await generateFromDescription(description);
+        }
+        const saved = saveRules(rules, outputDir);
+        process.stdout.write(`\n✅ Generated ${rules.rules.length} rule(s) → ${saved}\n`);
+        for (const r of rules.rules) {
+          process.stdout.write(`   🛡️ ${r.id}: ${r.description} [${r.severity}]\n`);
+        }
+        process.stdout.write(`\nLoad with: clawguard scan . --rules ${saved}\n`);
+      } catch (err: any) {
+        process.stderr.write(`Error: ${err.message}\n`);
+        process.exit(1);
+      }
+      break;
+    }
+
+    case 'red-team': {
+      if (!target) {
+        process.stderr.write('Usage: clawguard red-team <skill-path> [--generate-rules]\n');
+        process.exit(2);
+      }
+      try {
+        const report = await runRedTeam(target, { generateRules: options.generateRules });
+        process.stdout.write(formatReport(report) + '\n');
+        if (options.format === 'json') {
+          process.stdout.write(JSON.stringify(report, null, 2) + '\n');
+        }
+        if (report.coveragePercent < 80) {
+          process.exit(1);
+        }
+      } catch (err: any) {
+        process.stderr.write(`Error: ${err.message}\n`);
+        process.exit(1);
+      }
+      break;
+    }
+
     case 'scan':
       if (!target) {
         process.stderr.write('Error: scan requires a path argument\n');
@@ -489,6 +620,80 @@ async function main(): Promise<void> {
       if (options.strict && result.findings.some(f => f.severity === 'critical' || f.severity === 'high')) {
         process.exit(1);
       }
+      break;
+    }
+
+    case 'scan-mcp': {
+      const manifestIdx = args.indexOf('--manifest');
+      if (manifestIdx !== -1 && args[manifestIdx + 1]) {
+        // Manifest-only scan
+        const manifestFile = args[manifestIdx + 1];
+        try {
+          const manifest = JSON.parse(fs.readFileSync(manifestFile, 'utf-8'));
+          const result = scanMCPServer(path.dirname(path.resolve(manifestFile)), { manifestOnly: true, manifestPath: manifestFile });
+          process.stdout.write(formatMCPScanResult(result, options.format || 'text'));
+          if (options.strict && result.scorecard.findings.some(f => f.severity === 'critical' || f.severity === 'high')) {
+            process.exit(1);
+          }
+        } catch (err: any) {
+          process.stderr.write(`Error: ${err.message}\n`);
+          process.exit(1);
+        }
+      } else if (target) {
+        const result = scanMCPServer(target, { format: options.format, strict: options.strict });
+        process.stdout.write(formatMCPScanResult(result, options.format || 'text'));
+        if (options.strict && result.scorecard.findings.some(f => f.severity === 'critical' || f.severity === 'high')) {
+          process.exit(1);
+        }
+      } else {
+        process.stderr.write('Usage: clawguard scan-mcp <path>  OR  clawguard scan-mcp --manifest <file>\n');
+        process.exit(2);
+      }
+      break;
+    }
+
+    case 'audit-mcp': {
+      if (!target) {
+        process.stderr.write('Usage: clawguard audit-mcp <npx-command-or-package-name>\n');
+        process.exit(2);
+      }
+      // Try to find the package in node_modules or resolve it
+      const possiblePaths = [
+        path.join(process.cwd(), 'node_modules', target),
+        path.join(process.cwd(), 'node_modules', `@modelcontextprotocol/${target}`),
+        target,
+      ];
+      let auditPath: string | undefined;
+      for (const p of possiblePaths) {
+        if (fs.existsSync(p) && fs.statSync(p).isDirectory()) {
+          auditPath = p;
+          break;
+        }
+      }
+      if (!auditPath) {
+        process.stderr.write(`Could not find MCP server at: ${target}\n`);
+        process.stderr.write('Provide a local path or installed package name.\n');
+        process.exit(1);
+      }
+      const result = scanMCPServer(auditPath);
+      process.stdout.write(formatMCPScanResult(result, options.format || 'text'));
+      if (options.strict && result.scorecard.findings.some(f => f.severity === 'critical' || f.severity === 'high')) {
+        process.exit(1);
+      }
+      break;
+    }
+
+    case 'badge': {
+      if (!target) {
+        process.stderr.write('Usage: clawguard badge <path> [--output badge.svg]\n');
+        process.exit(2);
+      }
+      const result = scanMCPServer(target);
+      const svg = generateBadgeSVG(result.scorecard);
+      const outIdx = args.indexOf('--output');
+      const outFile = outIdx !== -1 && args[outIdx + 1] ? args[outIdx + 1] : 'clawguard-badge.svg';
+      fs.writeFileSync(outFile, svg);
+      process.stdout.write(`🔒 Badge generated: ${outFile} (Grade: ${result.scorecard.grade}, Score: ${result.scorecard.score}/100)\n`);
       break;
     }
 

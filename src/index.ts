@@ -118,3 +118,7 @@ export type { A2AAgentCard, A2ATaskMessage, A2ASkill, A2AAuthentication, A2ACapa
 /** Unified Protocol Scanner - MCP + A2A combined scanning */
 export { ProtocolScanner } from './scanners/protocol-scanner';
 export type { MCPServerConfig, ProtocolScanResult } from './scanners/protocol-scanner';
+
+/** MCP Security — deep source code and manifest scanning for MCP servers */
+export { MCP_RULES, getRulesByCategory, scanMCPServer, formatMCPScanResult, analyzeManifest, generateBadgeSVG } from './mcp-security';
+export type { MCPRule, MCPRuleCategory, MCPManifest, MCPToolDef, MCPScorecard, MCPGrade, MCPScanResult, MCPScanOptions } from './mcp-security';

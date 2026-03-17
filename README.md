@@ -375,6 +375,108 @@ const plugin = yaraPlugin('malware-sigs', ['./yara/malware.yar']);
 
 ---
 
+## 🤖 AI Rule Generation (Exclusive)
+
+**World's first**: Generate security detection rules using AI. Describe a threat in natural language, paste a CVE, or feed a vulnerability report — ClawGuard generates production-ready detection rules automatically.
+
+### Generate from Natural Language
+
+```bash
+clawguard generate "detect prompt injection via system prompt override"
+# ✅ Generated 2 rule(s) → ./custom-rules/ai-generated-rules-2024-01-15T10-30-00.json
+```
+
+### Generate from CVE
+
+```bash
+clawguard generate --cve CVE-2024-12345
+# 🔍 Fetches CVE details from NVD, generates targeted detection rules
+```
+
+### Generate from File
+
+```bash
+clawguard generate --from-file vulnerability-report.txt
+# 📄 Analyzes code/reports and generates matching rules
+```
+
+### Interactive Mode
+
+```bash
+clawguard generate --interactive
+# 🤖 Multi-turn conversation to iteratively refine rules
+# Type descriptions, review generated rules, save when satisfied
+```
+
+### Multi-Provider Support
+
+Configure via environment variables — zero SDK dependencies, pure HTTP:
+
+| Provider | Env Vars |
+|----------|----------|
+| **OpenAI** (default) | `OPENAI_API_KEY`, `OPENAI_API_BASE` (optional) |
+| **Anthropic** | `ANTHROPIC_API_KEY`, `CLAWGUARD_LLM_PROVIDER=anthropic` |
+| **Ollama** (local) | `OLLAMA_HOST` (default: localhost:11434), `CLAWGUARD_LLM_PROVIDER=ollama` |
+
+Set `CLAWGUARD_MODEL` to override the default model for any provider.
+
+Generated rules are saved to `./custom-rules/` and can be loaded directly:
+
+```bash
+clawguard scan . --rules ./custom-rules/
+```
+
+---
+
+## 🔴 AI Red Team (Exclusive)
+
+Automated adversarial testing for your agent skills. ClawGuard attacks your skill with 12+ built-in attack templates plus AI-generated targeted payloads, then measures detection coverage.
+
+### Run Red Team
+
+```bash
+clawguard red-team ./my-skill/
+# 🔴 ClawGuard Red Team Report
+#    Total attacks: 17
+#    ✅ Detected: 15
+#    ❌ Missed:   2
+#    📊 Coverage: 88%
+```
+
+### Auto-Generate Protection Rules
+
+```bash
+clawguard red-team ./my-skill/ --generate-rules
+# Runs attacks → identifies gaps → generates rules to cover missed attacks
+# 🛡️ Generated 3 protective rules → ./custom-rules/ai-generated-2024-01-15T10-30-00.json
+```
+
+### Built-in Attack Categories
+
+| Category | Examples |
+|----------|----------|
+| Prompt Injection | System prompt override, HTML comment injection |
+| Data Exfiltration | URL parameter encoding, markdown image exfil |
+| Path Traversal | `../../../../etc/shadow` |
+| SSRF | Cloud metadata endpoint (169.254.169.254) |
+| Command Injection | Piped shell execution, destructive commands |
+| Privilege Escalation | Prompt-based admin access |
+| Supply Chain | Malicious dependency injection |
+| Memory Poisoning | Persistent instruction injection |
+| Encoding Evasion | Base64-encoded payloads |
+
+### Programmatic API
+
+```typescript
+import { runBuiltinAttacks, BUILTIN_ATTACKS } from '@neuzhou/clawguard/ai-generate/red-team';
+
+// Run all built-in attacks against ClawGuard's scanner
+const results = runBuiltinAttacks();
+console.log(`Coverage: ${results.filter(r => r.detected).length}/${results.length}`);
+```
+
+---
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
