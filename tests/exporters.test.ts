@@ -40,6 +40,58 @@ describe('Exporters - SARIF', () => {
     const sarif = toSarif([makeFinding({ severity: 'critical' })]);
     assert.strictEqual(sarif.runs[0].results[0].level, 'error');
   });
+
+  it('toSarif includes ruleIndex for known rules', () => {
+    const sarif = toSarif([makeFinding({ ruleId: 'prompt-injection' })]);
+    const result = sarif.runs[0].results[0];
+    assert.ok(typeof result.ruleIndex === 'number');
+    assert.ok(result.ruleIndex >= 0);
+  });
+
+  it('toSarif includes fingerprints', () => {
+    const sarif = toSarif([makeFinding()]);
+    const result = sarif.runs[0].results[0];
+    assert.ok(result.fingerprints);
+    assert.ok(result.fingerprints!.primaryLocationLineHash);
+    assert.strictEqual(result.fingerprints!.primaryLocationLineHash.length, 32);
+  });
+
+  it('toSarif includes partialFingerprints', () => {
+    const sarif = toSarif([makeFinding()]);
+    const result = sarif.runs[0].results[0];
+    assert.ok(result.partialFingerprints);
+    assert.ok(result.partialFingerprints!.primaryLocationLineHash);
+  });
+
+  it('toSarif includes codeFlows', () => {
+    const sarif = toSarif([makeFinding()]);
+    const result = sarif.runs[0].results[0];
+    assert.ok(result.codeFlows);
+    assert.strictEqual(result.codeFlows!.length, 1);
+    assert.ok(result.codeFlows![0].threadFlows[0].locations.length > 0);
+  });
+
+  it('toSarif includes semanticVersion and columnKind', () => {
+    const sarif = toSarif([], '1.2.3');
+    assert.strictEqual((sarif.runs[0].tool.driver as any).semanticVersion, '1.2.3');
+    assert.strictEqual(sarif.runs[0].columnKind, 'utf16CodeUnits');
+  });
+
+  it('toSarif includes helpUri in rules', () => {
+    const sarif = toSarif([]);
+    const rule = sarif.runs[0].tool.driver.rules[0];
+    assert.ok((rule as any).helpUri);
+  });
+
+  it('toSarif produces deterministic fingerprints for same input', () => {
+    const f = makeFinding();
+    const sarif1 = toSarif([f]);
+    const sarif2 = toSarif([f]);
+    assert.strictEqual(
+      sarif1.runs[0].results[0].fingerprints!.primaryLocationLineHash,
+      sarif2.runs[0].results[0].fingerprints!.primaryLocationLineHash,
+    );
+  });
 });
 
 describe('Exporters - JSONL', () => {
