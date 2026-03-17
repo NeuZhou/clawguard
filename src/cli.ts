@@ -78,10 +78,16 @@ Examples:
   process.stdout.write(help + '\n');
 }
 
-function parseArgs(args: string[]): { command: string; target?: string; options: Partial<ScanOptions> & { plugins?: string; disableBuiltin?: string } } {
+interface ParsedArgs {
+  command: string;
+  target?: string;
+  options: Partial<ScanOptions> & { plugins?: string; disableBuiltin?: string; cve?: string; fromFile?: string; interactive?: boolean; generateRules?: boolean };
+}
+
+function parseArgs(args: string[]): ParsedArgs {
   const command = args[0] || 'help';
   let target: string | undefined;
-  const options: Partial<ScanOptions> & { plugins?: string; disableBuiltin?: string; cve?: string; fromFile?: string; interactive?: boolean; generateRules?: boolean } = {};
+  const options: ParsedArgs['options'] = {};
 
   for (let i = 1; i < args.length; i++) {
     const arg = args[i];
@@ -631,7 +637,7 @@ async function main(): Promise<void> {
         try {
           const manifest = JSON.parse(fs.readFileSync(manifestFile, 'utf-8'));
           const result = scanMCPServer(path.dirname(path.resolve(manifestFile)), { manifestOnly: true, manifestPath: manifestFile });
-          process.stdout.write(formatMCPScanResult(result, options.format || 'text'));
+          process.stdout.write(formatMCPScanResult(result, (options.format === 'json' ? 'json' : 'text')));
           if (options.strict && result.scorecard.findings.some(f => f.severity === 'critical' || f.severity === 'high')) {
             process.exit(1);
           }
@@ -640,8 +646,8 @@ async function main(): Promise<void> {
           process.exit(1);
         }
       } else if (target) {
-        const result = scanMCPServer(target, { format: options.format, strict: options.strict });
-        process.stdout.write(formatMCPScanResult(result, options.format || 'text'));
+        const result = scanMCPServer(target, { format: options.format === 'json' ? 'json' : 'text', strict: options.strict });
+        process.stdout.write(formatMCPScanResult(result, (options.format === 'json' ? 'json' : 'text')));
         if (options.strict && result.scorecard.findings.some(f => f.severity === 'critical' || f.severity === 'high')) {
           process.exit(1);
         }
@@ -676,7 +682,7 @@ async function main(): Promise<void> {
         process.exit(1);
       }
       const result = scanMCPServer(auditPath);
-      process.stdout.write(formatMCPScanResult(result, options.format || 'text'));
+      process.stdout.write(formatMCPScanResult(result, (options.format === 'json' ? 'json' : 'text')));
       if (options.strict && result.scorecard.findings.some(f => f.severity === 'critical' || f.severity === 'high')) {
         process.exit(1);
       }

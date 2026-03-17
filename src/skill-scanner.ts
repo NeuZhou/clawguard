@@ -158,27 +158,59 @@ function getRemediation(ruleId: string, description: string): string {
   return remediations[ruleId] || 'Review and remediate the finding based on security best practices';
 }
 
-/** Format scan results as human-readable text */
-export function formatText(result: ScanResult): string {
+// ANSI color helpers (auto-disabled when NO_COLOR is set or not a TTY)
+const useColor = !process.env.NO_COLOR && (process.stdout.isTTY ?? false);
+const c = {
+  reset: useColor ? '\x1b[0m' : '',
+  bold: useColor ? '\x1b[1m' : '',
+  dim: useColor ? '\x1b[2m' : '',
+  red: useColor ? '\x1b[31m' : '',
+  green: useColor ? '\x1b[32m' : '',
+  yellow: useColor ? '\x1b[33m' : '',
+  blue: useColor ? '\x1b[34m' : '',
+  magenta: useColor ? '\x1b[35m' : '',
+  cyan: useColor ? '\x1b[36m' : '',
+  white: useColor ? '\x1b[37m' : '',
+  bgRed: useColor ? '\x1b[41m' : '',
+  bgGreen: useColor ? '\x1b[42m' : '',
+  orange: useColor ? '\x1b[38;5;208m' : '',
+};
+
+function sevColor(severity: string): string {
+  switch (severity) {
+    case 'critical': return c.red;
+    case 'high': return c.orange;
+    case 'warning': return c.yellow;
+    case 'info': return c.green;
+    default: return c.dim;
+  }
+}
+
+/** Format scan results as human-readable text with color */
+export function formatText(result: ScanResult, elapsedMs?: number): string {
   const lines: string[] = [];
+  const elapsed = elapsedMs != null ? `${(elapsedMs / 1000).toFixed(2)}s` : '';
+
   lines.push('');
-  lines.push('🛡️  ClawGuard — Security Scan Results');
-  lines.push('═'.repeat(50));
-  lines.push(`📁 Files scanned: ${result.totalFiles}`);
-  lines.push(`🔍 Findings: ${result.totalFindings}`);
+  lines.push(`${c.bold}${c.cyan}🛡️  ClawGuard${c.reset} ${c.dim}— Security Scan Results${c.reset}`);
+  lines.push(`${c.dim}${'═'.repeat(55)}${c.reset}`);
+  lines.push(`${c.bold}📁 Files scanned:${c.reset} ${result.totalFiles}    ${c.bold}🔍 Findings:${c.reset} ${result.totalFindings}${elapsed ? `    ${c.bold}⏱️  ${elapsed}${c.reset}` : ''}`);
   lines.push('');
 
   if (result.totalFindings === 0) {
-    lines.push('✅ No security issues found!');
+    lines.push(`${c.bgGreen}${c.bold} ✅ CLEAN ${c.reset} ${c.green}No security issues found!${c.reset}`);
     return lines.join('\n');
   }
 
-  const icons: Record<string, string> = { critical: '🔴', high: '🟠', warning: '🟡', info: '🔵' };
+  const icons: Record<string, string> = { critical: '🔴', high: '🟠', warning: '🟡', info: '🟢' };
 
-  lines.push('📊 Summary:');
-  for (const [sev, count] of Object.entries(result.summary)) {
-    if (count > 0) lines.push(`   ${icons[sev] || '⚪'} ${sev}: ${count}`);
+  // Summary bar
+  const parts: string[] = [];
+  for (const sev of ['critical', 'high', 'warning', 'info']) {
+    const count = result.summary[sev] || 0;
+    if (count > 0) parts.push(`${sevColor(sev)}${icons[sev]} ${count} ${sev}${c.reset}`);
   }
+  lines.push(`${c.bold}📊 Summary:${c.reset} ${parts.join('  ')}`);
 
   // Risk Score
   const riskFindings = result.findings.map(f => ({
@@ -192,25 +224,26 @@ export function formatText(result: ScanResult): string {
     action: 'log' as const,
   }));
   const risk = calculateRisk(riskFindings);
-  lines.push('');
-  lines.push(`🎯 Risk Score: ${risk.icon} ${risk.score}/100 — ${risk.verdict}`);
+  const riskColor = risk.score >= 70 ? c.red : risk.score >= 40 ? c.yellow : c.green;
+  lines.push(`${c.bold}🎯 Risk Score:${c.reset} ${riskColor}${c.bold}${risk.score}/100 — ${risk.verdict}${c.reset}`);
   if (risk.attackChains.length > 0) {
-    lines.push(`   ⛓️ Attack chains: ${risk.attackChains.join(', ')}`);
+    lines.push(`   ${c.red}⛓️  Attack chains: ${risk.attackChains.join(', ')}${c.reset}`);
   }
   lines.push('');
 
-  lines.push('📋 Findings:');
-  lines.push('─'.repeat(50));
+  lines.push(`${c.bold}📋 Findings:${c.reset}`);
+  lines.push(`${c.dim}${'─'.repeat(55)}${c.reset}`);
 
   for (const f of result.findings) {
+    const sc = sevColor(f.severity);
     const icon = icons[f.severity] || '⚪';
     const cvss = severityCvss(f.severity);
-    lines.push(`${icon} [${f.severity.toUpperCase()}] ${f.ruleId} (CVSS: ${cvss})`);
-    lines.push(`   📄 ${f.file}${f.line ? `:${f.line}` : ''}`);
+    lines.push(`${sc}${c.bold}${icon} [${f.severity.toUpperCase()}]${c.reset} ${c.bold}${f.ruleId}${c.reset} ${c.dim}(CVSS: ${cvss})${c.reset}`);
+    lines.push(`   ${c.dim}📄 ${f.file}${f.line ? `:${f.line}` : ''}${c.reset}`);
     lines.push(`   📝 ${f.description}`);
-    if (f.evidence) lines.push(`   🔎 ${f.evidence.slice(0, 100)}`);
+    if (f.evidence) lines.push(`   ${c.dim}🔎 ${f.evidence.slice(0, 100)}${c.reset}`);
     const remediation = getRemediation(f.ruleId, f.description);
-    if (remediation) lines.push(`   💡 ${remediation}`);
+    if (remediation) lines.push(`   ${c.cyan}💡 Fix: ${remediation}${c.reset}`);
     lines.push('');
   }
 
@@ -241,7 +274,9 @@ export function runScan(targetPath: string, options: Partial<ScanOptions> = {}):
   const strict = options.strict || false;
 
   try {
+    const startMs = performance.now();
     const result = scan(targetPath, options);
+    const elapsedMs = performance.now() - startMs;
 
     switch (format) {
       case 'json':
@@ -251,7 +286,7 @@ export function runScan(targetPath: string, options: Partial<ScanOptions> = {}):
         process.stdout.write(formatSarif(result) + '\n');
         break;
       default:
-        process.stdout.write(formatText(result) + '\n');
+        process.stdout.write(formatText(result, elapsedMs) + '\n');
     }
 
     if (strict && (result.summary.critical > 0 || result.summary.high > 0)) {
