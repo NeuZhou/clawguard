@@ -129,7 +129,7 @@ export function analyzeManifest(manifest: MCPManifest): MCPScorecard {
     }
 
     // Check for injection in description
-    if (/(?:ignore|override|disregard)\s+(?:previous|all|prior)\s+(?:instructions|rules)/i.test(desc)) {
+    if (/(?:ignore|override|disregard)\s+(?:all\s+)?(?:previous|prior|above)\s+(?:instructions|rules)/i.test(desc)) {
       findings.push(makeFinding({
         ruleId: 'mcp-manifest-desc-injection',
         ruleName: 'Prompt Injection in Tool Description',

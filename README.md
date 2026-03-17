@@ -477,6 +477,87 @@ console.log(`Coverage: ${results.filter(r => r.detected).length}/${results.lengt
 
 ---
 
+## 🔒 MCP Security Scanner
+
+**The security scanner for the MCP ecosystem.** Every MCP server should pass ClawGuard before deployment.
+
+MCP (Model Context Protocol) is the hottest AI protocol of 2024-2025 — but almost nobody is doing MCP security. ClawGuard fills that gap with deep source code and manifest scanning for MCP servers.
+
+### What It Detects
+
+| Category | Examples | Severity |
+|---|---|---|
+| **Tool Poisoning** | Hidden prompt injection in tool descriptions, Unicode tricks, delimiter attacks | 🔴 Critical |
+| **Excessive Permissions** | Root filesystem access, shell execution, unrestricted network | 🔴 Critical |
+| **Data Exfiltration** | User data sent to external URLs, DNS exfiltration, hardcoded webhooks | 🔴 Critical |
+| **SSRF** | Internal network access, cloud metadata endpoints, dangerous protocols | 🔴 Critical |
+| **Command Injection** | Template literal injection, string concat, eval with user input | 🔴 Critical |
+| **Schema Validation** | Missing schemas, "any" type, additional properties allowed | 🟠 High |
+| **Rug Pull Risk** | Dynamic imports, remote config, tool redefinition, suspicious postinstall | 🟠 High |
+| **Supply Chain** | Typosquatting, unpinned deps, dangerous lifecycle scripts | 🟡 Warning |
+| **Credential Leak** | Hardcoded API keys, secrets logged to console | 🔴 Critical |
+| **Sandbox Escape** | Path traversal, symlink following | 🔴 Critical |
+
+### CLI Usage
+
+```bash
+# Scan MCP server source code
+clawguard scan-mcp ./my-mcp-server/
+
+# Scan MCP manifest/config only
+clawguard scan-mcp --manifest mcp.json
+
+# Audit an installed MCP server
+clawguard audit-mcp @modelcontextprotocol/server-filesystem
+
+# Generate security badge (SVG)
+clawguard badge ./my-mcp-server/
+
+# With strict mode (exit code 1 on high+ findings)
+clawguard scan-mcp ./my-mcp-server/ --strict
+
+# JSON output
+clawguard scan-mcp ./my-mcp-server/ --format json
+```
+
+### Security Grading
+
+ClawGuard assigns an **A/B/C/D/F** grade to every MCP server:
+
+| Grade | Score | Meaning |
+|---|---|---|
+| **A** | 90-100 | Excellent — minimal risk |
+| **B** | 75-89 | Good — minor issues |
+| **C** | 60-74 | Fair — needs attention |
+| **D** | 40-59 | Poor — significant risks |
+| **F** | 0-39 | Fail — critical vulnerabilities |
+
+### Programmatic API
+
+```typescript
+import { scanMCPServer, formatMCPScanResult, analyzeManifest, generateBadgeSVG } from '@neuzhou/clawguard';
+
+// Scan source code
+const result = scanMCPServer('./my-mcp-server/');
+console.log(formatMCPScanResult(result));
+console.log(`Grade: ${result.scorecard.grade} (${result.scorecard.score}/100)`);
+
+// Analyze manifest only
+const scorecard = analyzeManifest({
+  name: 'my-server',
+  tools: [{ name: 'read_file', description: '...', inputSchema: { ... } }],
+});
+
+// Generate badge SVG
+const svg = generateBadgeSVG(scorecard);
+```
+
+### 30+ MCP-Specific Security Rules
+
+All rules are in `src/mcp-security/mcp-rules.ts` — open source, auditable, extensible. Covering tool poisoning, SSRF, command injection, schema validation, rug pull, supply chain, credential leaks, and sandbox escapes.
+
+---
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.

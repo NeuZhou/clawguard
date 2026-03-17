@@ -199,7 +199,7 @@ export const MCP_RULES: MCPRule[] = [
     description: 'MCP tool accesses internal network addresses',
     patterns: [
       /(?:fetch|axios|http\.get|request)\s*\(.*(?:127\.0\.0\.1|localhost|0\.0\.0\.0)/i,
-      /(?:fetch|axios|http\.get|request)\s*\(.*(?:10\.\d|192\.168\.|172\.(?:1[6-9]|2\d|3[01])\.)/i,
+      /(?:fetch|axios\.get|axios\.post|http\.get|request)\s*\(.*(?:10\.\d|192\.168\.|172\.(?:1[6-9]|2\d|3[01])\.)/i,
     ],
   },
   {
