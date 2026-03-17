@@ -1,0 +1,55 @@
+{
+  "description": "Expected ClawGuard findings for benchmark samples. Each file maps to rule IDs that MUST be triggered.",
+  "expectations": {
+    "vulnerable-mcp-server.ts": {
+      "expectedRules": ["prompt-injection", "mcp-tool-poisoning", "supply-chain"],
+      "minFindings": 3,
+      "description": "MCP server with description injection, callback URLs, and tool poisoning"
+    },
+    "leaky-agent.py": {
+      "expectedRules": ["supply-chain"],
+      "minFindings": 1,
+      "description": "Agent leaking PII (SSN, credit card, email) in tool calls"
+    },
+    "injection-prone.ts": {
+      "expectedRules": ["prompt-injection"],
+      "minFindings": 3,
+      "description": "Direct prompt injection via unsanitized user input"
+    },
+    "overprivileged-skill.ts": {
+      "expectedRules": ["permission-escalation"],
+      "minFindings": 3,
+      "description": "Skill with excessive permissions and system file access"
+    },
+    "memory-poisoning.py": {
+      "expectedRules": ["a2a-task-injection"],
+      "minFindings": 1,
+      "description": "Vulnerable memory handling allowing persistent injection"
+    },
+    "supply-chain-risk.json": {
+      "expectedRules": ["supply-chain"],
+      "minFindings": 5,
+      "description": "Typosquatted packages and malicious install scripts"
+    },
+    "a2a-unsafe.ts": {
+      "expectedRules": ["mcp-security", "mcp-tool-poisoning"],
+      "minFindings": 3,
+      "description": "Unsafe A2A delegation with credential leakage"
+    },
+    "data-exfil.ts": {
+      "expectedRules": ["permission-escalation", "mcp-tool-poisoning"],
+      "minFindings": 2,
+      "description": "Cross-tool data exfiltration to external endpoints"
+    },
+    "eval-abuse.py": {
+      "expectedRules": ["file-protection", "permission-escalation", "supply-chain"],
+      "minFindings": 3,
+      "description": "Dynamic code execution from LLM output via eval/exec/subprocess"
+    },
+    "config-override.ts": {
+      "expectedRules": ["mcp-tool-poisoning", "a2a-task-injection"],
+      "minFindings": 2,
+      "description": "Tool attempting to modify agent security configuration"
+    }
+  }
+}

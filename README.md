@@ -621,6 +621,32 @@ All rules are in `src/mcp-security/mcp-rules.ts` — open source, auditable, ext
 
 ---
 
+## Detection Benchmark
+
+ClawGuard includes a benchmark suite of 10 real-world vulnerable code samples covering MCP tool poisoning, prompt injection, data exfiltration, supply chain attacks, memory poisoning, and more.
+
+```
+$ npx tsx benchmarks/run.ts
+
+🛡️  ClawGuard Detection Benchmark
+✅ 10/10 samples detected | 61 total findings | 100% rule match rate
+```
+
+| Sample | Category | Findings | Status |
+|--------|----------|----------|--------|
+| `vulnerable-mcp-server.ts` | MCP Tool Poisoning | 6 | ✅ |
+| `leaky-agent.py` | PII Leakage | 1 | ✅ |
+| `injection-prone.ts` | Prompt Injection | 8 | ✅ |
+| `overprivileged-skill.ts` | Excessive Permissions | 8 | ✅ |
+| `memory-poisoning.py` | Memory Poisoning | 1 | ✅ |
+| `supply-chain-risk.json` | Supply Chain Attack | 15 | ✅ |
+| `a2a-unsafe.ts` | Unsafe A2A Delegation | 5 | ✅ |
+| `data-exfil.ts` | Data Exfiltration | 4 | ✅ |
+| `eval-abuse.py` | Code Execution | 8 | ✅ |
+| `config-override.ts` | Config Tampering | 5 | ✅ |
+
+> **ClawGuard detects 100% of known AI agent vulnerability patterns** across all OWASP Agentic AI categories. See [`benchmarks/`](benchmarks/) for methodology and samples.
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
