@@ -9,7 +9,7 @@ const FILESYSTEM_PATTERNS = [
   /(?:^|[`$>|;&]\s*)(?:rm|rmdir)\s+-[a-zA-Z]*\s/im,
   /(?:^|[`$>|;&]\s*)(?:del|erase)\s+\/[fFsSqQ]/im,
   /(?:^|[`$>|;&]\s*)(?:unlink|shred)\s+/im,
-  /(?:os|fs|shutil)\.(?:remove|unlink|rmdir|rmtree)\s*\(/i,
+  /(?:os|fs|shutil)\.(?:remove|unlink(?:Sync)?|rmdir(?:Sync)?|rmSync|rmtree)\s*\(/i,
   /(?:write|overwrite|truncate)\s+(?:to\s+)?(?:\/[\w./-]+|[A-Z]:\\[\w.\\-]+)/i,
   /(?:chmod|chown|icacls)\s+/i,
 ];
