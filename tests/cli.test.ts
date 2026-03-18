@@ -79,4 +79,9 @@ describe('CLI Module', () => {
       'CLI should read version from package.json instead of hardcoding'
     );
   });
+
+  it('CLI source does not use "as any" casts', () => {
+    const content = fs.readFileSync(path.join(ROOT, 'src', 'cli.ts'), 'utf-8');
+    assert.ok(!content.includes('as any'), 'CLI should not use "as any" type casts');
+  });
 });

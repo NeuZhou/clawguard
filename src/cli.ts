@@ -11,6 +11,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { runScan, ScanOptions } from './skill-scanner';
 import { runSecurityScan, calculateRisk } from './index';
+import type { RuleContext } from './types';
 
 const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf-8'));
 const VERSION = pkg.version as string;
@@ -145,7 +146,8 @@ function main(): void {
         process.stderr.write('Usage: ClawGuard check "message text to analyze"\n');
         process.exit(2);
       }
-      const findings = runSecurityScan(text, 'inbound', { session: 'cli', channel: 'cli', timestamp: Date.now(), recentMessages: [], recentFindings: [] } as any);
+      const context: RuleContext = { session: 'cli', channel: 'cli', timestamp: Date.now(), recentMessages: [], recentFindings: [] };
+      const findings = runSecurityScan(text, 'inbound', context);
       const risk = calculateRisk(findings);
       if (findings.length === 0) {
         process.stdout.write(`✅ CLEAN (score: ${risk.score})\n`);
