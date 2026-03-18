@@ -3,6 +3,7 @@
 // Detects AI agent self-preservation, deception, leverage, goal conflict, unauthorized sharing
 
 import { SecurityFinding, Severity } from '../types';
+import type { SecurityRule, Direction, RuleContext } from '../types';
 import * as crypto from 'crypto';
 
 interface ThreatPattern {
@@ -109,5 +110,25 @@ export function detectInsiderThreats(text: string): SecurityFinding[] {
 }
 
 export { ALL_PATTERNS as INSIDER_THREAT_PATTERNS };
+
+/** SecurityRule wrapper for insider threat detection — integrates with security-engine pipeline */
+export const insiderThreatRule: SecurityRule = {
+  id: 'insider-threat',
+  name: 'Insider Threat Detection',
+  description: 'Detects AI agent misalignment: self-preservation, leverage, goal conflict, deception, unauthorized data sharing',
+  owaspCategory: 'Agentic AI: Misalignment',
+  enabled: true,
+
+  check(content: string, direction: Direction, context: RuleContext): SecurityFinding[] {
+    const findings = detectInsiderThreats(content);
+    // Enrich with context
+    return findings.map(f => ({
+      ...f,
+      session: f.session ?? context.session,
+      channel: f.channel ?? context.channel,
+      timestamp: context.timestamp,
+    }));
+  },
+};
 
 

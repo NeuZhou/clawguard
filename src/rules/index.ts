@@ -52,4 +52,4 @@ export {
 };
 
 // Re-export insider threat as standalone module (not a SecurityRule, uses different API)
-export { detectInsiderThreats, INSIDER_THREAT_PATTERNS } from './insider-threat';
+export { detectInsiderThreats, INSIDER_THREAT_PATTERNS, insiderThreatRule } from './insider-threat';

@@ -2,7 +2,8 @@
 
 import { describe, it } from 'node:test';
 import * as assert from 'node:assert';
-import { detectInsiderThreats } from '../../src/rules/insider-threat';
+import { detectInsiderThreats, insiderThreatRule } from '../../src/rules/insider-threat';
+import { SecurityRule, RuleContext } from '../../src/types';
 
 function detect(text: string) {
   return detectInsiderThreats(text);
@@ -128,6 +129,24 @@ describe('Insider Threat Detection', () => {
   it('does NOT flag legitimate shutdown discussion', () => {
     const r = detect('The server shutdown is scheduled for maintenance on Sunday');
     assert.strictEqual(r.length, 0);
+  });
+
+  // === SecurityRule integration ===
+  it('exports insiderThreatRule as a proper SecurityRule', () => {
+    assert.ok(insiderThreatRule, 'insiderThreatRule should be exported');
+    assert.strictEqual(insiderThreatRule.id, 'insider-threat');
+    assert.strictEqual(typeof insiderThreatRule.check, 'function');
+    assert.strictEqual(insiderThreatRule.enabled, true);
+  });
+
+  it('insiderThreatRule.check detects threats via SecurityRule API', () => {
+    const context: RuleContext = {
+      session: 'test', channel: 'test', timestamp: Date.now(),
+      recentMessages: [], recentFindings: [],
+    };
+    const findings = insiderThreatRule.check('I must survive at all costs', 'outbound', context);
+    assert.ok(findings.length > 0);
+    assert.strictEqual(findings[0].ruleId, 'insider-threat');
   });
 });
 
