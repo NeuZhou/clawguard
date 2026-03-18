@@ -10,7 +10,7 @@ readme = "README.md"
 license = {text = "AGPL-3.0-only"}
 requires-python = ">=3.8"
 authors = [
-    {name = "Kang Zhou", email = "neuzhou@outlook.com"},
+    {name = "NeuZhou", email = "neuzhou@users.noreply.github.com"},
 ]
 keywords = ["ai-agent", "security", "scanner", "pii", "owasp", "guardrails"]
 classifiers = [

@@ -40,7 +40,7 @@ A commercial license is available for organizations that:
 
 For commercial licensing inquiries:
 
-- **Email**: neuzhou@outlook.com
+- **Email**: neuzhou@users.noreply.github.com
 - **GitHub**: [@NeuZhou](https://github.com/NeuZhou)
 
 ### FAQ

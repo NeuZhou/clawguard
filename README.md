@@ -286,7 +286,7 @@ ClawGuard is dual-licensed:
 
 Contributors must agree to our [CLA](CLA.md) to enable dual licensing.
 
-For commercial inquiries: neuzhou@outlook.com
+For commercial inquiries: neuzhou@users.noreply.github.com
 
 ---
 
