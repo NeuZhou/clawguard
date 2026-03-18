@@ -12,7 +12,8 @@ import * as path from 'path';
 import { runScan, ScanOptions } from './skill-scanner';
 import { runSecurityScan, calculateRisk } from './index';
 
-const VERSION = '1.0.0';
+const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf-8'));
+const VERSION = pkg.version as string;
 
 function printHelp(): void {
   const help = `

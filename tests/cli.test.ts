@@ -68,4 +68,15 @@ describe('CLI Module', () => {
     const content = fs.readFileSync(path.join(ROOT, 'src', 'cli.ts'), 'utf-8');
     assert.ok(content.includes('VERSION'), 'Should have VERSION constant');
   });
+
+  it('CLI version matches package.json version', () => {
+    const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf-8'));
+    const cliContent = fs.readFileSync(path.join(ROOT, 'src', 'cli.ts'), 'utf-8');
+    // CLI should read version from package.json, not hardcode it
+    assert.ok(
+      cliContent.includes("require('../package.json')") ||
+      cliContent.includes('readFileSync') && cliContent.includes('package.json'),
+      'CLI should read version from package.json instead of hardcoding'
+    );
+  });
 });
