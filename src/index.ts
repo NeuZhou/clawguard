@@ -67,4 +67,49 @@ export type { SanitizeResult, Replacement } from './sanitizer';
 export { checkIntentAction, checkIntentActionBatch } from './intent-action';
 export type { IntentActionCheck } from './intent-action';
 
+/** MCP Firewall — real-time security proxy for Model Context Protocol */
+export {
+  McpFirewallProxy,
+  parseMessage,
+  isRequest,
+  isResponse,
+  scanToolDescription,
+  scanToolCallParams,
+  scanToolOutput,
+  scanToolsList,
+  pinToolDescription,
+  getDescriptionPins,
+  clearDescriptionPins,
+  loadFirewallConfig,
+  parseFirewallConfig,
+  evaluateToolPolicy,
+  shouldEnforce,
+  recordDataFlow,
+  getDataFlowLog,
+  clearDataFlowLog,
+  getDataFlowSummary,
+  DEFAULT_FIREWALL_CONFIG,
+  FirewallDashboard,
+  formatEventLog,
+  runFirewallCli,
+  parseFirewallArgs,
+} from './mcp-firewall';
+export type {
+  JsonRpcRequest,
+  JsonRpcResponse,
+  JsonRpcMessage,
+  McpToolDefinition,
+  McpToolCallParams,
+  McpToolResult,
+  FirewallConfig,
+  FirewallMode,
+  ToolAction,
+  ServerPolicy,
+  InterceptResult,
+  ProxyEvent,
+  ScanResult,
+  DashboardStats,
+  ToolDescriptionPin,
+} from './mcp-firewall';
+
 

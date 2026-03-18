@@ -182,6 +182,34 @@ const decision = evaluateToolCall('exec', { command: 'rm -rf /' }, policies);
 // → { decision: 'deny', severity: 'critical' }
 ```
 
+### 🔥 MCP Firewall — Real-Time MCP Security Proxy
+
+Drop-in security proxy for the Model Context Protocol. Sits between MCP clients and servers, inspecting all traffic bidirectionally.
+
+```bash
+# Start MCP Firewall
+clawguard firewall --config firewall.yaml --mode enforce
+```
+
+```typescript
+import { McpFirewallProxy, parseFirewallConfig } from '@neuzhou/clawguard';
+
+const proxy = new McpFirewallProxy(parseFirewallConfig(yamlConfig));
+proxy.onEvent(event => console.log(event));
+
+// Intercept MCP JSON-RPC messages
+const result = proxy.interceptClientToServer(message, 'filesystem');
+// → { action: 'block', findings: [...], reason: '...' }
+```
+
+**Detection capabilities:**
+- 🔍 **Tool description injection** — Scans `tools/list` responses for prompt injection
+- 🎭 **Rug pull detection** — Hashes and pins tool descriptions, alerts on change
+- 🧹 **Parameter sanitization** — Detects base64 exfiltration, shell injection, path traversal
+- 🛡️ **Output validation** — Scans tool results for injection before forwarding to client
+
+See [docs/mcp-firewall.md](docs/mcp-firewall.md) for full usage guide.
+
 ### 🎣 Prompt Injection — 13 Sub-Categories
 
 | # | Sub-Category | Examples |
@@ -226,7 +254,7 @@ const decision = evaluateToolCall('exec', { command: 'rm -rf /' }, policies);
 | **Prompt injection detection** | ✅ 93 patterns, 13 categories | ✅ Via validators | ✅ | ✅ |
 | **Tool call governance** | ✅ Policy engine | ❌ | ❌ | ❌ |
 | **Insider threat / AI misalignment** | ✅ 39 patterns (Anthropic-inspired) | ❌ | ❌ | ❌ |
-| **MCP security analysis** | ✅ 20 patterns | ❌ | ❌ | ❌ |
+| **MCP security analysis** | ✅ 20 patterns + MCP Firewall | ❌ | ❌ | ❌ |
 | **Supply chain scanning** | ✅ 35 patterns | ❌ | ❌ | ❌ |
 | **Risk scoring & attack chains** | ✅ Weighted + multipliers | ❌ | ❌ | ✅ Basic |
 | **SARIF output** | ✅ | ❌ | ❌ | ❌ |
@@ -275,6 +303,7 @@ openclaw hooks enable clawguard-policy   # Enforces tool call policies
 - [x] SARIF output for code scanning
 - [x] OpenClaw hook pack for real-time protection
 - [x] Security dashboard
+- [x] MCP Firewall — real-time security proxy for Model Context Protocol
 - [ ] Custom rule authoring DSL
 - [ ] LangChain / CrewAI integration
 - [ ] VS Code extension

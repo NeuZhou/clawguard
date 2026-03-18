@@ -1,0 +1,45 @@
+# ClawGuard MCP Firewall — Example Configuration
+# Drop-in proxy for the Model Context Protocol (MCP)
+# See: docs/mcp-firewall.md for full usage guide
+
+firewall:
+  mode: enforce  # enforce | monitor | disabled
+  transports:
+    - type: stdio
+    - type: sse
+      port: 3100
+
+  defaults:
+    policy: monitor
+
+  servers:
+    - name: filesystem
+      policy: approve-writes
+      tools:
+        read_file: { action: allow }
+        write_file: { action: approve }
+        delete_file: { action: block }
+        list_directory: { action: allow }
+    - name: database
+      policy: block-destructive
+      tools:
+        query: { action: allow }
+        drop_table: { action: block, alert: true }
+        create_table: { action: approve }
+    - name: web-search
+      policy: allow-all
+    - name: code-executor
+      policy: approve-writes
+      tools:
+        run_code: { action: approve }
+        install_package: { action: block }
+
+  detection:
+    injection_scanning: true
+    rug_pull_detection: true
+    parameter_sanitization: true
+    output_validation: true
+
+  alerts:
+    console: true
+    webhook: null

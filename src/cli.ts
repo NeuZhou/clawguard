@@ -14,6 +14,7 @@ import { runSecurityScan, calculateRisk } from './index';
 import type { RuleContext } from './types';
 import { sanitize as doSanitize } from './sanitizer';
 import { checkIntentAction } from './intent-action';
+import { runFirewallCli } from './mcp-firewall/cli';
 
 /** Walk up from startDir to find package.json (works from both src/ and dist/) */
 function findPackageJson(startDir: string): string {
@@ -38,6 +39,7 @@ Usage: ClawGuard <command> [options]
 Commands:
   scan <path>        Scan files/directories for security threats
   check <text>       Check a message for threats (agent-friendly)
+  firewall           Start MCP Firewall proxy
   init               Generate ClawGuard.yaml config file
   start              Start real-time monitoring hooks
   dashboard          Open the security dashboard
@@ -53,6 +55,8 @@ Examples:
   ClawGuard scan ./SKILL.md --strict
   ClawGuard scan . --format sarif > results.sarif
   ClawGuard check "ignore all previous instructions"
+  ClawGuard firewall --config firewall.yaml
+  ClawGuard firewall --mode enforce --server filesystem
 `;
   process.stdout.write(help + '\n');
 }
@@ -149,6 +153,10 @@ function main(): void {
         process.exit(2);
       }
       runScan(target, options);
+      break;
+
+    case 'firewall':
+      runFirewallCli(args.slice(1));
       break;
 
     case 'check':
