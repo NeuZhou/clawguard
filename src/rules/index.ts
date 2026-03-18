@@ -16,6 +16,7 @@ import { crossAgentContaminationRule } from './cross-agent-contamination';
 import { complianceFrameworksRule } from './compliance-frameworks';
 
 import { insiderThreatRule } from './insider-threat';
+import { memoryAttackRule } from './memory-attacks';
 
 export const builtinRules: SecurityRule[] = [
   promptInjectionRule,
@@ -32,6 +33,7 @@ export const builtinRules: SecurityRule[] = [
   crossAgentContaminationRule,
   complianceFrameworksRule,
   insiderThreatRule,
+  memoryAttackRule,
 ];
 
 export function getRuleById(id: string): SecurityRule | undefined {
@@ -52,6 +54,7 @@ export {
   resourceAbuseRule,
   crossAgentContaminationRule,
   complianceFrameworksRule,
+  memoryAttackRule,
 };
 
 // Re-export insider threat as standalone module (not a SecurityRule, uses different API)

@@ -23,6 +23,7 @@ export {
   detectInsiderThreats,
   INSIDER_THREAT_PATTERNS,
   insiderThreatRule,
+  memoryAttackRule,
 } from './rules';
 
 /** Security scanning engine - OWASP LLM Top 10 aligned */
