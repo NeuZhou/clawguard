@@ -6,7 +6,18 @@ import { builtinRules } from '../rules';
 import * as fs from 'fs';
 import * as path from 'path';
 
-const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', 'package.json'), 'utf-8'));
+// Walk up from this file to find package.json (works from both src/ and dist/)
+function findPackageJson(): string {
+  let dir = __dirname;
+  for (let i = 0; i < 5; i++) {
+    const candidate = path.join(dir, 'package.json');
+    if (fs.existsSync(candidate)) return candidate;
+    dir = path.dirname(dir);
+  }
+  return path.join(__dirname, '..', '..', 'package.json'); // fallback
+}
+
+const pkg = JSON.parse(fs.readFileSync(findPackageJson(), 'utf-8'));
 const PKG_VERSION: string = pkg.version;
 
 interface SarifRule {

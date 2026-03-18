@@ -15,7 +15,18 @@ import type { RuleContext } from './types';
 import { sanitize as doSanitize } from './sanitizer';
 import { checkIntentAction } from './intent-action';
 
-const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf-8'));
+/** Walk up from startDir to find package.json (works from both src/ and dist/) */
+function findPackageJson(startDir: string): string {
+  let dir = startDir;
+  for (let i = 0; i < 5; i++) {
+    const candidate = path.join(dir, 'package.json');
+    if (fs.existsSync(candidate)) return candidate;
+    dir = path.dirname(dir);
+  }
+  return path.join(startDir, '..', 'package.json'); // fallback
+}
+
+const pkg = JSON.parse(fs.readFileSync(findPackageJson(__dirname), 'utf-8'));
 const VERSION = pkg.version as string;
 
 function printHelp(): void {
