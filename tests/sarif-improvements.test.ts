@@ -2,6 +2,8 @@
 
 import { describe, it } from 'node:test';
 import * as assert from 'node:assert';
+import * as fs from 'fs';
+import * as path from 'path';
 import { toSarif, ScanFinding } from '../src/exporters/sarif';
 import { SecurityFinding } from '../src/types';
 
@@ -97,6 +99,12 @@ describe('SARIF Output Improvements', () => {
   it('supports custom version string', () => {
     const sarif = toSarif([], '3.0.0');
     assert.strictEqual(sarif.runs[0].tool.driver.version, '3.0.0');
+  });
+
+  it('default version matches package.json version', () => {
+    const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf-8'));
+    const sarif = toSarif([]);
+    assert.strictEqual(sarif.runs[0].tool.driver.version, pkg.version);
   });
 
   it('generates valid JSON', () => {

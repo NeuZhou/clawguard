@@ -3,6 +3,11 @@
 
 import { SecurityFinding } from '../types';
 import { builtinRules } from '../rules';
+import * as fs from 'fs';
+import * as path from 'path';
+
+const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', 'package.json'), 'utf-8'));
+const PKG_VERSION: string = pkg.version;
 
 interface SarifRule {
   id: string;
@@ -56,7 +61,7 @@ export interface ScanFinding extends SecurityFinding {
   line?: number;
 }
 
-export function toSarif(findings: ScanFinding[], version: string = '2.0.0'): SarifOutput {
+export function toSarif(findings: ScanFinding[], version: string = PKG_VERSION): SarifOutput {
   const rules: SarifRule[] = builtinRules.map(rule => ({
     id: rule.id,
     name: rule.name,
