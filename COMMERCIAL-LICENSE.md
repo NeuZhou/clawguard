@@ -2,7 +2,7 @@
 
 ## ClawGuard — Commercial Licensing
 
-Copyright (c) 2026 Kang Zhou. All rights reserved.
+Copyright (c) 2026 NeuZhou. All rights reserved.
 
 ### Open Source License (Default)
 

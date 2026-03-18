@@ -2,7 +2,7 @@
 
 ## ClawGuard — Individual Contributor License Agreement
 
-Thank you for your interest in contributing to **ClawGuard** (the "Project"), owned by **Kang Zhou** (the "Maintainer").
+Thank you for your interest in contributing to **ClawGuard** (the "Project"), owned by **NeuZhou** (the "Maintainer").
 
 By submitting a contribution (pull request, patch, code, documentation, or any other material) to this Project, you agree to the following terms:
 
