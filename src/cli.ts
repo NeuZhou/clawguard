@@ -12,6 +12,8 @@ import * as path from 'path';
 import { runScan, ScanOptions } from './skill-scanner';
 import { runSecurityScan, calculateRisk } from './index';
 import type { RuleContext } from './types';
+import { sanitize as doSanitize } from './sanitizer';
+import { checkIntentAction } from './intent-action';
 
 const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf-8'));
 const VERSION = pkg.version as string;
@@ -205,7 +207,6 @@ function main(): void {
         process.stderr.write('Usage: ClawGuard sanitize "text containing PII or secrets"\n');
         process.exit(2);
       }
-      const { sanitize: doSanitize } = require('./sanitizer');
       const result = doSanitize(text);
       if (result.piiCount === 0) {
         process.stdout.write(`✅ No PII or credentials detected\n`);
@@ -230,7 +231,6 @@ function main(): void {
       }
       const intentText = args.slice(intentIdx + 1, actionIdx > intentIdx ? actionIdx : undefined).join(' ');
       const actionText = args.slice(actionIdx + 1, intentIdx > actionIdx ? intentIdx : undefined).join(' ');
-      const { checkIntentAction } = require('./intent-action');
       const check = checkIntentAction(intentText, actionText);
       if (check.mismatch) {
         const icon = check.severity === 'critical' ? '🔴' : check.severity === 'high' ? '🟠' : '🟡';

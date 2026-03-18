@@ -84,4 +84,11 @@ describe('CLI Module', () => {
     const content = fs.readFileSync(path.join(ROOT, 'src', 'cli.ts'), 'utf-8');
     assert.ok(!content.includes('as any'), 'CLI should not use "as any" type casts');
   });
+
+  it('CLI source does not use require() for internal modules', () => {
+    const content = fs.readFileSync(path.join(ROOT, 'src', 'cli.ts'), 'utf-8');
+    // require for package.json is acceptable, but require for .ts modules should use static imports
+    const requireMatches = content.match(/require\s*\(\s*['"]\.\//g) || [];
+    assert.strictEqual(requireMatches.length, 0, 'CLI should use static imports, not require() for internal modules');
+  });
 });
