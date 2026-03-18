@@ -40,6 +40,24 @@ export type { YaraRule, YaraMatch, YaraString } from './yara-engine';
 /** Persistent storage for messages, findings, and config */
 export { store } from './store';
 
+/** Alert engine — security alert dispatch and budget monitoring */
+export { checkSecurityAlert, checkCostBudget, checkHealthAlerts, setAlertSink, resetDailyBudgetAlerts, getAlertState } from './alert-engine';
+export type { AlertSink } from './alert-engine';
+
+/** Cost estimation engine — model pricing and token cost calculation */
+export { estimateTokens, getModelPricing, calculateCost, getAllModelPricing } from './cost-engine';
+export type { ModelPricing } from './cost-engine';
+
+/** Integrity engine — SHA-256 hash chain audit trail */
+export { createAuditEvent, verifyChain, initIntegrity } from './integrity';
+
+/** Exporters — JSONL, Syslog/CEF, Webhook, SARIF */
+export { exportJsonl, formatJsonlLine } from './exporters/jsonl';
+export { sendToSyslog, formatCEF } from './exporters/syslog';
+export { sendWebhook } from './exporters/webhook';
+export { toSarif } from './exporters/sarif';
+export type { ScanFinding } from './exporters/sarif';
+
 /** PII Sanitizer — local PII/credential removal before LLM calls */
 export { sanitize, restore, containsPII } from './sanitizer';
 export type { SanitizeResult, Replacement } from './sanitizer';

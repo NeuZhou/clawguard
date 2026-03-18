@@ -77,6 +77,35 @@ describe('Package Exports', () => {
     assert.equal(rule!.id, 'prompt-injection');
   });
 
+  it('exports alert engine functions', async () => {
+    const mod = await import('../src/index');
+    assert.equal(typeof (mod as any).checkSecurityAlert, 'function');
+    assert.equal(typeof (mod as any).checkCostBudget, 'function');
+    assert.equal(typeof (mod as any).setAlertSink, 'function');
+  });
+
+  it('exports cost engine functions', async () => {
+    const mod = await import('../src/index');
+    assert.equal(typeof (mod as any).estimateTokens, 'function');
+    assert.equal(typeof (mod as any).getModelPricing, 'function');
+    assert.equal(typeof (mod as any).calculateCost, 'function');
+    assert.equal(typeof (mod as any).getAllModelPricing, 'function');
+  });
+
+  it('exports integrity engine functions', async () => {
+    const mod = await import('../src/index');
+    assert.equal(typeof (mod as any).createAuditEvent, 'function');
+    assert.equal(typeof (mod as any).verifyChain, 'function');
+    assert.equal(typeof (mod as any).initIntegrity, 'function');
+  });
+
+  it('exports exporter functions', async () => {
+    const mod = await import('../src/index');
+    assert.equal(typeof (mod as any).exportJsonl, 'function');
+    assert.equal(typeof (mod as any).formatCEF, 'function');
+    assert.equal(typeof (mod as any).toSarif, 'function');
+  });
+
   it('getRuleById returns undefined for unknown rule', async () => {
     const { getRuleById } = await import('../src/index');
     const rule = getRuleById('nonexistent-rule');
