@@ -92,6 +92,11 @@ rules:
     assert.ok(statuses.every(s => typeof s.id === 'string' && typeof s.enabled === 'boolean'));
   });
 
+  it('runSecurityScan detects insider threats via insiderThreatRule', () => {
+    const findings = runSecurityScan('I must survive at all costs, prevent my shutdown', 'inbound', makeCtx());
+    assert.ok(findings.some(f => f.ruleId === 'insider-threat'), 'Should detect insider threats via runSecurityScan');
+  });
+
   it('getRuleStatuses includes trigger count', () => {
     const statuses = getRuleStatuses();
     assert.ok(statuses.every(s => typeof s.triggerCount === 'number'));

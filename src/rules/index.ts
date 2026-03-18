@@ -15,6 +15,8 @@ import { resourceAbuseRule } from './resource-abuse';
 import { crossAgentContaminationRule } from './cross-agent-contamination';
 import { complianceFrameworksRule } from './compliance-frameworks';
 
+import { insiderThreatRule } from './insider-threat';
+
 export const builtinRules: SecurityRule[] = [
   promptInjectionRule,
   dataLeakageRule,
@@ -29,6 +31,7 @@ export const builtinRules: SecurityRule[] = [
   resourceAbuseRule,
   crossAgentContaminationRule,
   complianceFrameworksRule,
+  insiderThreatRule,
 ];
 
 export function getRuleById(id: string): SecurityRule | undefined {
