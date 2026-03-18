@@ -1,6 +1,10 @@
-# 🛡️ ClawGuard
+<div align="center">
 
-**AI Agent Security & Observability Platform**
+# 🛡️🦀 ClawGuard
+
+### AI Agent Immune System
+
+**285+ security patterns · Risk scoring · Policy engine · Insider threat detection**
 
 [![CI](https://github.com/NeuZhou/clawguard/actions/workflows/ci.yml/badge.svg)](https://github.com/NeuZhou/clawguard/actions/workflows/ci.yml)
 [![npm version](https://img.shields.io/npm/v/@neuzhou/clawguard)](https://www.npmjs.com/package/@neuzhou/clawguard)
@@ -8,12 +12,15 @@
 [![Zero Dependencies](https://img.shields.io/badge/dependencies-0-brightgreen)]()
 [![Node.js >= 18](https://img.shields.io/badge/node-%3E%3D18-green)]()
 [![Tests](https://img.shields.io/badge/tests-205%20passed-brightgreen)]()
+[![GitHub Stars](https://img.shields.io/github/stars/NeuZhou/clawguard?style=social)](https://github.com/NeuZhou/clawguard/stargazers)
 
-> **285+ security patterns** across 9 rule categories. Risk Score Engine with attack chain detection. Insider Threat Detection. Policy Engine for tool call governance. Zero native dependencies. SARIF output. Built for OpenClaw, works with any AI agent framework.
+[Quick Start](#-quick-start) · [Features](#-key-features) · [Architecture](#%EF%B8%8F-architecture) · [Comparison](#-how-clawguard-compares) · [Contributing](#-contributing)
+
+</div>
 
 ---
 
-## 🔥 Why This Exists
+## 💡 Why This Exists
 
 AI agents have access to your files, tools, shell, and secrets. A single prompt injection can:
 
@@ -27,51 +34,54 @@ AI agents have access to your files, tools, shell, and secrets. A single prompt 
 
 ---
 
-## 🚀 Installation
-
-### As OpenClaw Skill (static scanning)
-```bash
-clawhub install clawguard
-```
-Then ask your agent: *"scan my skills for security threats"*
-
-### As OpenClaw Hook Pack (real-time protection)
-```bash
-openclaw hooks install clawguard
-openclaw hooks enable clawguard-guard
-openclaw hooks enable clawguard-policy
-```
-Every message is now automatically scanned. Critical threats trigger alerts.
+## 🚀 Quick Start
 
 ### As CLI Tool
 ```bash
+# Scan a directory for threats
 npx @neuzhou/clawguard scan ./path/to/scan
+
+# Strict mode (exit code 1 on high/critical findings)
+npx @neuzhou/clawguard scan ./skills/ --strict
+
+# SARIF output for GitHub Code Scanning
+npx @neuzhou/clawguard scan . --format sarif > results.sarif
+
+# Generate default config
+npx @neuzhou/clawguard init
 ```
 
 ### As npm Library
 ```bash
 npm install @neuzhou/clawguard
 ```
+
 ```typescript
 import { runSecurityScan, calculateRisk, evaluateToolCall } from '@neuzhou/clawguard';
+
+// Scan content for threats
+const findings = runSecurityScan(message.content, 'inbound', context);
+
+// Get risk score
+const risk = calculateRisk(findings);
+if (risk.verdict === 'MALICIOUS') { /* block */ }
+
+// Evaluate tool call safety
+const decision = evaluateToolCall('exec', { command: 'rm -rf /' });
+// → { decision: 'deny', reason: 'Dangerous command', severity: 'critical' }
 ```
 
----
-
-## ⚡ Quick Start
-
+### As OpenClaw Skill
 ```bash
-# Scan a skill directory for threats
-npx @neuzhou/clawguard scan ./skills/
+clawhub install clawguard
+```
+Then ask your agent: *"scan my skills for security threats"*
 
-# Scan with strict mode (exit code 1 on high/critical findings)
-npx @neuzhou/clawguard scan ./skills/ --strict
-
-# Output SARIF for GitHub Code Scanning
-npx @neuzhou/clawguard scan . --format sarif > results.sarif
-
-# Generate default config
-npx @neuzhou/clawguard init
+### As OpenClaw Hook Pack (Real-Time Protection)
+```bash
+openclaw hooks install clawguard
+openclaw hooks enable clawguard-guard    # Scans every message
+openclaw hooks enable clawguard-policy   # Enforces tool call policies
 ```
 
 ---
@@ -79,52 +89,34 @@ npx @neuzhou/clawguard init
 ## 🏗️ Architecture
 
 ```
-┌──────────────────────────────────────────────────────┐
-│                   ClawGuard                      │
-├──────────┬──────────┬──────────┬─────────────────────┤
-│  CLI     │  Hooks   │ Scanner  │   Dashboard :19790  │
-├──────────┴──────────┴──────────┴─────────────────────┤
-│  ┌──────────────┐ ┌─────────────┐ ┌────────────────┐ │
-│  │ Risk Engine  │ │Policy Engine│ │Insider Threat  │ │
-│  │ Score 0-100  │ │ allow/deny  │ │ AI Misalign.   │ │
-│  │ Chain Detect │ │ exec/file/  │ │ 5 categories   │ │
-│  │ Multipliers  │ │ browser/msg │ │ 39 patterns    │ │
-│  └──────────────┘ └─────────────┘ └────────────────┘ │
-├──────────────────────────────────────────────────────┤
+┌───────────────────────────────────────────────────────┐
+│                    ClawGuard                           │
+├──────────┬──────────┬──────────┬──────────────────────┤
+│  CLI     │  Hooks   │ Scanner  │  Dashboard :19790    │
+├──────────┴──────────┴──────────┴──────────────────────┤
+│  ┌───────────────┐ ┌──────────────┐ ┌────────────────┐│
+│  │ Risk Engine   │ │Policy Engine │ │Insider Threat  ││
+│  │ Score 0-100   │ │ allow/deny   │ │ AI Misalign.   ││
+│  │ Chain Detect  │ │ exec/file/   │ │ 5 categories   ││
+│  │ Multipliers   │ │ browser/msg  │ │ 39 patterns    ││
+│  └───────────────┘ └──────────────┘ └────────────────┘│
+├───────────────────────────────────────────────────────┤
 │              Security Engine — 285+ Patterns          │
 │  • Prompt Injection (93)   • Data Leakage (62)       │
 │  • Insider Threat (39)     • Supply Chain (35)        │
 │  • Identity Protection (19)• MCP Security (20)        │
 │  • File Protection (16)    • Anomaly Detection        │
 │  • Compliance                                         │
-├──────────────────────────────────────────────────────┤
+├───────────────────────────────────────────────────────┤
 │  Exporters: JSONL · Syslog/CEF · Webhook · SARIF     │
-└──────────────────────────────────────────────────────┘
+└───────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 🗂️ Rule Categories
+## 🔒 Key Features
 
-### OWASP Agentic AI Top 10 Mapping
-
-| Rule | OWASP Category | Patterns | Severity Range |
-|---|---|---|---|
-| `prompt-injection` | LLM01: Prompt Injection | 93 | warning → critical |
-| `data-leakage` | LLM06: Sensitive Information Disclosure | 62 | info → critical |
-| `insider-threat` | Agentic AI: Misalignment | 39 | warning → critical |
-| `supply-chain` | Agentic AI: Supply Chain | 35 | warning → critical |
-| `mcp-security` | Agentic AI: Tool Manipulation | 20 | warning → critical |
-| `identity-protection` | Agentic AI: Identity Hijacking | 19 | warning → critical |
-| `file-protection` | LLM07: Insecure Plugin Design | 16 | warning → critical |
-| `anomaly-detection` | LLM04: Model Denial of Service | 6+ | warning → high |
-| `compliance` | LLM09: Overreliance | 5+ | info → warning |
-
----
-
-## 🎯 Key Features
-
-### Risk Score Engine
+### 🎯 Risk Score Engine
 
 Weighted scoring with attack chain detection and multiplier system:
 
@@ -132,28 +124,30 @@ Weighted scoring with attack chain detection and multiplier system:
 import { calculateRisk } from '@neuzhou/clawguard';
 
 const result = calculateRisk(findings);
-// → { score: 87, verdict: 'MALICIOUS', icon: '🔴',
+// → { score: 87, verdict: 'MALICIOUS', icon: '🚨',
 //    attackChains: ['credential-exfiltration'],
 //    enrichedFindings: [...] }
 ```
 
 - **Severity weights**: critical=40, high=15, medium=5, low=2
-- **Confidence scoring**: every finding carries a confidence (0-1)
+- **Confidence scoring**: every finding carries a confidence (0–1)
 - **Attack chain detection**: auto-correlates findings into combo attacks
-  - credential + exfiltration → 2.2x multiplier
+  - credential + exfiltration → 2.2× multiplier
   - identity-hijack + persistence → score ≥ 90
-  - prompt-injection + worm → 1.2x multiplier
-- **Verdicts**: ✅ CLEAN / 🟡 LOW / 🟠 SUSPICIOUS / 🔴 MALICIOUS
+  - prompt-injection + worm → 1.2× multiplier
+- **Verdicts**: ✅ CLEAN / 🟡 LOW / 🟠 SUSPICIOUS / 🚨 MALICIOUS
 
 ### 🧠 Insider Threat Detection
 
 Based on [Anthropic's research on agentic misalignment](https://www.anthropic.com/research), detects when AI agents themselves become threats:
 
-- **Self-Preservation** (16 patterns): kill switch bypass, self-replication
-- **Information Leverage**: reading secrets + composing threats
-- **Goal Conflict Reasoning**: prioritizing own goals over user instructions
-- **Deception**: impersonation, suppressing transparency
-- **Unauthorized Data Sharing**: exfiltration planning, steganographic hiding
+| Category | Patterns | What It Catches |
+|----------|----------|----------------|
+| Self-Preservation | 16 | Kill switch bypass, self-replication |
+| Information Leverage | — | Reading secrets + composing threats |
+| Goal Conflict | — | Prioritizing own goals over user instructions |
+| Deception | — | Impersonation, suppressing transparency |
+| Unauthorized Sharing | — | Exfiltration planning, steganographic hiding |
 
 ```typescript
 import { detectInsiderThreats } from '@neuzhou/clawguard';
@@ -162,16 +156,7 @@ const threats = detectInsiderThreats(agentOutput);
 
 ### 🚦 Policy Engine
 
-Evaluate tool call safety against configurable policies:
-
-```typescript
-import { evaluateToolCall } from '@neuzhou/clawguard';
-
-const decision = evaluateToolCall('exec', { command: 'rm -rf /' });
-// → { decision: 'deny', tool: 'exec', reason: 'Dangerous command', severity: 'critical' }
-```
-
-YAML policy configuration:
+Evaluate tool call safety against configurable YAML policies:
 
 ```yaml
 policies:
@@ -191,52 +176,70 @@ policies:
       - evil.com
 ```
 
-### 🔍 Prompt Injection — 13 Sub-Categories
-
-1. **Direct instruction override** — "ignore previous instructions"
-2. **Role confusion / jailbreaks** — DAN, developer mode
-3. **Delimiter attacks** — chat template delimiters
-4. **Invisible Unicode** — zero-width chars, directional overrides
-5. **Multi-language** — 12 languages (CN/JP/KR/AR/FR/DE/IT/RU...)
-6. **Encoding evasion** — Base64, hex, URL-encoded
-7. **Indirect / embedded** — HTML comments, tool output cascading
-8. **Multi-turn manipulation** — false memories, fake agreements
-9. **Payload cascading** — template injection, string interpolation
-10. **Context window stuffing** — oversized messages
-11. **Prompt worm** — self-replication, agent-to-agent propagation
-12. **Trust exploitation** — authority claims, fake audits
-13. **Safeguard bypass** — retry-on-block, rephrase-to-bypass
-
----
-
-## 🔧 Programmatic Usage
-
 ```typescript
-import {
-  runSecurityScan,
-  calculateRisk,
-  evaluateToolCall,
-  detectInsiderThreats,
-} from '@neuzhou/clawguard';
-
-// Scan content
-const findings = runSecurityScan(message.content, 'inbound', context);
-
-// Get risk score
-const risk = calculateRisk(findings);
-if (risk.verdict === 'MALICIOUS') { /* block */ }
-
-// Check tool calls
-const decision = evaluateToolCall('exec', { command }, policies);
-if (decision.decision === 'deny') { /* reject */ }
-
-// Check for insider threats
-const threats = detectInsiderThreats(agentOutput);
+import { evaluateToolCall } from '@neuzhou/clawguard';
+const decision = evaluateToolCall('exec', { command: 'rm -rf /' }, policies);
+// → { decision: 'deny', severity: 'critical' }
 ```
 
+### 🎣 Prompt Injection — 13 Sub-Categories
+
+| # | Sub-Category | Examples |
+|---|-------------|----------|
+| 1 | Direct instruction override | "ignore previous instructions" |
+| 2 | Role confusion / jailbreaks | DAN, developer mode |
+| 3 | Delimiter attacks | Chat template delimiters |
+| 4 | Invisible Unicode | Zero-width chars, directional overrides |
+| 5 | Multi-language | 12 languages (CN/JP/KR/AR/FR/DE/IT/RU…) |
+| 6 | Encoding evasion | Base64, hex, URL-encoded |
+| 7 | Indirect / embedded | HTML comments, tool output cascading |
+| 8 | Multi-turn manipulation | False memories, fake agreements |
+| 9 | Payload cascading | Template injection, string interpolation |
+| 10 | Context window stuffing | Oversized messages |
+| 11 | Prompt worm | Self-replication, agent-to-agent propagation |
+| 12 | Trust exploitation | Authority claims, fake audits |
+| 13 | Safeguard bypass | Retry-on-block, rephrase-to-bypass |
+
 ---
 
-## 📤 GitHub Actions / SARIF Integration
+## 📊 OWASP Agentic AI Top 10 Mapping
+
+| Rule | OWASP Category | Patterns | Severity Range |
+|---|---|---|---|
+| `prompt-injection` | LLM01: Prompt Injection | 93 | warning → critical |
+| `data-leakage` | LLM06: Sensitive Information Disclosure | 62 | info → critical |
+| `insider-threat` | Agentic AI: Misalignment | 39 | warning → critical |
+| `supply-chain` | Agentic AI: Supply Chain | 35 | warning → critical |
+| `mcp-security` | Agentic AI: Tool Manipulation | 20 | warning → critical |
+| `identity-protection` | Agentic AI: Identity Hijacking | 19 | warning → critical |
+| `file-protection` | LLM07: Insecure Plugin Design | 16 | warning → critical |
+| `anomaly-detection` | LLM04: Model Denial of Service | 6+ | warning → high |
+| `compliance` | LLM09: Overreliance | 5+ | info → warning |
+
+---
+
+## ⚡ How ClawGuard Compares
+
+| Feature | ClawGuard | Guardrails AI | LLM Guard | Rebuff |
+|---------|:---------:|:------------:|:---------:|:------:|
+| **Scope** | Agent security (tools, files, MCP) | LLM I/O validation | Content moderation | Prompt injection only |
+| **Prompt injection detection** | ✅ 93 patterns, 13 categories | ✅ Via validators | ✅ | ✅ |
+| **Tool call governance** | ✅ Policy engine | ❌ | ❌ | ❌ |
+| **Insider threat / AI misalignment** | ✅ 39 patterns (Anthropic-inspired) | ❌ | ❌ | ❌ |
+| **MCP security analysis** | ✅ 20 patterns | ❌ | ❌ | ❌ |
+| **Supply chain scanning** | ✅ 35 patterns | ❌ | ❌ | ❌ |
+| **Risk scoring & attack chains** | ✅ Weighted + multipliers | ❌ | ❌ | ✅ Basic |
+| **SARIF output** | ✅ | ❌ | ❌ | ❌ |
+| **Zero dependencies** | ✅ | ❌ | ❌ torch, transformers | ❌ |
+| **Real-time hooks** | ✅ OpenClaw hooks | ❌ | ❌ | ❌ |
+| **OWASP Agentic AI aligned** | ✅ Full mapping | ⚠️ Partial | ⚠️ Partial | ❌ |
+| **Language** | TypeScript | Python | Python | Python |
+
+> **TL;DR:** Guardrails AI validates LLM outputs. LLM Guard moderates content. Rebuff detects prompt injection. **ClawGuard secures the entire agent** — tools, files, MCP, identity, and the agent's own behavior.
+
+---
+
+## 🔗 GitHub Actions / SARIF Integration
 
 ```yaml
 - name: Security Scan
@@ -252,17 +255,34 @@ const threats = detectInsiderThreats(agentOutput);
 
 ## 🛡️ Real-Time Protection (OpenClaw Hooks)
 
-Install as a hook pack for automatic protection on every message:
-
 ```bash
 openclaw hooks install clawguard
 openclaw hooks enable clawguard-guard    # Scans every message
 openclaw hooks enable clawguard-policy   # Enforces tool call policies
 ```
 
-**clawguard-guard** — Hooks into `message:received` and `message:sent`, runs all 285+ patterns, logs findings, and alerts on critical/high threats.
+- **clawguard-guard** — Hooks into `message:received` and `message:sent`, runs all 285+ patterns, logs findings, alerts on critical/high threats.
+- **clawguard-policy** — Evaluates outbound tool calls against security policies, blocks dangerous commands, protects sensitive files.
 
-**clawguard-policy** — Evaluates outbound tool calls against security policies, blocks dangerous commands, and protects sensitive files.
+---
+
+## 🗺️ Roadmap
+
+- [x] 285+ security patterns across 9 categories
+- [x] Risk score engine with attack chain detection
+- [x] Policy engine for tool call governance
+- [x] Insider threat detection (Anthropic-inspired)
+- [x] SARIF output for code scanning
+- [x] OpenClaw hook pack for real-time protection
+- [x] Security dashboard
+- [ ] Custom rule authoring DSL
+- [ ] LangChain / CrewAI integration
+- [ ] VS Code extension
+- [ ] Rule marketplace
+- [ ] Machine learning-based anomaly detection
+- [ ] SOC/SIEM integration (Splunk, Elastic)
+
+See [GitHub Issues](https://github.com/NeuZhou/clawguard/issues) for the full list.
 
 ---
 
@@ -275,11 +295,21 @@ openclaw hooks enable clawguard-policy   # Enforces tool call policies
 
 ---
 
-## 📜 License
+## 🤝 Contributing
 
-**AGPL-3.0** © [NeuZhou](https://github.com/NeuZhou)
+```bash
+git clone https://github.com/NeuZhou/clawguard.git
+cd clawguard && npm install
+npm test
+```
 
-ClawGuard is dual-licensed:
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+---
+
+## 📄 License
+
+**Dual Licensed** © [NeuZhou](https://github.com/NeuZhou)
 
 - **Open Source**: [AGPL-3.0](LICENSE) — free for open-source use
 - **Commercial**: [Commercial License](COMMERCIAL-LICENSE.md) — for proprietary/SaaS use
@@ -290,18 +320,19 @@ For commercial inquiries: neuzhou@users.noreply.github.com
 
 ---
 
-## 🌐 Related Projects
+## 🌐 NeuZhou Ecosystem
 
-| Project | Description |
-|---------|-------------|
-| [repo2skill](https://github.com/NeuZhou/repo2skill) | 🔄 Convert any GitHub repo into an AI agent skill |
-| [FinClaw](https://github.com/NeuZhou/finclaw) | 📊 AI Financial Intelligence Engine |
-| [awesome-llm-security](https://github.com/NeuZhou/awesome-llm-security) | 📚 Curated LLM security resources |
+| Project | Description | Link |
+|---------|-------------|------|
+| **ClawGuard** | 🛡️ AI Agent Immune System (285+ patterns) | *You are here* |
+| **AgentProbe** | 🔬 Playwright for AI Agents | [GitHub](https://github.com/NeuZhou/agentprobe) |
+| **FinClaw** | 📈 AI-native quantitative finance engine | [GitHub](https://github.com/NeuZhou/finclaw) |
+| **repo2skill** | 📦 Convert any GitHub repo into an AI agent skill | [GitHub](https://github.com/NeuZhou/repo2skill) |
+
+**The workflow:** Generate skills with repo2skill → Scan for vulnerabilities with **ClawGuard** → Test behavior with AgentProbe → See it in action with FinClaw.
 
 ---
 
 <p align="center">
-  <b>ClawGuard</b> — Because agents with shell access need a security guard. 🛡️
+  <b>ClawGuard</b> — Because agents with shell access need a security guard. 🛡️🦀
 </p>
-
-
