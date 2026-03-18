@@ -31,7 +31,7 @@ describe('Additional Security Patterns - Data Leakage (Issue #6)', () => {
 
   it('detects Shopify access token', async () => {
     const { dataLeakageRule } = await import('../src/rules/data-leakage');
-    const findings = dataLeakageRule.check('token is shpat_abcdef1234567890abcdef1234567890', 'outbound', makeCtx());
+    const findings = dataLeakageRule.check('token is shpat_' + 'a'.repeat(32), 'outbound', makeCtx());
     assert.ok(findings.some(f => f.description.toLowerCase().includes('shopify')), 'Should detect Shopify token');
   });
 
