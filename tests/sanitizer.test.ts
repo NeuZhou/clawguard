@@ -79,5 +79,13 @@ describe('PII Sanitizer', () => {
     assert.strictEqual(result.sanitized, 'The weather is nice today');
     assert.strictEqual(result.piiCount, 0);
   });
+
+  it('containsPII returns consistent results on repeated calls', () => {
+    // Regression: global regex lastIndex must be reset between calls
+    const text = 'Contact john@example.com for details';
+    assert.ok(containsPII(text), 'First call should detect PII');
+    assert.ok(containsPII(text), 'Second call should also detect PII (no stale lastIndex)');
+    assert.ok(containsPII(text), 'Third call should also detect PII');
+  });
 });
 
