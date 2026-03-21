@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🛡️🦀 ClawGuard
+# ClawGuard
 
 ### AI Agent Immune System
 
@@ -14,13 +14,13 @@
 [![Tests](https://img.shields.io/badge/tests-205%20passed-brightgreen)]()
 [![GitHub Stars](https://img.shields.io/github/stars/NeuZhou/clawguard?style=social)](https://github.com/NeuZhou/clawguard/stargazers)
 
-[Quick Start](#-quick-start) · [Features](#-key-features) · [Architecture](#%EF%B8%8F-architecture) · [Comparison](#-how-clawguard-compares) · [Contributing](#-contributing)
+[Quick Start](#quick-start) · [Features](#key-features) · [Architecture](#architecture) · [Comparison](#how-clawguard-compares) · [Contributing](#contributing)
 
 </div>
 
 ---
 
-## 💡 Why This Exists
+## Why This Exists
 
 AI agents have access to your files, tools, shell, and secrets. A single prompt injection can:
 
@@ -34,7 +34,7 @@ AI agents have access to your files, tools, shell, and secrets. A single prompt 
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### As CLI Tool
 ```bash
@@ -86,7 +86,7 @@ openclaw hooks enable clawguard-policy   # Enforces tool call policies
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 ┌───────────────────────────────────────────────────────┐
@@ -114,9 +114,9 @@ openclaw hooks enable clawguard-policy   # Enforces tool call policies
 
 ---
 
-## 🔒 Key Features
+## Key Features
 
-### 🎯 Risk Score Engine
+### Risk Score Engine
 
 Weighted scoring with attack chain detection and multiplier system:
 
@@ -137,7 +137,7 @@ const result = calculateRisk(findings);
   - prompt-injection + worm → 1.2× multiplier
 - **Verdicts**: ✅ CLEAN / 🟡 LOW / 🟠 SUSPICIOUS / 🚨 MALICIOUS
 
-### 🧠 Insider Threat Detection
+### Insider Threat Detection
 
 Based on [Anthropic's research on agentic misalignment](https://www.anthropic.com/research), detects when AI agents themselves become threats:
 
@@ -154,7 +154,7 @@ import { detectInsiderThreats } from '@neuzhou/clawguard';
 const threats = detectInsiderThreats(agentOutput);
 ```
 
-### 🚦 Policy Engine
+### Policy Engine
 
 Evaluate tool call safety against configurable YAML policies:
 
@@ -182,7 +182,7 @@ const decision = evaluateToolCall('exec', { command: 'rm -rf /' }, policies);
 // → { decision: 'deny', severity: 'critical' }
 ```
 
-### 🔥 MCP Firewall — Real-Time MCP Security Proxy
+### MCP Firewall — Real-Time MCP Security Proxy
 
 Drop-in security proxy for the Model Context Protocol. Sits between MCP clients and servers, inspecting all traffic bidirectionally.
 
@@ -203,14 +203,14 @@ const result = proxy.interceptClientToServer(message, 'filesystem');
 ```
 
 **Detection capabilities:**
-- 🔍 **Tool description injection** — Scans `tools/list` responses for prompt injection
-- 🎭 **Rug pull detection** — Hashes and pins tool descriptions, alerts on change
-- 🧹 **Parameter sanitization** — Detects base64 exfiltration, shell injection, path traversal
-- 🛡️ **Output validation** — Scans tool results for injection before forwarding to client
+- **Tool description injection** — Scans `tools/list` responses for prompt injection
+- **Rug pull detection** — Hashes and pins tool descriptions, alerts on change
+- **Parameter sanitization** — Detects base64 exfiltration, shell injection, path traversal
+- **Output validation** — Scans tool results for injection before forwarding to client
 
 See [docs/mcp-firewall.md](docs/mcp-firewall.md) for full usage guide.
 
-### 🎣 Prompt Injection — 13 Sub-Categories
+### Prompt Injection — 13 Sub-Categories
 
 | # | Sub-Category | Examples |
 |---|-------------|----------|
@@ -230,7 +230,7 @@ See [docs/mcp-firewall.md](docs/mcp-firewall.md) for full usage guide.
 
 ---
 
-## 📊 OWASP Agentic AI Top 10 Mapping
+## OWASP Agentic AI Top 10 Mapping
 
 | Rule | OWASP Category | Patterns | Severity Range |
 |---|---|---|---|
@@ -246,7 +246,7 @@ See [docs/mcp-firewall.md](docs/mcp-firewall.md) for full usage guide.
 
 ---
 
-## ⚡ How ClawGuard Compares
+## How ClawGuard Compares
 
 | Feature | ClawGuard | Guardrails AI | LLM Guard | Rebuff |
 |---------|:---------:|:------------:|:---------:|:------:|
@@ -267,7 +267,7 @@ See [docs/mcp-firewall.md](docs/mcp-firewall.md) for full usage guide.
 
 ---
 
-## 🔗 GitHub Actions / SARIF Integration
+## GitHub Actions / SARIF Integration
 
 ```yaml
 - name: Security Scan
@@ -281,7 +281,7 @@ See [docs/mcp-firewall.md](docs/mcp-firewall.md) for full usage guide.
 
 ---
 
-## 🛡️ Real-Time Protection (OpenClaw Hooks)
+## Real-Time Protection (OpenClaw Hooks)
 
 ```bash
 openclaw hooks install clawguard
@@ -294,7 +294,7 @@ openclaw hooks enable clawguard-policy   # Enforces tool call policies
 
 ---
 
-## 🗺️ Roadmap
+## Roadmap
 
 - [x] 285+ security patterns across 9 categories
 - [x] Risk score engine with attack chain detection
@@ -315,7 +315,7 @@ See [GitHub Issues](https://github.com/NeuZhou/clawguard/issues) for the full li
 
 ---
 
-## 📚 References
+## References
 
 - [OWASP Top 10 for LLM Applications](https://owasp.org/www-project-top-10-for-large-language-model-applications/)
 - [OWASP Agentic AI Top 10 (2026)](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/)
@@ -324,7 +324,7 @@ See [GitHub Issues](https://github.com/NeuZhou/clawguard/issues) for the full li
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 ```bash
 git clone https://github.com/NeuZhou/clawguard.git
@@ -336,7 +336,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ---
 
-## 📄 License
+## License
 
 **Dual Licensed** © [NeuZhou](https://github.com/NeuZhou)
 
@@ -349,19 +349,19 @@ For commercial inquiries: neuzhou@users.noreply.github.com
 
 ---
 
-## 🌐 NeuZhou Ecosystem
+## NeuZhou Ecosystem
 
 | Project | Description | Link |
 |---------|-------------|------|
-| **ClawGuard** | 🛡️ AI Agent Immune System (285+ patterns) | *You are here* |
-| **AgentProbe** | 🔬 Playwright for AI Agents | [GitHub](https://github.com/NeuZhou/agentprobe) |
-| **FinClaw** | 📈 AI-native quantitative finance engine | [GitHub](https://github.com/NeuZhou/finclaw) |
-| **repo2skill** | 📦 Convert any GitHub repo into an AI agent skill | [GitHub](https://github.com/NeuZhou/repo2skill) |
+| **ClawGuard** | AI Agent Immune System (285+ patterns) | *You are here* |
+| **AgentProbe** | Playwright for AI Agents | [GitHub](https://github.com/NeuZhou/agentprobe) |
+| **FinClaw** | AI-native quantitative finance engine | [GitHub](https://github.com/NeuZhou/finclaw) |
+| **repo2skill** | Convert any GitHub repo into an AI agent skill | [GitHub](https://github.com/NeuZhou/repo2skill) |
 
 **The workflow:** Generate skills with repo2skill → Scan for vulnerabilities with **ClawGuard** → Test behavior with AgentProbe → See it in action with FinClaw.
 
 ---
 
 <p align="center">
-  <b>ClawGuard</b> — Because agents with shell access need a security guard. 🛡️🦀
+  <b>ClawGuard</b> — Because agents with shell access need a security guard.
 </p>
