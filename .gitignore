@@ -6,3 +6,5 @@ dist/
 !hooks/dashboard/public/**
 .env
 *.log
+
+.secret-patterns.local
